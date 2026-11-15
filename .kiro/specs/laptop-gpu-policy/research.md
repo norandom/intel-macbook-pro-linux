@@ -70,3 +70,4 @@ authorized. Any eventual design must honor that stricter boundary.
   (seeded from config `gpu_mode`, default battery); only when the udev names exist.
 - `hypr-gpu battery|external [--now] | status`; applies at the next Hyprland login. KDE untouched;
   owner's force_igd and DPM-low rule untouched.
+- Measured after re-login in battery mode: AMD 0 % busy, 3.0 W (vs ~4 W idle / ~8 W under app rendering before).
