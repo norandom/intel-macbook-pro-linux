@@ -1,0 +1,47 @@
+#!/bin/bash
+# Managed by t2-mac-kde (desktop). Layout mode:
+#   hypr-layout dynamic|golden-h|golden-v|golden-spiral|next   (no argument: print the mode)
+set -u
+f="$HOME/.config/hypr/layout-mode"
+modes=(dynamic golden-h golden-v golden-spiral)
+cur=$(cat "$f" 2>/dev/null || echo dynamic)
+
+case "${1:-}" in
+  "") echo "$cur"; exit 0 ;;
+  next)
+    new=${modes[0]}
+    for i in "${!modes[@]}"; do [ "${modes[$i]}" = "$cur" ] && new=${modes[$(( (i + 1) % ${#modes[@]} ))]}; done ;;
+  dynamic|golden-h|golden-v|golden-spiral) new=$1 ;;
+  *) echo "usage: hypr-layout dynamic|golden-h|golden-v|golden-spiral|next" >&2; exit 2 ;;
+esac
+
+echo "$new" > "$f"
+"$HOME/.local/bin/hypr-desktop-state" --reload || exit 1
+
+# Existing windows: tile them for golden-*, float them again for dynamic.
+geom="$HOME/.local/state/hypr-window-geometry"
+mons=$(hyprctl monitors -j)
+hyprctl clients -j | jq -r '.[] | select(.mapped and (.hidden | not) and (.workspace.id > 0)) | "\(.address) \(.monitor) \(.floating) \(.class)"' |
+while read -r a mon floating class; do
+  case "$a" in 0x[0-9a-fA-F]*) ;; *) continue ;; esac
+  if [ "$new" != dynamic ]; then
+    [ "$floating" = true ] && hyprctl dispatch settiled "address:$a" >/dev/null
+    continue
+  fi
+  [ "$floating" = true ] || hyprctl dispatch setfloating "address:$a" >/dev/null
+  # remembered geometry (fractions of the monitor) or centre
+  g=$(awk -v c="$class" '$1 == c { print $2, $3, $4, $5 }' "$geom" 2>/dev/null)
+  read -r mx my mw mh < <(jq -r --argjson id "$mon" '.[] | select(.id == $id) | "\(.x) \(.y) \(.width / .scale) \(.height / .scale)"' <<<"$mons")
+  [ -n "${mw:-}" ] || continue
+  if [ -n "$g" ]; then
+    read -r fx fy fw fh <<<"$g"
+  else
+    fw=0.6 fh=0.6 fx=0.2 fy=0.2
+  fi
+  w=$(awk -v f="$fw" -v m="$mw" 'BEGIN{printf "%d", f*m}'); h=$(awk -v f="$fh" -v m="$mh" 'BEGIN{printf "%d", f*m}')
+  x=$(awk -v f="$fx" -v m="$mw" -v o="$mx" 'BEGIN{printf "%d", o+f*m}'); y=$(awk -v f="$fy" -v m="$mh" -v o="$my" 'BEGIN{printf "%d", o+f*m}')
+  hyprctl dispatch resizewindowpixel "exact $w $h,address:$a" >/dev/null
+  hyprctl dispatch movewindowpixel "exact $x $y,address:$a" >/dev/null
+done
+pkill -RTMIN+8 -u "$(id -u)" -x waybar 2>/dev/null   # refresh the bar's layout indicator
+hyprctl notify -1 1500 "rgb(4a90d9)" "Layout: $new" >/dev/null

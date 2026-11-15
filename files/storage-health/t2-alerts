@@ -1,0 +1,59 @@
+#!/usr/bin/python3
+"""Show system alerts not yet acknowledged.  t2-alerts [--brief] | ack | log"""
+import os
+from pathlib import Path
+import subprocess
+import sys
+
+ALERTS = Path(os.environ.get('T2_ALERT_DIR', '/var/lib/t2-mac-kde/alerts'))
+STAMP = Path(os.environ.get('XDG_STATE_HOME', Path.home() / '.local/state')) / 't2-mac-kde/alerts-ack'
+HISTORY = ALERTS.parent / 'storage-health.log'
+
+
+def pending():
+    acked = STAMP.stat().st_mtime if STAMP.exists() else 0
+    try:
+        files = sorted(p for p in ALERTS.iterdir() if p.suffix == '.txt' and p.stat().st_mtime > acked)
+    except OSError:
+        files = []
+    return files
+
+
+def failed_units():
+    try:
+        out = subprocess.run(['systemctl', '--failed', '--no-legend', '--plain', '--no-pager'],
+                             capture_output=True, text=True, timeout=2).stdout
+    except (OSError, subprocess.SubprocessError):
+        return []
+    return [line.split()[0] for line in out.splitlines() if line.strip()]
+
+
+def main(args):
+    if args[:1] == ['ack']:
+        STAMP.parent.mkdir(parents=True, exist_ok=True)
+        STAMP.touch()
+        print('alerts acknowledged')
+        return
+    if args[:1] == ['log']:
+        print(HISTORY.read_text() if HISTORY.exists() else 'no storage-health history yet')
+        return
+    files, units = pending(), failed_units()
+    if not files and not units:
+        if '--brief' not in args:
+            print('no alerts')
+        return
+    red, reset = ('\033[1;31m', '\033[0m') if sys.stdout.isatty() else ('', '')
+    print(f'{red}!! system alerts{reset}')
+    for path in files:
+        try:
+            print(f'  [{path.name[:15]}] ' + path.read_text().strip().replace('\n', '\n    '))
+        except OSError:
+            pass
+    for unit in units:
+        print(f'  failed unit: {unit}  (journalctl -u {unit})')
+    if files:
+        print('  acknowledge with: t2-alerts ack')
+
+
+if __name__ == '__main__':
+    main(sys.argv[1:])

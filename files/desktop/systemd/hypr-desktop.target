@@ -1,0 +1,6 @@
+# Managed by t2-mac-kde (desktop). Services of the Hyprland desktop session only.
+# Started by ~/.config/hypr/autostart.conf (exec-once); never wanted by a KDE login.
+[Unit]
+Description=Hyprland desktop session services (waybar, window worker, clipboard)
+BindsTo=graphical-session.target
+After=graphical-session.target

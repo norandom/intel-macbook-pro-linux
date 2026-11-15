@@ -1,0 +1,11 @@
+# Managed by t2-mac-kde (desktop)
+[Unit]
+Description=Wipe the clipboard history every night at 01:00
+PartOf=hypr-desktop.target graphical-session.target
+
+[Timer]
+OnCalendar=*-*-* 01:00
+Persistent=true
+
+[Install]
+WantedBy=hypr-desktop.target

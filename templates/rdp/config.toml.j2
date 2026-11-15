@@ -1,0 +1,29 @@
+# Managed by t2-mac-kde tasks/rdp.py. Local edits are overwritten.
+# Upstream hypr-rdp {{ rdp_version }} (MuNeNiCK release archive, unmodified).
+# Starts with the Hyprland session (never in KDE); port 3389 is firewalled to Tailscale/loopback.
+bind = "{{ bind }}"
+auth_mode = "configured"
+username = "{{ rdp_user }}"
+password_file = "{{ password_file }}"
+fps = {{ fps }}
+# Compositor keymap (de,us / mac_nodeadkeys from the desktop config), so
+# Option+L=@, de/us switching and Super shortcuts behave as locally.
+keyboard_layout_policy = "compositor"
+# mirror: local T2 speakers keep playing; never "redirect" (moves the default sink).
+audio_mode = "{{ audio_mode }}"
+# Clipboard file transfer needs FUSE + client tests; off until verified.
+file_transfer_mode = "off"
+capture_mode = "wlr"
+# Owner choice: lossless damage-only ClearCodec (upstream PR #108) instead of H.264;
+# sharp text for all-day agent dashboards. Override: --data rdp_egfx_codec=avc420
+egfx_codec = "{{ egfx_codec }}"
+{% if egfx_codec in ("clearcodec", "planar") %}
+# As in the source repo: no H.264 encoder/VA-API init when ClearCodec is used.
+h264_backend = "software"
+{% else %}
+h264_backend = "auto"
+{% endif %}
+# Fixed helper; it only logs/records state. It never blanks outputs,
+# disables input or unlocks the desktop.
+on_session_start = "{{ hook }} start"
+on_session_end = "{{ hook }} end"

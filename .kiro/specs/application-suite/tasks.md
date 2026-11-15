@@ -1,74 +1,36 @@
-# Implementation Plan
+# Implementation Checklist: application-suite
 
-These tasks port source application capabilities and preserve a complete
-explicit inventory. Vendor/.deb routes are visible follow-up work, not a claim
-of supported installation. Each executable task is sized for 1–3 hours.
+Entry point: `.venv/bin/pyinfra @local tasks/apps.py [--dry]`. Inventory: `manage/applications.py`
+(`python -m manage.applications` prints read-only status). Tests: `tests/test_apps.py`.
 
-- [ ] 1. Capture the complete source manifest and ownership
-  - Port literal application lists and release/client maps at the pinned revision;
-    include provenance, expected executable, delegated owner and disposition.
-  - Preserve full optional/vendor inventory instead of narrowing to CLI tools.
-  - Done when source-to-manifest coverage checks find no missing or duplicate IDs,
-    and source private credentials/license data are absent.
-  - _Boundary: ApplicationCatalog_
-  - _Requirements: 1.1, 1.2, 1.3, 1.4, 4.3_
+## Implemented
+- [x] Complete source inventory (apps.py lists, base.py tools, release_tools, artcraft_apps,
+      client_debs, Obsidian/Bitwarden/Ghostty, terminator/xfe) with one disposition each:
+      native / release / delegated / excluded / blocked / backlog (test checks coverage).
+- [x] Native Ubuntu packages via `install_packages(PackageRequest(..., source="ubuntu"))`:
+      aria2 atop c3270 x3270 gdu gh glow golang-go lazygit meld multitail nedit posting qpdfview
+      ristretto rsync rust-coreutils trippy xpdf foot xfce4-terminal terminator ghostty.
+      gh and ghostty use Ubuntu's native builds instead of the source vendor repo / forky .deb.
+- [x] Foundation-owned CLI tools (git bat fd-find fzf gcc make ripgrep tree unzip neovim htop btop ...)
+      are observed, not installed twice; cliphist/x11-xserver-utils/podman-tui delegated.
+- [x] Release binaries (zellij upmd kubectl helm k9s ktop bw rc rclone) pinned from source
+      group_data, sha256-verified, installed to `~/.local/bin` (user-level, atomic rename,
+      exactly-one member check, marker in `~/.local/share/t2-mac-kde/release-tools/`).
+      Unmanaged existing binaries are skipped with a warning.
+- [x] `~/.local/bin/fd -> /usr/bin/fdfind` only if nothing named fd exists there.
+- [x] Source desktop entries: x3270, nedit, hidden foot-server/footclient; terminator.desktop
+      (Exec=hypr-term) only when `/usr/local/bin/hypr-term` exists.
+- [x] Seed-once `~/.config/htop/htoprc` (an existing file is never overwritten).
+- [x] Availability report `$XDG_STATE_HOME/t2-mac-kde/applications.json` (schema_version 1,
+      re-probed executables; written only on a real run).
+- [x] No vendor repos, no .debs, no purges, no Snap/Flatpak; LibreOffice and Craft suite stay backlog.
 
-- [ ] 2. Validate selected routes and publish observed availability
-  - Implement stable IDs, required/optional selection, native-origin/transition
-    rejection and the versioned availability report contract.
-  - Keep unknown/blocked route states explicit; a stale report never proves an
-    executable exists. Observation and preview must remain read-only.
-  - Done when selection and stale/missing/prohibited-route fixtures report the
-    exact app and reason; selected required blocked entries fail before writes.
-  - _Boundary: ApplicationCatalog, RouteValidation, Availability integration_
-  - _Requirements: 1.2, 1.3, 2.2, 2.3, 2.4, 3.4, 5.1, 5.2, 5.3_
-
-- [ ] 3. Port selected native application binaries through foundation policy
-  - Reuse guarded native installation and reviewed exact package metadata;
-    preserve delegated foundation/container/font ownership.
-  - Include native Terminator/remotinator with configobj/GI/GTK/VTE dependencies and Xfe under explicit hyprland-core selection; publish availability IDs before theme/desktop consumers.
-  - Provide the source app executable dependencies needed by downstream features
-    only when selected and route-reviewed; never install a Snap transition.
-  - Done when native candidate/install/report fixtures and a disposable Ubuntu
-    smoke test expose expected executables while leaving unselected apps intact.
-  - _Boundary: NativeApplications_
-  - _Requirements: 2.1, 2.2, 3.1, 4.1, 4.4, 5.2_
-
-- [ ] 4. Port reviewed standalone release artifacts safely
-  - Capture source archive URLs/digests and review selected compatible versions,
-    native dependencies, member names and executable/version contracts.
-  - Verify checksums, prevent archive/link escape, avoid unmanaged binary
-    conflicts and atomically replace only owned user binaries with restoration.
-  - Done when mismatch/traversal/conflict/version-failure fixtures preserve prior
-    state and selected valid archive installs pass an unchanged second run.
-  - _Boundary: ArtifactInstaller_
-  - _Requirements: 1.4, 2.3, 2.4, 3.1, 4.1, 4.2, 4.3, 4.4, 5.2_
-
-- [ ] 5. Preserve deferred installer inventory and non-conflicting compatibility
-  - Record LibreOffice/language/tabbed UI/Carlito and all source Craft installer entries as explicit backlog, with no current install/configuration operations.
-  - Retain installer provenance and reject selecting backlogged entries until that work is explicitly reopened; preserve any existing apps/data.
-  - Add non-conflicting fd compatibility only when needed, preserving existing local commands and unrelated settings.
-  - Done when backlog fixtures generate no installer actions and compatibility-link conflict checks leave existing commands intact.
-  - _Boundary: ApplicationCatalog and NativeApplications integration_
-  - _Requirements: 1.1, 1.2, 1.3, 3.1, 3.2, 3.3, 4.1, 4.2, 4.3, 4.4_
-
-- [ ] 6. Integrate the optional application deploy and route report
-  - Wire catalog, availability and installers through the feature entry point,
-    using foundation preflight/policy and preserving root deploy ownership.
-  - Include every unresolved vendor/.deb/client selection in generated route
-    documentation; no fallback, silent skip of required apps or false success.
-  - Done when preview shows changes/pending statuses without downloads/writes,
-    and selected required errors retain nonzero exit with per-app results.
-  - _Boundary: FeatureDeploy integration_
-  - _Depends: 2, 3, 4, 5_
-  - _Requirements: 1.3, 2.4, 3.4, 5.1, 5.2, 5.3, 5.4_
-
-- [ ] 7. Verify application port replay and preservation
-  - Exercise native and archive routes on a disposable target, source inventory
-    coverage, dependency failures, blocked Chromium/vendor entries and rollback.
-  - Verify no protected login/GPU/T2 boot writes and no secrets in reports;
-    preserve all unselected app data and unrelated local configuration.
-  - Done when acceptance tests demonstrate non-mutating preview, unchanged repeat
-    apply, correct recovery and explicit unresolved source-feature status.
-  - _Boundary: Integration validation_
-  - _Requirements: 1.1, 1.2, 1.3, 1.4, 2.1, 2.2, 2.3, 2.4, 3.1, 3.2, 3.3, 3.4, 4.1, 4.2, 4.3, 4.4, 5.1, 5.2, 5.3, 5.4_
+## Deferred / needs owner check
+- [x] xfe: tasks/xfe.py unpacks the sha256-verified Ubuntu xfe 2.1.1-1 archive into /usr/local
+      (apt `Conflicts: im-config` would remove a KDE-base package); wrappers clear ibus variables.
+- [ ] chromium / chromium-driver: blocked, Ubuntu only has the Snap transition package.
+- [ ] sublime-text, typora, vivaldi-stable, obsidian, bitwarden desktop, quarto, positron, code:
+      blocked until a vendor-repo/.deb route is allowed (existing Vivaldi left untouched).
+- [ ] Release archives' member layout (esp. `rc`, `upmd`) verified only on the first live run.
+- [ ] Terminator config/plugin, Sublime schemes, VS Code themes: owned by coordinated-themes.
+- [ ] Live check: launch terminator/remotinator, x3270, nedit, ghostty after the owner-run deploy.

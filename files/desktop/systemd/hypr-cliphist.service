@@ -1,0 +1,15 @@
+# Managed by t2-mac-kde (desktop)
+[Unit]
+Description=Clipboard history recorder (cliphist, in RAM)
+PartOf=hypr-desktop.target graphical-session.target
+After=graphical-session.target
+
+[Service]
+ExecStart=%h/.local/bin/hypr-cliphist watch
+# logout: forget the history (it lives in $XDG_RUNTIME_DIR only)
+ExecStopPost=-%h/.local/bin/hypr-cliphist wipe --quiet
+Restart=on-failure
+RestartSec=2
+
+[Install]
+WantedBy=hypr-desktop.target

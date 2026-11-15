@@ -1,0 +1,13 @@
+# Managed by t2-mac-kde (desktop)
+[Unit]
+Description=Clipboard bridge: STRING-only X11 copies (NEdit) -> UTF-8 text
+PartOf=hypr-desktop.target graphical-session.target
+After=graphical-session.target
+
+[Service]
+ExecStart=%h/.local/bin/hypr-clip-bridge
+Restart=on-failure
+RestartSec=2
+
+[Install]
+WantedBy=hypr-desktop.target

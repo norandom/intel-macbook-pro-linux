@@ -1,0 +1,68 @@
+#!/usr/bin/python3
+"""Daily NVMe health check (root). Logs a history line; writes an alert on trouble."""
+import json
+import os
+from pathlib import Path
+import subprocess
+import sys
+import time
+
+STATE = Path('/var/lib/t2-mac-kde')
+ALERTS = STATE / 'alerts'
+HISTORY = STATE / 'storage-health.log'
+LAST = STATE / 'storage-health-last.json'
+DEVICE = sys.argv[1] if len(sys.argv) > 1 else '/dev/nvme0'
+WEAR_WARN, SPARE_MARGIN, TEMP_WARN = 80, 10, 75
+
+
+def evaluate(health, previous):
+    """Return a list of problems from an NVMe smart log and the previous one."""
+    problems = []
+    if health.get('critical_warning', 0):
+        problems.append(f"critical warning flags 0x{health['critical_warning']:02x}")
+    spare, threshold = health.get('available_spare'), health.get('available_spare_threshold', 0)
+    if spare is not None and spare <= threshold + SPARE_MARGIN:
+        problems.append(f'available spare {spare}% (threshold {threshold}%)')
+    used = health.get('percentage_used')
+    if used is not None and used >= WEAR_WARN:
+        problems.append(f'SSD wear {used}% of rated endurance')
+    temp = health.get('temperature')
+    if temp is not None and temp >= TEMP_WARN:
+        problems.append(f'temperature {temp} C')
+    for key in ('media_errors', 'num_err_log_entries'):
+        if previous and health.get(key, 0) > previous.get(key, 0):
+            problems.append(f'{key} rose {previous.get(key, 0)} -> {health[key]}')
+    return problems
+
+
+def main():
+    result = subprocess.run(['/usr/sbin/smartctl', '-j', '-a', DEVICE], capture_output=True, text=True)
+    stamp = time.strftime('%Y-%m-%dT%H:%M:%S')
+    try:
+        health = json.loads(result.stdout)['nvme_smart_health_information_log']
+    except (ValueError, KeyError):
+        health, problems = None, [f'smartctl could not read {DEVICE} (exit {result.returncode})']
+    if health is not None:
+        try:
+            previous = json.loads(LAST.read_text())
+        except (OSError, ValueError):
+            previous = None
+        problems = evaluate(health, previous)
+        LAST.write_text(json.dumps(health))
+    STATE.mkdir(parents=True, exist_ok=True)
+    with HISTORY.open('a') as log:
+        summary = {k: health.get(k) for k in ('percentage_used', 'available_spare', 'temperature',
+                   'media_errors', 'data_units_written', 'power_on_hours', 'unsafe_shutdowns')} if health else {}
+        log.write(f'{stamp} {DEVICE} {json.dumps(summary)}{" PROBLEM" if problems else ""}\n')
+    os.chmod(HISTORY, 0o644)
+    if problems:
+        ALERTS.mkdir(parents=True, exist_ok=True)
+        os.chmod(ALERTS, 0o755)
+        alert = ALERTS / f"{time.strftime('%Y%m%dT%H%M%S')}-storage-health.txt"
+        alert.write_text(f'Storage health problem on {DEVICE}\n' + '\n'.join(f'- {p}' for p in problems) + '\n')
+        os.chmod(alert, 0o644)
+        subprocess.run(['logger', '-t', 't2-alert', '-p', 'daemon.warning', '-f', str(alert)])
+
+
+if __name__ == '__main__':
+    main()

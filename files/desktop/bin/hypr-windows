@@ -1,0 +1,489 @@
+#!/usr/bin/python3
+"""Managed by t2-mac-kde (desktop). Window worker for Hyprland 0.53.
+
+The source configuration (Hyprland 0.56 Lua) ran callbacks and timers inside the
+compositor: layouts.lua, aerosnap.lua and the desktop right-click in bindings.lua.
+Hyprland 0.53 has no Lua, so this one session-scoped process does the same work over
+the IPC sockets of the selected instance (HYPRLAND_INSTANCE_SIGNATURE):
+
+    hypr-windows run       the worker (user service hypr-windows, part of hypr-desktop.target)
+    hypr-windows context   desktop right-click: open hypr-appmenu --at X Y on empty desktop
+
+Worker behaviour (source semantics):
+  * dynamic layout: remembers each application's floating geometry as fractions of its
+    monitor (~/.local/state/hypr-window-geometry), restores it for new windows, cascades
+    duplicates 32 px, never for self-sizing X3270; written every 5 s and on close.
+  * floating windows are pushed back below the top bar once they stop moving, so the
+    title bar (hyprbars, drawn above the window) stays reachable.
+  * a monitor that changes logical size scales its floating windows with it.
+  * aero snap: drag a floating window until the cursor touches the left/right edge
+    (half), the top edge (maximized area) or a corner (quarter); dragging it away again
+    restores its previous size.
+"""
+import json
+import math
+import os
+import re
+import select
+import socket
+import subprocess
+import sys
+import time
+from pathlib import Path
+
+HOME = Path.home()
+MODE_FILE = HOME / ".config/hypr/layout-mode"
+STYLE_FILE = HOME / ".config/hypr/decorations-style"
+GEOM_FILE = HOME / ".local/state/hypr-window-geometry"
+APPMENU = HOME / ".local/bin/hypr-appmenu"
+
+OWN_SIZE = {"X3270"}          # apps that size themselves (character grid)
+BORDER = 2                    # general:border_size
+EDGE_PX = 2
+CORNER_PX = 80
+SETTLE_TICKS = 3
+TICK = 0.1
+ADDR_RE = re.compile(r"^0x[0-9a-fA-F]+$")
+CLASS_RE = re.compile(r"^\S{1,200}$")
+
+
+# --- pure geometry -------------------------------------------------------------------
+
+def read_first(path, default):
+    try:
+        line = Path(path).read_text().splitlines()[0].split()
+        return line[0] if line else default
+    except (OSError, IndexError):
+        return default
+
+
+def title_height(style):
+    return 22 if style == "win311" else 24
+
+
+def mon_box(m):
+    """Logical monitor rectangle (x, y, w, h); rotated outputs swap width/height."""
+    scale = float(m.get("scale") or 1.0)
+    if not math.isfinite(scale) or scale <= 0:
+        scale = 1.0
+    w, h = m["width"] / scale, m["height"] / scale
+    if int(m.get("transform", 0)) % 2 == 1:
+        w, h = h, w
+    return float(m["x"]), float(m["y"]), w, h
+
+
+def reserved(m):
+    r = m.get("reserved") or [0, 0, 0, 0]
+    return [int(v) for v in (list(r) + [0, 0, 0, 0])[:4]]
+
+
+def top_limit(m, style):
+    return m["y"] + reserved(m)[1] + title_height(style)
+
+
+def parse_geometry(text):
+    """class -> (fx, fy, fw, fh); malformed, nonfinite or absurd lines are ignored."""
+    geom = {}
+    for line in text.splitlines():
+        parts = line.split()
+        if len(parts) != 5 or not CLASS_RE.match(parts[0]):
+            continue
+        try:
+            vals = tuple(float(v) for v in parts[1:])
+        except ValueError:
+            continue
+        if all(math.isfinite(v) and -1.0 <= v <= 2.0 for v in vals) and vals[2] > 0 and vals[3] > 0:
+            geom[parts[0]] = vals
+    return geom
+
+
+def format_geometry(geom):
+    return "".join(f"{c} {g[0]:.5f} {g[1]:.5f} {g[2]:.5f} {g[3]:.5f}\n" for c, g in sorted(geom.items()))
+
+
+def fractions(win, mon):
+    mx, my, mw, mh = mon_box(mon)
+    return ((win["at"][0] - mx) / mw, (win["at"][1] - my) / mh, win["size"][0] / mw, win["size"][1] / mh)
+
+
+def placement(g, mon, style, others, cls):
+    """Remembered fractions -> (x, y, w, h) on mon, below the bar, cascaded past same-class windows."""
+    mx, my, mw, mh = mon_box(mon)
+    x = math.floor(mx + g[0] * mw)
+    y = max(top_limit(mon, style), math.floor(my + g[1] * mh))
+    for _ in range(10):
+        if not any(o.get("class") == cls and abs(o["at"][0] - x) < 16 and abs(o["at"][1] - y) < 16 for o in others):
+            break
+        x, y = x + 32, y + 32
+    w = max(50, min(math.floor(g[2] * mw), math.floor(mx + mw - x)))
+    h = max(50, min(math.floor(g[3] * mh), math.floor(my + mh - y)))
+    return x, y, w, h
+
+
+def snap_zone(cursor, mon):
+    mx, my, mw, mh = mon_box(mon)
+    cx, cy = cursor
+    left, right = cx <= mx + EDGE_PX, cx >= mx + mw - 1 - EDGE_PX
+    top, bottom = cy <= my + EDGE_PX, cy >= my + mh - 1 - EDGE_PX
+    near_l, near_r = cx <= mx + CORNER_PX, cx >= mx + mw - 1 - CORNER_PX
+    near_t, near_b = cy <= my + CORNER_PX, cy >= my + mh - 1 - CORNER_PX
+    if (left and near_t) or (top and near_l):
+        return "top-left"
+    if (right and near_t) or (top and near_r):
+        return "top-right"
+    if (left and near_b) or (bottom and near_l):
+        return "bottom-left"
+    if (right and near_b) or (bottom and near_r):
+        return "bottom-right"
+    if left:
+        return "left"
+    if right:
+        return "right"
+    if top:
+        return "top"
+    return None
+
+
+def snap_rect(zone, mon, style):
+    """Window rectangle for a snap zone inside the monitor's free area, room left for
+    the current title bar style and the borders."""
+    mx, my, mw, mh = mon_box(mon)
+    rl, rt, rr, rb = reserved(mon)
+    ax, ay, aw, ah = mx + rl, my + rt, mw - rl - rr, mh - rt - rb
+    x, y, w, h = ax, ay, aw, ah
+    if "left" in zone:
+        w = aw / 2
+    if "right" in zone:
+        x, w = ax + aw / 2, aw / 2
+    if zone.startswith("top-"):
+        h = ah / 2
+    if zone.startswith("bottom"):
+        y, h = ay + ah / 2, ah / 2
+    th = title_height(style)
+    return (math.floor(x + BORDER), math.floor(y + th + BORDER),
+            math.floor(w - 2 * BORDER), math.floor(h - th - 2 * BORDER))
+
+
+def monitor_at(point, monitors):
+    for m in monitors:
+        mx, my, mw, mh = mon_box(m)
+        if mx <= point[0] < mx + mw and my <= point[1] < my + mh:
+            return m
+    return None
+
+
+def visible_workspaces(monitors):
+    ids = set()
+    for m in monitors:
+        for key in ("activeWorkspace", "specialWorkspace"):
+            ws = m.get(key) or {}
+            if ws.get("id"):
+                ids.add(ws["id"])
+    return ids
+
+
+def on_desktop(cursor, monitors, clients, style):
+    """Monitor-relative (x, y) when the cursor is on empty desktop, else None."""
+    mon = monitor_at(cursor, monitors)
+    if not mon:
+        return None
+    mx, my, _, _ = mon_box(mon)
+    if cursor[1] < my + reserved(mon)[1]:
+        return None                       # on the top bar
+    ws = visible_workspaces(monitors)
+    bar = title_height(style) + BORDER
+    for w in clients:
+        if not w.get("mapped") or w.get("hidden"):
+            continue
+        if (w.get("workspace") or {}).get("id") not in ws and not w.get("pinned"):
+            continue
+        (x, y), (sw, sh) = w["at"], w["size"]
+        if x - 4 <= cursor[0] <= x + sw + 4 and y - bar <= cursor[1] <= y + sh + 4:
+            return None
+    return int(cursor[0] - mx), int(cursor[1] - my)
+
+
+# --- IPC ----------------------------------------------------------------------------
+
+class HyprIPC:
+    def __init__(self, sig=None, runtime=None):
+        self.sig = sig or os.environ.get("HYPRLAND_INSTANCE_SIGNATURE", "")
+        if not re.match(r"^[A-Za-z0-9_.-]+$", self.sig or ""):
+            raise RuntimeError("HYPRLAND_INSTANCE_SIGNATURE is not set: no Hyprland session selected")
+        runtime = runtime or os.environ.get("XDG_RUNTIME_DIR") or f"/run/user/{os.getuid()}"
+        self.dir = Path(runtime) / "hypr" / self.sig
+
+    def request(self, cmd):
+        with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as s:
+            s.settimeout(1.0)
+            s.connect(str(self.dir / ".socket.sock"))
+            s.sendall(cmd.encode())
+            out = b""
+            while True:
+                chunk = s.recv(65536)
+                if not chunk:
+                    break
+                out += chunk
+        return out.decode(errors="replace")
+
+    def query(self, kind):
+        return json.loads(self.request(f"j/{kind}"))
+
+    def batch(self, commands):
+        for i in range(0, len(commands), 32):
+            self.request("[[BATCH]]" + ";".join(f"dispatch {c}" for c in commands[i:i + 32]))
+
+    def events(self):
+        s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+        s.connect(str(self.dir / ".socket2.sock"))
+        s.setblocking(False)
+        return s
+
+
+def geometry_cmds(addr, x, y, w, h):
+    if not ADDR_RE.match(addr):
+        return []
+    return [f"resizewindowpixel exact {int(w)} {int(h)},address:{addr}",
+            f"movewindowpixel exact {int(x)} {int(y)},address:{addr}"]
+
+
+# --- worker ---------------------------------------------------------------------------
+
+class Worker:
+    def __init__(self, ipc):
+        self.ipc = ipc
+        try:
+            self.geom = parse_geometry(GEOM_FILE.read_text())
+        except OSError:
+            self.geom = {}
+        self.dirty = False
+        self.clients, self.monitors = [], []
+        self.last_mon = {}        # monitor name -> logical box we last acted on
+        self.snap = {}            # address -> (monitor name, fx, fy, fw, fh) while stable
+        self.seen = {}            # address -> position at the previous 1 s tick
+        self.pending = {}         # address -> (due time, class) for new windows
+        self.drag = {"addr": None, "at": None, "size": None, "moving": False, "still": 0, "cursor": None}
+        self.snapped = {}         # address -> pre-snap size
+        self.mode = "dynamic"
+        self.style = "mac"
+
+    def save(self):
+        if not self.dirty:
+            return
+        GEOM_FILE.parent.mkdir(parents=True, exist_ok=True)
+        tmp = GEOM_FILE.with_suffix(".tmp")
+        tmp.write_text(format_geometry(self.geom))
+        os.replace(tmp, GEOM_FILE)
+        self.dirty = False
+
+    def refresh(self):
+        self.mode = read_first(MODE_FILE, "dynamic")
+        self.style = read_first(STYLE_FILE, "mac")
+        self.monitors = self.ipc.query("monitors")
+        self.clients = self.ipc.query("clients")
+
+    def mon_by_id(self, mid):
+        return next((m for m in self.monitors if m.get("id") == mid), None)
+
+    def floating(self):
+        for w in self.clients:
+            if w.get("floating") and w.get("mapped") and not w.get("hidden") and not w.get("fullscreen"):
+                m = self.mon_by_id(w.get("monitor"))
+                if m and ADDR_RE.match(w.get("address", "")):
+                    yield w, m
+
+    def remember(self, w, m):
+        cls = w.get("class") or ""
+        if self.mode != "dynamic" or not CLASS_RE.match(cls) or cls in OWN_SIZE:
+            return
+        new = fractions(w, m)
+        cur = self.geom.get(cls)
+        if not cur or sum(abs(a - b) for a, b in zip(cur, new)) > 0.002:
+            self.geom[cls] = new
+            self.dirty = True
+
+    # once per second: monitor resize, keep below bar, snapshot, memory
+    def slow_tick(self, n):
+        self.refresh()
+        cmds = []
+        for m in self.monitors:
+            box = mon_box(m)
+            old = self.last_mon.get(m["name"])
+            self.last_mon[m["name"]] = box
+            if old and (old[2], old[3]) != (box[2], box[3]):
+                for w in self.clients:
+                    g = self.snap.get(w.get("address"))
+                    if g and g[0] == m["name"] and w.get("floating") and not w.get("fullscreen"):
+                        cmds += geometry_cmds(w["address"], math.floor(box[0] + g[1] * box[2]),
+                                              max(top_limit(m, self.style), math.floor(box[1] + g[2] * box[3])),
+                                              max(200, math.floor(g[3] * box[2])), max(120, math.floor(g[4] * box[3])))
+        now = {}
+        for w, m in self.floating():
+            pos = tuple(w["at"])
+            top = top_limit(m, self.style)
+            # only once it has stopped moving (a moved window may still be dragged)
+            if self.seen.get(w["address"]) == pos and pos[1] < top:
+                _, _, _, mh = mon_box(m)
+                avail = m["y"] + mh - top
+                h = min(w["size"][1], math.floor(avail))
+                cmds += geometry_cmds(w["address"], pos[0], top, w["size"][0], h)
+            now[w["address"]] = pos
+            box = mon_box(m)
+            old = self.last_mon.get(m["name"])
+            if old and (old[2], old[3]) == (box[2], box[3]):
+                self.snap[w["address"]] = (m["name"],) + fractions(w, m)
+        self.seen = now
+        live = {w.get("address") for w in self.clients}
+        self.snap = {a: g for a, g in self.snap.items() if a in live}
+        if cmds:
+            self.ipc.batch(cmds)
+        if n % 5 == 0:
+            for w, m in self.floating():
+                self.remember(w, m)
+            self.save()
+
+    def place_new(self, addr, cls):
+        if self.mode != "dynamic" or cls in OWN_SIZE:
+            return
+        self.refresh()
+        w = next((c for c in self.clients if c.get("address") == addr), None)
+        if not w or not w.get("floating"):
+            return
+        m = self.mon_by_id(w.get("monitor"))
+        if not m:
+            return
+        g = self.geom.get(cls)
+        if not g:
+            top = top_limit(m, self.style)
+            if w["at"][1] < top:
+                self.ipc.batch([f"movewindowpixel exact {int(w['at'][0])} {int(top)},address:{addr}"])
+            return
+        others = [o for o in self.clients if o.get("address") != addr and o.get("mapped")]
+        self.ipc.batch(geometry_cmds(addr, *placement(g, m, self.style, others, cls)))
+
+    def closed(self, addr):
+        w = next((c for c in self.clients if c.get("address") == addr), None)
+        if w and w.get("floating"):
+            m = self.mon_by_id(w.get("monitor"))
+            if m:
+                self.remember(w, m)
+                self.save()
+        self.snap.pop(addr, None)
+        self.snapped.pop(addr, None)
+
+    # every 100 ms: aero snap of the active floating window
+    def fast_tick(self):
+        d = self.drag
+        try:
+            win = self.ipc.query("activewindow")
+        except (OSError, ValueError):
+            return
+        if not win or not win.get("floating") or win.get("fullscreen"):
+            d.update(addr=None, moving=False)
+            return
+        addr, at, size = win.get("address", ""), tuple(win["at"]), tuple(win["size"])
+        if d["addr"] != addr:
+            d.update(addr=addr, at=at, size=size, moving=False, still=0)
+            return
+        if at != d["at"] and size == d["size"]:
+            cursor = self.cursor()
+            if not d["moving"]:
+                orig = self.snapped.pop(addr, None)
+                if orig and cursor:
+                    self.ipc.batch(geometry_cmds(addr, math.floor(cursor[0] - orig[0] / 2), at[1], orig[0], orig[1]))
+            d.update(moving=True, still=0, cursor=cursor or d["cursor"])
+        elif d["moving"]:
+            d["still"] += 1
+            if d["still"] >= SETTLE_TICKS:
+                d["moving"] = False
+                self.apply_snap(win, d["cursor"])
+        d.update(at=tuple(win["at"]), size=tuple(win["size"]))
+
+    def cursor(self):
+        try:
+            c = self.ipc.query("cursorpos")
+            return (c["x"], c["y"])
+        except (OSError, ValueError, KeyError):
+            return None
+
+    def apply_snap(self, win, cursor):
+        if not cursor:
+            return
+        m = monitor_at(cursor, self.monitors)
+        zone = m and snap_zone(cursor, m)
+        if not zone:
+            return
+        rect = snap_rect(zone, m, read_first(STYLE_FILE, "mac"))
+        self.snapped.setdefault(win["address"], tuple(win["size"]))
+        self.ipc.batch(geometry_cmds(win["address"], *rect))
+        self.drag.update(at=rect[:2], size=rect[2:])
+
+    def handle(self, line):
+        name, _, data = line.partition(">>")
+        if name == "openwindow":
+            parts = data.split(",", 3)
+            if len(parts) >= 3:
+                self.pending["0x" + parts[0]] = (time.monotonic() + 0.08, parts[2])
+        elif name == "closewindow":
+            self.closed("0x" + data.strip())
+
+    def run(self):
+        self.refresh()
+        for m in self.monitors:
+            self.last_mon[m["name"]] = mon_box(m)
+        ev = self.ipc.events()
+        buf, n, next_slow = b"", 0, time.monotonic()
+        try:
+            while True:
+                r, _, _ = select.select([ev], [], [], TICK)
+                if r:
+                    chunk = ev.recv(65536)
+                    if not chunk:
+                        raise ConnectionError("Hyprland event socket closed")
+                    buf += chunk
+                    *lines, buf = buf.split(b"\n")
+                    for line in lines:
+                        self.handle(line.decode(errors="replace"))
+                now = time.monotonic()
+                for addr, (due, cls) in list(self.pending.items()):
+                    if now >= due:
+                        del self.pending[addr]
+                        self.place_new(addr, cls)
+                self.fast_tick()
+                if now >= next_slow:
+                    n += 1
+                    next_slow = now + 1.0
+                    self.slow_tick(n)
+        finally:
+            self.save()
+
+
+def context():
+    ipc = HyprIPC()
+    c = ipc.query("cursorpos")
+    pos = on_desktop((c["x"], c["y"]), ipc.query("monitors"), ipc.query("clients"), read_first(STYLE_FILE, "mac"))
+    if pos:
+        subprocess.Popen([str(APPMENU), "--at", str(pos[0]), str(pos[1])], start_new_session=True,
+                         stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+
+def main(argv):
+    cmd = argv[1] if len(argv) > 1 else ""
+    try:
+        if cmd == "run":
+            Worker(HyprIPC()).run()
+        elif cmd == "context":
+            context()
+        else:
+            print("usage: hypr-windows run|context", file=sys.stderr)
+            return 2
+    except (RuntimeError, OSError, ValueError, ConnectionError) as e:
+        print(f"hypr-windows: {e}", file=sys.stderr)
+        return 1
+    except KeyboardInterrupt:
+        return 0
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv))

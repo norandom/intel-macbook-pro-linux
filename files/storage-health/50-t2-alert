@@ -1,0 +1,12 @@
+#!/bin/sh
+# smartd-runner hook (run-parts): record the warning where new shells show it.
+dir=/var/lib/t2-mac-kde/alerts
+mkdir -p "$dir" && chmod 0755 "$dir"
+file="$dir/$(date +%Y%m%dT%H%M%S)-smartd-$$.txt"
+{
+    echo "SMART ${SMARTD_FAILTYPE:-warning} on ${SMARTD_DEVICESTRING:-${SMARTD_DEVICE:-disk}}"
+    echo "${SMARTD_MESSAGE:-smartd reported a problem}"
+} > "$file"
+chmod 0644 "$file"
+logger -t t2-alert -p daemon.warning -f "$file"
+exit 0

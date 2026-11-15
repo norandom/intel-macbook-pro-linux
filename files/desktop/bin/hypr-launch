@@ -1,0 +1,23 @@
+#!/bin/sh
+# Managed by t2-mac-kde (desktop). Start an application through Hyprland + uwsm, like a
+# keybinding does, never as a child of the caller (waybar kills its own children on reload):
+#   hypr-launch COMMAND [ARG...]      or   hypr-launch some-app.desktop[:action]
+# Arguments keep their boundaries (each one is single-quoted for Hyprland's shell).
+# A missing command is reported (notification, exit 127); nothing is installed or substituted.
+[ $# -gt 0 ] || { echo "usage: hypr-launch COMMAND [ARG...]" >&2; exit 2; }
+case "$1" in
+  *.desktop|*.desktop:*) ;;
+  *) if ! command -v "$1" >/dev/null 2>&1; then
+       msg="$1 is not installed"
+       hyprctl notify 3 3000 "rgb(c0605a)" "$msg" >/dev/null 2>&1 || echo "$msg" >&2
+       exit 127
+     fi ;;
+esac
+cmd="uwsm app --"
+for a in "$@"; do
+  cmd="$cmd '$(printf '%s' "$a" | sed "s/'/'\\\\''/g")'"
+done
+if [ -n "${HYPRLAND_INSTANCE_SIGNATURE:-}" ]; then
+  exec hyprctl dispatch exec "$cmd" >/dev/null
+fi
+exec uwsm app -- "$@"

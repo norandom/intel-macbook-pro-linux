@@ -1,0 +1,14 @@
+#!/usr/sbin/nft -f
+# Managed by t2-mac-kde: RDP (3389) only via Tailscale or loopback.
+# Tailscale peers on the same LAN connect directly, so local use stays fast.
+table inet t2_rdp
+delete table inet t2_rdp
+table inet t2_rdp {
+    chain input {
+        type filter hook input priority -10; policy accept;
+        iifname { "lo", "tailscale0" } tcp dport 3389 accept
+        iifname { "lo", "tailscale0" } udp dport 3389 accept
+        tcp dport 3389 drop
+        udp dport 3389 drop
+    }
+}

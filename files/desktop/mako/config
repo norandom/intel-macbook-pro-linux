@@ -1,0 +1,10 @@
+# Managed by t2-mac-kde (desktop). cream-blue-light.
+font=JetBrainsMono Nerd Font 10
+background-color=#fff8f0
+text-color=#2b4570
+border-color=#4a90d9
+border-size=2
+padding=10
+width=360
+default-timeout=6000
+anchor=top-right

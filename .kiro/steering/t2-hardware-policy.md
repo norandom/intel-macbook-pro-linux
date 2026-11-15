@@ -7,7 +7,11 @@ touch bar, keyboard/trackpad, speakers/microphone, camera, Wi-Fi/Bluetooth and
 suspend/resume. Package plans must reject removal or replacement of these
 prerequisites. Do not run autoremove or source VM blanket blacklists/purges.
 
-KDE stays installed and dormant as a fallback. Hyprland is a separate full
+KDE is only the T2 Ubuntu (Kubuntu) base install: the owner does not use it
+day to day. It stays installed and dormant as a fallback. Never remove KDE or
+kubuntu-desktop dependencies; when a wanted package conflicts with one (e.g.
+xfe vs im-config), install it outside dpkg (verified archive into /usr/local or
+~/.local) instead of resolving the conflict by removal. Hyprland is a separate full
 session, not nested in KDE, and must not start Plasma merely for desktop controls.
 Keep the current login manager/configuration. No KDE removal is in scope.
 

@@ -1,0 +1,281 @@
+#!/usr/bin/python3
+"""Switch the terminal theme and the apps that follow it.
+
+    hypr-termtheme <profile>|next|prev|apply     (no argument = next)
+
+Profiles in cycle order: default (cobalt), navy, fixedsys, cream, petrol.
+The selection lives in ~/.local/state/terminator-profile (one line), which
+hypr-term, the Terminator plugin, Neovim and the desktop bar read.
+Apps follow when present: Claude Code, btop, Ghostty, foot (new windows),
+Sublime Text, VS Code + Positron (scheme + font), Neovim (next start).
+"apply" re-applies the app themes for the current profile without cycling
+and without the live Terminator/bar/notification actions.
+
+Exit: 0 ok, 1 invalid state / busy / write failure, 2 usage.
+Port of norandom/hyperland-forky-worker-vm files/bin/hypr-termtheme.
+"""
+import fcntl
+import json
+import os
+import re
+import shutil
+import subprocess
+import sys
+
+PROFILES = ("default", "navy", "fixedsys", "cream", "petrol")
+FONTS = {  # family, size: the Terminator profile fonts
+    "default": ("FiraCode Nerd Font", 13),
+    "navy": ("FiraCode Nerd Font", 11),
+    "fixedsys": ("Berkeley Mono", 12),
+    "cream": ("FiraCode Nerd Font", 13),
+    "petrol": ("Fixedsys Core", 12),
+}
+HOME = os.path.expanduser("~")
+STATE = os.path.join(HOME, ".local/state/terminator-profile")  # fixed path, no XDG override
+LOCK = os.path.join(HOME, ".local/state/t2-mac-kde/themes.lock")
+CONFIG = os.path.join(HOME, ".config")
+USAGE = "usage: hypr-termtheme <profile>|next|prev|apply   profiles: " + " ".join(PROFILES)
+
+
+class Unapplied(Exception):
+    """A target left untouched (e.g. a settings file we cannot edit safely)."""
+
+
+def app_theme(profile):
+    return "cobalt" if profile == "default" else profile
+
+
+def read_state():
+    try:
+        with open(STATE) as f:
+            text = f.read()
+    except FileNotFoundError:
+        return "default"
+    lines = text.splitlines()
+    if len(lines) != 1 or lines[0] not in PROFILES:
+        raise ValueError(f"{STATE}: not one known profile; repair with: hypr-termtheme default")
+    return lines[0]
+
+
+def write_atomic(path, data):
+    """Replace path with data unless it already holds it. Returns True when written."""
+    path = os.path.realpath(path)
+    try:
+        with open(path, "rb") as f:
+            if f.read() == data:
+                return False
+        mode = os.stat(path).st_mode & 0o7777
+    except FileNotFoundError:
+        mode = 0o644
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    tmp = f"{path}.t2-tmp.{os.getpid()}"
+    try:
+        with open(tmp, "wb") as f:
+            f.write(data)
+        os.chmod(tmp, mode)
+        os.replace(tmp, path)
+    finally:
+        if os.path.exists(tmp):
+            os.unlink(tmp)
+    return True
+
+
+def edit_json(path, updates, defaults=None):
+    """Set keys in a plain-JSON settings object. Files with comments or trailing
+    commas (JSONC) are left untouched rather than rewritten without them."""
+    try:
+        with open(path) as f:
+            text = f.read()
+    except FileNotFoundError:
+        text = ""
+    try:
+        prefs = json.loads(text) if text.strip() else {}
+    except ValueError:
+        raise Unapplied("has comments/trailing commas or is malformed; set the theme by hand")
+    if not isinstance(prefs, dict):
+        raise Unapplied("not a JSON object")
+    new = dict(prefs)
+    for k, v in (defaults or {}).items():
+        new.setdefault(k, v)
+    new.update(updates)
+    if new == prefs:
+        return False
+    m = re.search(r'\n([ \t]+)"', text)  # keep the file's indentation
+    indent = m.group(1) if m else 4
+    return write_atomic(path, (json.dumps(new, indent=indent, ensure_ascii=False) + "\n").encode())
+
+
+def signal(name, sig):
+    """Signal only this user's processes of that exact name; none running is fine."""
+    if shutil.which("pkill"):
+        subprocess.run(["pkill", f"-{sig}", "-u", str(os.getuid()), "-x", name],
+                       stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=False)
+
+
+def copy_theme(src, dest):
+    with open(src, "rb") as f:
+        return write_atomic(dest, f.read())
+
+
+# --- targets: each returns "applied", "unchanged" or "skipped (...)" -----------------------
+
+def t_claude(profile, app):
+    theme = os.path.join(HOME, ".claude/themes", f"{app}.json")
+    if not os.path.isfile(theme):
+        return "skipped (no ~/.claude/themes)"
+    changed = edit_json(os.path.join(HOME, ".claude/settings.json"), {"theme": f"custom:{app}"})
+    return "applied (live)" if changed else "unchanged"
+
+
+def t_btop(profile, app):
+    conf = os.path.join(CONFIG, "btop/btop.conf")
+    if not os.path.isfile(os.path.join(CONFIG, "btop/themes", f"{app}.theme")):
+        return "skipped (theme not installed)"
+    try:
+        with open(conf) as f:
+            lines = f.read().splitlines(keepends=True)
+    except FileNotFoundError:
+        lines = []
+    want = f'color_theme = "{app}"\n'
+    hits = [i for i, l in enumerate(lines) if l.startswith("color_theme")]
+    if len(hits) > 1:
+        raise Unapplied("several color_theme lines")
+    if hits:
+        lines[hits[0]] = want
+    else:
+        if lines and not lines[-1].endswith("\n"):
+            lines[-1] += "\n"
+        lines.append(want)
+    if not write_atomic(conf, "".join(lines).encode()):
+        return "unchanged"
+    signal("btop", "USR2")
+    return "applied (live)"
+
+
+def t_ghostty(profile, app):
+    src = os.path.join(CONFIG, "ghostty/themes", app)
+    if not os.path.isfile(src):
+        return "skipped (theme not installed)"
+    if not copy_theme(src, os.path.join(CONFIG, "ghostty/theme")):
+        return "unchanged"
+    signal("ghostty", "USR2")
+    return "applied (live)"
+
+
+def t_foot(profile, app):
+    src = os.path.join(CONFIG, "foot/themes", f"{app}.ini")
+    if not os.path.isfile(src):
+        return "skipped (theme not installed)"
+    return "applied (new windows)" if copy_theme(src, os.path.join(CONFIG, "foot/theme.ini")) else "unchanged"
+
+
+def t_sublime(profile, app):
+    user = os.path.join(CONFIG, "sublime-text/Packages/User")
+    if not os.path.isfile(os.path.join(user, f"debian-hypr-{app}.sublime-color-scheme")):
+        return "skipped (scheme not installed)"
+    face, size = FONTS[profile]
+    changed = edit_json(os.path.join(user, "Preferences.sublime-settings"),
+                        {"color_scheme": f"debian-hypr-{app}.sublime-color-scheme",
+                         "font_face": face, "font_size": size},
+                        defaults={"theme": "Adaptive.sublime-theme"})
+    return "applied (live)" if changed else "unchanged"
+
+
+def t_vscode(conf):
+    def target(profile, app):
+        if not os.path.isdir(os.path.join(CONFIG, conf)):
+            return "skipped (not installed)"
+        face, size = FONTS[profile]
+        family = f"'{face}', monospace"
+        changed = edit_json(os.path.join(CONFIG, conf, "User/settings.json"), {
+            "workbench.colorTheme": f"debian-hypr {app.capitalize()}",
+            "editor.fontFamily": family, "terminal.integrated.fontFamily": family,
+            "editor.fontSize": size, "terminal.integrated.fontSize": size,
+        })
+        return "applied (live)" if changed else "unchanged"
+    return target
+
+
+TARGETS = (("claude", t_claude), ("btop", t_btop), ("ghostty", t_ghostty), ("foot", t_foot),
+           ("sublime", t_sublime), ("code", t_vscode("Code")), ("positron", t_vscode("Positron")))
+
+
+def font_note(profile):
+    face = FONTS[profile][0]
+    if not shutil.which("fc-match"):
+        return
+    got = subprocess.run(["fc-match", "-f", "%{family}", face], capture_output=True, text=True).stdout
+    if face.lower() not in got.lower():
+        print(f"font: {face} is not installed; fontconfig falls back to {got.split(',')[0] or '?'}")
+
+
+def live_actions(profile):
+    """Best effort: running Terminators, the bar's theme module, a Hyprland notice."""
+    def run(*argv):
+        try:
+            subprocess.run(argv, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=5, check=False)
+        except (OSError, subprocess.TimeoutExpired):
+            pass
+    if shutil.which("remotinator"):
+        run("remotinator", "switch_profile_all", "-p", profile)
+    signal("waybar", "RTMIN+10")
+    if os.environ.get("HYPRLAND_INSTANCE_SIGNATURE") and shutil.which("hyprctl"):
+        run("hyprctl", "notify", "-1", "1500", "rgb(8bb4e0)", f"Terminal theme: {profile}")
+
+
+def main(argv):
+    if len(argv) > 1:
+        print(USAGE, file=sys.stderr)
+        return 2
+    arg = argv[0] if argv else ""
+    if arg not in ("", "next", "prev", "apply") + PROFILES:
+        print(USAGE, file=sys.stderr)
+        return 2
+    os.makedirs(os.path.dirname(LOCK), mode=0o700, exist_ok=True)
+    lock = open(LOCK, "w")
+    try:
+        fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+    except BlockingIOError:
+        print("hypr-termtheme: another switch is running", file=sys.stderr)
+        return 1
+    try:
+        cur = read_state()
+    except ValueError as e:
+        if arg not in PROFILES:  # an explicit profile repairs the state
+            print(f"hypr-termtheme: {e}", file=sys.stderr)
+            return 1
+        cur = "default"
+    if arg in PROFILES:
+        new = arg
+    elif arg == "apply":
+        new = cur
+    else:
+        step = -1 if arg == "prev" else 1
+        new = PROFILES[(PROFILES.index(cur) + step) % len(PROFILES)]
+
+    app, failed = app_theme(new), False
+    for name, fn in TARGETS:
+        try:
+            status = fn(new, app)
+        except Unapplied as e:
+            status = f"unapplied ({e})"
+        except OSError as e:
+            status, failed = f"failed ({e.strerror}: {e.filename})", True
+        print(f"{name}: {status}")
+    if failed:
+        print("hypr-termtheme: selection left unchanged", file=sys.stderr)
+        return 1
+    try:  # the selection is published last
+        write_atomic(STATE, f"{new}\n".encode())
+    except OSError as e:
+        print(f"hypr-termtheme: cannot write {STATE}: {e.strerror}", file=sys.stderr)
+        return 1
+    print(f"profile: {new} ({app})")
+    font_note(new)
+    if arg != "apply":
+        live_actions(new)
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv[1:]))

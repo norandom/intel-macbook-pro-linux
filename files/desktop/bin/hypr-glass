@@ -1,0 +1,18 @@
+#!/bin/sh
+# Managed by t2-mac-kde (desktop). Toggle "glass" on the active window (title bar button):
+# slightly transparent with a light milky blur, so e.g. btop graphs show through. Blur is
+# off for all other windows (looknfeel.conf); only this window's properties change.
+opacity=0.82
+addr=$(hyprctl activewindow -j | jq -r '.address // empty')
+case "$addr" in 0x[0-9a-fA-F]*) ;; *) exit 1 ;; esac
+w="address:$addr"
+if [ "$(hyprctl getprop "$w" no_blur)" = "true" ]; then
+  hyprctl dispatch setprop "$w" no_blur 0 >/dev/null
+  hyprctl dispatch setprop "$w" opacity "$opacity" >/dev/null
+  msg="Glass: on"
+else
+  hyprctl dispatch setprop "$w" no_blur 1 >/dev/null
+  hyprctl dispatch setprop "$w" opacity 1 >/dev/null
+  msg="Glass: off"
+fi
+hyprctl notify -1 1500 "rgb(8bb4e0)" "$msg" >/dev/null

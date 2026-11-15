@@ -1,0 +1,7 @@
+# Managed by t2-mac-kde (desktop)
+[Unit]
+Description=Wipe the clipboard history and the current clipboard
+
+[Service]
+Type=oneshot
+ExecStart=%h/.local/bin/hypr-cliphist wipe --quiet

@@ -1,0 +1,41 @@
+#!/bin/sh
+# Put the Fixedsys fonts on Xwayland's core font path (NEdit and other legacy X
+# apps draw text with core X fonts; Xwayland only has its built-in "fixed").
+# Run as the desktop user at session start and after a new Xwayland starts.
+# Exit: 0 added/already present or skipped (no index), 1 failure, 2 usage.
+# Managed by t2-mac-kde (tasks/fonts.py).
+dir="${HYPR_XFONTS_DIR:-$HOME/.local/share/fonts-x11core}"
+tries=40
+
+if [ $# -ne 0 ]; then
+  echo "usage: hypr-xfonts (no arguments; uses DISPLAY/XAUTHORITY)" >&2
+  exit 2
+fi
+if [ ! -f "$dir/fonts.dir" ]; then
+  echo "hypr-xfonts: skipped: core font directory unavailable ($dir)" >&2
+  exit 0
+fi
+
+# Serialize concurrent calls for the same display (nonblocking).
+if command -v flock >/dev/null 2>&1 && [ -n "$XDG_RUNTIME_DIR" ] && [ -d "$XDG_RUNTIME_DIR" ]; then
+  lock="$XDG_RUNTIME_DIR/hypr-xfonts$(printf '%s' "${DISPLAY:-none}" | tr -c 'A-Za-z0-9' '_').lock"
+  exec 9>"$lock" || { echo "hypr-xfonts: cannot open lock $lock" >&2; exit 1; }
+  flock -n 9 || { echo "hypr-xfonts: another call is running for DISPLAY=$DISPLAY" >&2; exit 1; }
+fi
+
+i=0
+until xset q >/dev/null 2>&1; do
+  i=$((i + 1))
+  if [ "$i" -gt "$tries" ]; then
+    echo "hypr-xfonts: display ${DISPLAY:-unset} not available after $tries tries" >&2
+    exit 1
+  fi
+  sleep 0.5
+done
+
+fp=$(xset q 2>/dev/null | awk '/^Font Path:/{getline; print; exit}' | tr -d ' \t')
+case ",$fp," in
+  *",$dir,"*|*",$dir/,"*) ;;
+  *) xset +fp "$dir" || { echo "hypr-xfonts: xset +fp $dir failed" >&2; exit 1; } ;;
+esac
+xset fp rehash || { echo "hypr-xfonts: xset fp rehash failed" >&2; exit 1; }

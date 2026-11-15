@@ -1,0 +1,120 @@
+#!/usr/bin/python3
+"""Managed by t2-mac-kde (desktop). Selected Hyprland session helper.
+
+    hypr-session status [--json] [--instance SIGNATURE]
+        Read-only status of one Hyprland instance (default: the current explicit
+        HYPRLAND_INSTANCE_SIGNATURE; never the newest directory). Exit 0 ready/preparing,
+        2 unavailable (missing / wrong user / dead instance).
+    hypr-session xfonts
+        Run the desktop-fonts helper ~/.local/bin/hypr-xfonts once Xwayland is up
+        (skipped when that feature is not installed).
+"""
+import json
+import os
+import re
+import socket
+import subprocess
+import sys
+from pathlib import Path
+
+# desktop-fonts installs the helper per user; keep the system path as a fallback.
+XFONTS = next((p for p in (str(Path.home() / ".local/bin/hypr-xfonts"), "/usr/local/bin/hypr-xfonts")
+               if os.access(p, os.X_OK)), str(Path.home() / ".local/bin/hypr-xfonts"))
+SIG_RE = re.compile(r"^[A-Za-z0-9_.-]+$")
+
+
+def _plugin_abi():
+    try:
+        out = subprocess.run(["dpkg-query", "-W", "-f", "${Provides}", "hyprland"], capture_output=True,
+                             text=True, timeout=5).stdout
+    except (OSError, subprocess.SubprocessError):
+        return None
+    m = re.search(r"hyprland-abi-([0-9a-f]+)", out)
+    return m.group(0) if m else None
+
+
+def _request(path, cmd):
+    with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as s:
+        s.settimeout(1.0)
+        s.connect(str(path))
+        s.sendall(cmd.encode())
+        out = b""
+        while chunk := s.recv(65536):
+            out += chunk
+    return json.loads(out.decode())
+
+
+def status(sig, explicit):
+    uid = os.getuid()
+    runtime = os.environ.get("XDG_RUNTIME_DIR") or f"/run/user/{uid}"
+    base = {"schema_version": 1, "uid": uid, "instance_signature": sig or None, "runtime_dir": runtime}
+    if not sig or not SIG_RE.match(sig):
+        return 2, dict(base, state="unavailable", reason="no instance selected (HYPRLAND_INSTANCE_SIGNATURE unset)")
+    inst = Path(runtime) / "hypr" / sig
+    try:
+        st = inst.stat()
+        lock = (inst / "hyprland.lock").read_text().split()
+    except OSError:
+        return 2, dict(base, state="unavailable", reason="instance directory or lock missing")
+    if st.st_uid != uid:
+        return 2, dict(base, state="unavailable", reason="instance belongs to another user")
+    pid = int(lock[0]) if lock and lock[0].isdigit() else 0
+    try:
+        exe = os.readlink(f"/proc/{pid}/exe") if pid else None
+        if not pid or os.stat(f"/proc/{pid}").st_uid != uid:
+            raise OSError
+    except OSError:
+        return 2, dict(base, state="unavailable", reason="compositor process not running")
+    wl = lock[1] if len(lock) > 1 else None
+    result = dict(base, compositor_executable=exe, compositor_version=None, plugin_abi=_plugin_abi(),
+                  wayland_display=wl,
+                  x_display=os.environ.get("DISPLAY") or None if not explicit else None,
+                  bus_address=os.environ.get("DBUS_SESSION_BUS_ADDRESS") or f"unix:path={runtime}/bus",
+                  state="preparing")
+    try:
+        result["compositor_version"] = _request(inst / ".socket.sock", "j/version").get("tag")
+        result["state"] = "ready"
+    except (OSError, ValueError):
+        pass
+    return 0, result
+
+
+def xfonts():
+    if not os.access(XFONTS, os.X_OK):
+        print("hypr-session: hypr-xfonts not installed (desktop-fonts feature): skipped", file=sys.stderr)
+        return 0
+    rc = subprocess.run([XFONTS]).returncode
+    if rc == 1:
+        subprocess.run(["hyprctl", "notify", "0", "5000", "rgb(c0605a)", "X core fonts: registration failed"],
+                       capture_output=True)
+    return rc
+
+
+def main(argv):
+    args = argv[1:]
+    if args[:1] == ["xfonts"]:
+        return xfonts()
+    if args[:1] != ["status"]:
+        print(__doc__.strip(), file=sys.stderr)
+        return 2
+    args = args[1:]
+    as_json = "--json" in args
+    args = [a for a in args if a != "--json"]
+    explicit = False
+    if args[:1] == ["--instance"] and len(args) == 2:
+        sig, explicit = args[1], True
+    elif not args:
+        sig = os.environ.get("HYPRLAND_INSTANCE_SIGNATURE", "")
+    else:
+        print("usage: hypr-session status [--json] [--instance SIGNATURE]", file=sys.stderr)
+        return 2
+    rc, result = status(sig, explicit)
+    if as_json:
+        print(json.dumps(result, sort_keys=True))
+    else:
+        print(f"{result['state']}: {result.get('reason') or result.get('instance_signature')}")
+    return rc
+
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv))

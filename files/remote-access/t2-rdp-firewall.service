@@ -1,0 +1,14 @@
+[Unit]
+Description=t2-mac-kde: allow RDP only via Tailscale/loopback
+DefaultDependencies=no
+Before=network-pre.target
+Wants=network-pre.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/sbin/nft -f /etc/t2-mac-kde/rdp-tailscale-only.nft
+ExecStop=/usr/sbin/nft delete table inet t2_rdp
+
+[Install]
+WantedBy=sysinit.target

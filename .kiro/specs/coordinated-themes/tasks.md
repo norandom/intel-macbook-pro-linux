@@ -1,138 +1,32 @@
-# Implementation Plan
+# Implementation Tasks: coordinated-themes
 
-All tasks are future work. Phase approvals use the requested batch `-y` fast-track; no implementation or runtime acceptance is implied. Dependencies: foundation guard implemented, fonts available, and selected shell editor base validated. Optional application failures do not require forced installation. Tasks are sequential because asset/config/state integration shares contracts; no parallel marker is asserted.
+Run: `.venv/bin/pyinfra @local tasks/themes.py --dry` then without `--dry` (sudo only for /usr/local/bin/hypr-term).
+Assets: `files/themes/` (ported from source a1c09ec). Tests: `tests/test_themes.py`.
 
-- [ ] 1. Prepare guarded execution and complete pinned palette inputs
-- [ ] 1.1 Establish selected-target capability and safe preview scaffolding
-  - Add the optional feature entry using exact foundation preflight/package APIs without editing root orchestration.
-  - Validate owner/home/path and explicit target selection; read application report and re-probe actual executables, versions, grammars and optional bus availability.
-  - Require the implemented foundation guard; reject prohibited/protected package or hook effects and never install optional applications.
-  - Completion is visible when preview snapshots remain unchanged and missing/unsupported prerequisites yield precise per-target dispositions before writes.
-  - _Boundary: FeatureEntry_
-  - _Requirements: 3.6, 5.1, 5.2, 5.3_
-- [ ] 1.2 Acquire and verify the actual five-palette manifest
-  - Import the complete source assets, terminal profiles/tab dictionary and both source generators using the pinned revision/blob/digest inventory; review redistribution terms before publication.
-  - Run generators offline in staging, compare checked-in outputs, retain full ANSI/cursor/syntax/tab colors and record adaptations separately.
-  - Resolve font report/fc-match for source family selections, documenting private Berkeley fallback without acquisition.
-  - Completion is visible when all inventory entries have verified digests/dispositions and five complete palette fixture sets reproduce the source output.
-  - _Boundary: PaletteAssets_
-  - _Requirements: 1.1, 1.2, 1.3_
+## Implemented
+- [x] All five palettes (cobalt/navy/fixedsys/cream/petrol) copied verbatim: btop, Claude Code, Ghostty (+tab CSS), foot, Sublime, VS Code/Positron extension, Terminator profiles.
+- [x] foot themes adapted to `[colors]` (Ubuntu foot 1.25; `[colors-dark]` needs >= 1.26).
+- [x] `/usr/local/bin/hypr-term`: validated state, argv preserved via exec, 127 when terminator missing, 1 on bad state.
+- [x] `~/.local/bin/hypr-termtheme <profile>|next|prev|apply`: fixed order default→navy→fixedsys→cream→petrol, empty=next, usage exit 2 before writes, invalid state exit 1 (explicit profile repairs it), flock, selection written atomically last.
+- [x] App targets apply only when their assets/dirs exist; unchanged files are not rewritten; signals only on change.
+- [x] JSON settings (Claude, Sublime, Code, Positron) edited only when plain JSON; JSONC files are left untouched and reported `unapplied`.
+- [x] btop: only the `color_theme` line changes; other lines kept.
+- [x] Waybar RTMIN+10 / btop / Ghostty signals limited to the same user (`pkill -u`); Hyprland notify only with HYPRLAND_INSTANCE_SIGNATURE; all best effort, never fail a switch. `apply` skips live actions.
+- [x] Missing private font (Berkeley Mono, Fixedsys Core) reported with the `fc-match` fallback.
+- [x] Terminator config installed when absent; an existing config without the profiles is backed up to `config.pre-t2-mac-kde` first.
+- [x] Theme menu plugin lists only the five managed profiles.
+- [x] Tab CSS as separate `~/.config/gtk-3.0/t2-mac-kde-terminator-tabs.css`, `@import` prepended to gtk.css (KDE imports kept).
+- [x] Ghostty `config.ghostty` / `foot.ini` installed only when absent or already ours; old Ghostty `config` never deleted.
+- [x] Neovim bridge `~/.config/nvim/plugin/debian-hypr-theme.lua` (cream→berg-light at VimEnter).
+- [x] xfce4-terminal cobalt + unsafe-paste dialog via xfconf, only when installed and a session bus exists.
+- [x] Chromium constant cream policy behind `host.data.themes_chromium_policy` and native `/etc/chromium` only.
+- [x] No packages installed (application-suite owns terminator/foot/ghostty/...). Fuzzel/mako/waybar left to hyprland-desktop.
+- [x] Fixture tests: cycle/wrap, apply, invalid args/state, JSONC preservation, btop, hypr-term argv/exit/127.
 
-- [ ] 2. Establish preserving settings and recoverable selection
-- [ ] 2.1 Implement syntax-preserving settings edits and compatibility checks
-  - Support JSON/JSONC token spans and exact-section/include operations while preserving unrelated comments/values/formatting.
-  - Reject malformed syntax, duplicate owned keys, unsupported grammars, foreign ownership, unsafe symlinks and concurrent digest changes.
-  - Stage/reparse prospective output before any publication; create minimal missing files only for eligible selected apps.
-  - Completion is visible when inline/block comments, escapes, URLs, trailing commas, CRLF and concurrent-save fixtures preserve unrelated bytes or fail without writes.
-  - _Boundary: ConfigAdapters_
-  - _Requirements: 4.1, 4.2, 3.6_
-- [ ] 2.2 Implement serialized transaction and commit-last publication
-  - Add private state/status/receipt models, nonblocking lock, same-filesystem staging, digest rechecks and journaled file replacement with compatibility state committed last.
-  - Completion is visible when injected publication failures retain prior selection, private journal entries identify completed writes and concurrent calls fail cleanly.
-  - _Boundary: ThemeState_
-  - _Requirements: 2.1, 2.2, 4.3, 4.4, 5.3_
-
-
-- [ ] 2.3 Recover interrupted theme transactions safely
-  - Detect incomplete journals before another switch and reconcile recorded staged/new digests with current files.
-  - Roll back only unchanged managed writes, retain the last committed selection and report later-edit conflicts without overwrite.
-  - Completion is visible when forced termination at each publication boundary recovers consistently or returns a specific conflict without modifying owner edits.
-  - _Boundary: ThemeState_
-  - _Requirements: 4.3, 5.3_
-- [ ] 2.4 Restore only recorded theme changes
-  - Reverse owned keys/files using retained preimages while preserving unrelated later changes; remove new files only on matching complete digest.
-  - Provide generic receipt/restoration seams for later target adapters without package or protected-file mutation; target-specific xfconf/property and browser-policy behavior belongs to 3.3 and 4.5.
-  - Completion is visible when restoration fixtures recover originals, preserve later edits and other feature files, and report owned-key conflicts without overwriting them.
-  - _Boundary: ThemeState_
-  - _Requirements: 4.4, 5.3_
-
-- [ ] 3. Deliver terminal integrations
-- [ ] 3.1 Preserve Terminator profiles, menu and slim tab behavior
-  - Add five source profiles and required plugin/global keys without replacing unrelated layouts/profiles/plugins; retain all full source palette/font/cursor behavior.
-  - Install scoped GTK import/style and adapt menu to supported managed profiles.
-  - Observe atomic state/config replacements using parent-directory monitors and verify repeated change events; use validated user-bus profile switching.
-  - Completion is visible when a controlled Terminator fixture exposes five menu entries, two fixture-produced atomic state/config replacements update tabs, and unrelated profiles/layouts/plugins/GTK settings remain unchanged. CLI-driven current/new window acceptance follows command integration.
-  - _Boundary: TerminalIntegration_
-  - _Requirements: 1.1, 1.2, 3.1, 4.1, 4.2_
-- [ ] 3.2 Add Ghostty and foot palette inclusions with installed-version validation
-  - Install only selected compatible targets' five actual themes/CSS and additive include seams; preserve old Ghostty config and unrelated options.
-  - Validate Ghostty config name/options and foot color/cursor dialect against installed executables, generating documented dialect adaptations from identical colors where supported.
-  - Publish current theme files through the common transaction; reload only verified owner Ghostty processes and label foot next-launch.
-  - Completion is visible when native config parsers accept every palette, unsupported versions retain identical configs and missing targets create no directories.
-  - _Boundary: ConfigAdapters_
-  - _Requirements: 1.1, 1.2, 3.2, 3.6, 4.1, 4.2_
-- [ ] 3.3 Preserve xfce4-terminal cobalt and unsafe paste review
-  - Port only the actual source cobalt property set through verified xfconf types on the inherited owner bus.
-  - Snapshot property existence/value, preserve unrelated properties, and provide compare-and-set restoration without direct XML rewrite or fabricated bus address.
-  - Keep this provisioning transaction outside five-profile cycling; absent bus produces pending-live.
-  - Completion is visible when property readback matches source cobalt and unsafe-paste dialog=true, restore preserves later edits and bus absence causes no live mutation.
-  - _Boundary: ConfigAdapters_
-  - _Requirements: 3.3, 3.6, 4.4, 5.3_
-
-- [ ] 4. Deliver optional application palettes and editor bridge
-- [ ] 4.1 Coordinate btop and compatible Claude custom themes
-  - Publish five real palettes only for selected installed targets, update only owned settings, and retain transparent btop background behavior.
-  - Verify actual Claude custom-theme schema/support before updates; unsupported versions remain incompatible with unchanged files.
-  - Restrict btop reload to verified owner processes; return pending-live when running reload is unverified.
-  - Completion is visible when all eligible profile settings match source assets and unsupported/missing target fixtures preserve entire configurations.
-  - _Boundary: ConfigAdapters_
-  - _Requirements: 1.1, 3.2, 3.6, 4.1, 4.2_
-- [ ] 4.2 Coordinate Sublime schemes and font settings
-  - Install five source Sublime schemes and apply only color_scheme/font_face/font_size using the preserving editor.
-  - Retain an existing theme preference, adding Adaptive only when absent, and preserve all unrelated comments/values.
-  - Completion is visible when selected compatible Sublime discovers five schemes, selected theme/font persists and settings preservation fixtures pass.
-  - _Boundary: ConfigAdapters_
-  - _Requirements: 1.1, 1.2, 3.2, 3.6, 4.1, 4.2_
-- [ ] 4.3 Coordinate Code and Positron theme extensions
-  - Install the actual local theme extension and verify each selected installed app's engine/contribution compatibility and five theme labels.
-  - Apply only owned theme/editor/integrated-terminal font keys; preserve telemetry/update/titlebar policies and JSONC comments.
-  - Preserve unowned extension files and other extensions without directory sync deletion.
-  - Completion is visible when eligible apps discover five expected labels and selected theme/font settings persist; incompatible installations remain byte-identical.
-  - _Boundary: ConfigAdapters_
-  - _Requirements: 1.1, 1.2, 3.2, 3.6, 4.1, 4.2_
-- [ ] 4.4 Add next-start Neovim Berg theme bridge
-  - Consume validated shell-owned base/Berg/ToggleTheme APIs and publish only the independent bridge plugin.
-  - Select Berg light for cream and dark otherwise, preserving manual toggle and standalone operation without compositor.
-  - Exercise shell update/restore coexistence without changing its base or unrelated plugins.
-  - Completion is visible when bounded headless initialization selects the expected colorscheme for all profiles and manual toggle/base files remain intact.
-  - _Boundary: EditorBridge_
-  - _Requirements: 3.4, 3.6, 4.4_
-- [ ] 4.5 Gate constant Chromium cream frame policy
-  - Require explicit selection, an actual compatible native Chromium installation, consumed policy path/schema and no conflicting owner policy.
-  - Publish only the source constant cream policy through scoped privileged provisioning and receipt-based restoration; never cycle it or install a browser.
-  - Completion is visible when compatible browser policy UI recognizes the two settings, conflict/unsupported fixtures leave existing policy unchanged and palette cycling never rewrites it.
-  - _Boundary: ConfigAdapters_
-  - _Requirements: 3.5, 3.6, 4.4, 5.2_
-
-- [ ] 5. Integrate stable command and application execution
-- [ ] 5.1 Coordinate eligible application preparation, commit and reload
-  - Collect selected compatible targets, prepare all changes and abort on any eligible target preparation failure before publication.
-  - Use the common transaction and interrupted recovery to publish settings and commit compatibility selection last.
-  - Reload only after commit; expose postcommit reload failures as pending-live, unsupported/absent targets as incompatible/skipped and no-op files without needless writes/signals.
-  - Completion is visible when multi-target fixtures prove all-prepare-before-write, prior-selection preservation on failure and truthful postcommit per-target outcomes.
-  - _Boundary: SwitchCoordinator integration_
-  - _Depends: 2.1, 2.2, 2.3, 2.4, 3.1, 3.2, 4.1, 4.2, 4.3, 4.4_
-  - _Requirements: 2.1, 2.2, 4.3, 5.3_
-- [ ] 5.2 Implement the exact source producer CLI and launch contract
-  - Preserve default→navy→fixedsys→cream→petrol cycle, reverse wrapping, default-to-cobalt mapping, empty-next and apply semantics using the fixed compatibility state.
-  - Publish stable command paths, validate arguments/state and preserve launch argument vector/exit behavior; no hidden alternate terminal.
-  - Expose clear per-target outcomes and optional current-session RTMIN+10/notification only after committed non-apply changes; missing compositor/bar stays successful.
-  - Completion is visible when CLI fixtures prove order, argument boundaries, usage2/no mutation, runtime1, terminal exit propagation, apply/no cycling and standalone success.
-  - _Boundary: ThemeCLI, SwitchCoordinator integration_
-  - _Depends: 5.1_
-  - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5, 5.3_
-- [ ] 5.3 Integrate guarded provisioning, repeated application and restoration
-  - Wire selected components through optional feature entry with exact file ownership and separate xfconf/Chromium provisioning transactions.
-  - Verify full preview/apply/reapply/restore, no-op writes/reloads, interrupted switching recovery and unsupported app preservation in disposable homes.
-  - Preserve dormant KDE, keyboard baseline, T2 audio/firmware/driver and protected state; fail forbidden package/trigger fixtures before mutation.
-  - Completion is visible when full integration snapshots match expected scoped changes and all required failures remain nonzero with accurate target reports.
-  - _Boundary: FeatureEntry, PaletteAssets, ConfigAdapters, TerminalIntegration, EditorBridge, ThemeState, SwitchCoordinator, ThemeCLI integration_
-  - _Depends: 3.3, 4.5, 5.2_
-  - _Requirements: 1.3, 2.2, 3.6, 4.1, 4.2, 4.3, 4.4, 5.1, 5.2, 5.3_
-- [ ] 5.4 Implement explicit application and desktop acceptance checks
-  - Provide repeatable native-app checks for all five palette/font/cursor/tab selections, live reload versus next-launch behavior, nvim/manual toggle, xfconf paste review and constant browser policy.
-  - Verify desktop's launcher and read-only state consumer, session-specific RTMIN+10 and absence of compositor dependency without editing desktop config.
-  - Capture nonsecret baseline comparisons and mark unavailable physical keyboard/audio/T2 checks pending; never infer live appearance or hardware success from generated bytes.
-  - Completion is visible when acceptance records contain actual app versions/results and distinct pending-live/physical states rather than document-review success.
-  - _Boundary: FeatureEntry integration validation_
-  - _Requirements: 1.1, 1.2, 2.3, 2.5, 3.1, 3.2, 3.3, 3.4, 3.5, 5.4_
+## Deferred / needs live owner check
+- [ ] Live acceptance in a real session (Terminator menu, remotinator switch, Ghostty SIGUSR2, Waybar refresh) — needs desktop.
+- [ ] Re-run `tasks/themes.py` after application-suite installs foot/ghostty/terminator so their assets are placed.
+- [ ] Generators (tools/themegen.py, vscodetheme.py) not ported; assets are checked in as generated by source.
+- [ ] Journal/receipt-based scoped restore not implemented (backup of Terminator config only) — speed priority.
+- [ ] Claude Code `custom:<theme>` support depends on the installed Claude release; not verified.
+- [ ] VS Code telemetry/update/titlebar settings from source dropped (not theme-owned).

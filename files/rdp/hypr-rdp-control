@@ -1,0 +1,245 @@
+#!/usr/bin/python3
+"""Start/stop/validate hypr-rdp for the selected T2 Hyprland session.
+
+  hypr-rdp-control validate        check config, password file and session
+  hypr-rdp-control start|stop      start/stop t2-hypr-rdp.service (also auto-starts
+                                   with hypr-desktop.target in the Hyprland session)
+  hypr-rdp-control status          service state + last hook event
+  hypr-rdp-control mark-verified   record that this binary works on this compositor
+  hypr-rdp-control run             unit ExecStart: validate, then exec the server
+
+Exit codes: 0 ok, 1 compatibility gate / failure, 2 invalid session or config.
+Upstream v0.1.8 declares Hyprland 0.54+; this desktop is 0.53.3 (default wlr
+capture works there). Without `mark-verified` for the exact binary + compositor
+version the server still starts, with a warning. Port 3389 is firewalled to
+Tailscale and loopback.
+"""
+import hashlib
+import ipaddress
+import json
+import os
+import shutil
+import stat
+import subprocess
+import sys
+import tomllib
+from pathlib import Path
+
+HOME = Path.home()
+CONFIG = HOME / ".config/t2-mac-kde/rdp/config.toml"
+SERVER = HOME / ".local/opt/hypr-rdp/current/hypr-rdp"
+STATE = HOME / ".local/state/t2-mac-kde/rdp"
+MARKER = STATE / "native-verified"
+UNIT = "t2-hypr-rdp.service"
+ALLOWED_AUDIO = ("mirror", "off")
+
+
+class Fail(Exception):
+    def __init__(self, code, reason):
+        super().__init__(reason)
+        self.code = code
+        self.reason = reason
+
+
+def load_config(path=CONFIG):
+    """Return the parsed config after the authentication/safety checks (exit 2 on error)."""
+    try:
+        cfg = tomllib.loads(Path(path).read_text())
+    except FileNotFoundError:
+        raise Fail(2, f"missing config {path}; run tasks/rdp.py")
+    except tomllib.TOMLDecodeError as error:
+        raise Fail(2, f"invalid config {path}: {error}")
+    if cfg.get("auth_mode") != "configured":
+        raise Fail(2, 'auth_mode must be "configured"')
+    if not str(cfg.get("username", "")).strip():
+        raise Fail(2, "username is empty")
+    if "password" in cfg:
+        raise Fail(2, "inline password is not allowed; use password_file")
+    if not str(cfg.get("bind", "")).strip():
+        raise Fail(2, "bind must be set explicitly")
+    if cfg.get("audio_mode") not in ALLOWED_AUDIO:
+        raise Fail(2, "audio_mode must be mirror or off (redirect would move local audio)")
+    secret = Path(str(cfg.get("password_file", "")))
+    if not secret.is_absolute():
+        raise Fail(2, "password_file must be an absolute path")
+    try:
+        st = secret.stat()
+    except FileNotFoundError:
+        raise Fail(2, f"password file {secret} is missing")
+    if st.st_uid != os.getuid() or stat.S_IMODE(st.st_mode) & 0o077 or st.st_size == 0:
+        raise Fail(2, f"password file {secret} must be nonempty, owned by you, mode 0600")
+    return cfg
+
+
+def bind_host(bind):
+    text = bind.rsplit(":", 1)[0] if ":" in bind else bind
+    return text.strip("[]")
+
+
+def is_loopback(bind):
+    host = bind_host(bind)
+    if host == "localhost":
+        return True
+    try:
+        return ipaddress.ip_address(host).is_loopback
+    except ValueError:
+        return False
+
+
+def _hypr_session():
+    path = f"{HOME}/.local/bin:/usr/local/bin:/usr/bin"
+    return shutil.which("hypr-session", path=path)
+
+
+def select_session(env=None, status_runner=None):
+    """Return the selected session dict; never guesses an instance (exit 2 on error)."""
+    env = os.environ if env is None else env
+    sig = env.get("HYPRLAND_INSTANCE_SIGNATURE", "")
+    if not sig or "/" in sig:
+        raise Fail(2, "no selected Hyprland session (HYPRLAND_INSTANCE_SIGNATURE unset; KDE?)")
+    if status_runner is None:
+        tool = _hypr_session()
+        if tool:
+            def status_runner(instance):
+                out = subprocess.run([tool, "status", "--json", "--instance", instance],
+                                     capture_output=True, text=True, timeout=10)
+                return out.returncode, out.stdout
+    if status_runner is not None:
+        code, out = status_runner(sig)
+        if code != 0:
+            raise Fail(2, f"hypr-session status rejected instance {sig} (exit {code})")
+        try:
+            data = json.loads(out)
+        except ValueError:
+            raise Fail(2, "hypr-session status returned invalid JSON")
+        if data.get("schema_version") != 1:
+            raise Fail(2, "unsupported hypr-session status schema")
+        if data.get("uid") != os.getuid() or data.get("instance_signature") != sig:
+            raise Fail(2, "selected session belongs to another user or instance")
+        if data.get("state") != "ready":
+            raise Fail(2, f"selected session is {data.get('state')!r}, not ready")
+        if not data.get("wayland_display") or not data.get("runtime_dir"):
+            raise Fail(2, "selected session has no Wayland display")
+        return data
+    # Desktop helper not installed yet: validate the exact instance directly.
+    runtime = env.get("XDG_RUNTIME_DIR", "")
+    wayland = env.get("WAYLAND_DISPLAY", "")
+    sock = Path(runtime, "hypr", sig, ".socket.sock")
+    try:
+        st = sock.stat()
+    except OSError:
+        raise Fail(2, f"Hyprland instance {sig} has no live IPC socket")
+    if not stat.S_ISSOCK(st.st_mode) or st.st_uid != os.getuid():
+        raise Fail(2, f"Hyprland instance {sig} socket is not yours")
+    if not runtime or not wayland or not Path(runtime, wayland).exists():
+        raise Fail(2, "WAYLAND_DISPLAY of the selected session is missing")
+    return {"instance_signature": sig, "wayland_display": wayland, "runtime_dir": runtime,
+            "compositor_version": "unknown", "state": "ready", "uid": os.getuid()}
+
+
+def binary_digest(path=SERVER):
+    digest = hashlib.sha256()
+    with open(path, "rb") as handle:
+        for block in iter(lambda: handle.read(1 << 20), b""):
+            digest.update(block)
+    return digest.hexdigest()
+
+
+def evidence_key(session, path=SERVER):
+    return f"{binary_digest(path)} {session.get('compositor_version', 'unknown')}"
+
+
+def check_gate(cfg, session, marker=MARKER, path=SERVER):
+    """Non-loopback exposure needs recorded native evidence for this binary + compositor."""
+    if is_loopback(cfg["bind"]):
+        return
+    try:
+        recorded = Path(marker).read_text().strip()
+    except FileNotFoundError:
+        recorded = ""
+    if recorded != evidence_key(session, path):
+        # Warning only: port 3389 is firewalled to tailscale0/lo (tasks/remote_access.py),
+        # and the default wlr capture mode works on Hyprland 0.53.
+        print("hypr-rdp-control: warning: upstream declares Hyprland 0.54+; this binary/compositor "
+              "pair is not marked verified yet (run 'hypr-rdp-control mark-verified' once it works).",
+              file=sys.stderr)
+
+
+def server_env(session, base=None):
+    env = dict(os.environ if base is None else base)
+    env.update(WAYLAND_DISPLAY=session["wayland_display"],
+               HYPRLAND_INSTANCE_SIGNATURE=session["instance_signature"],
+               XDG_RUNTIME_DIR=session["runtime_dir"])
+    for key in ("LIBGL_ALWAYS_SOFTWARE", "WLR_RENDERER_ALLOW_SOFTWARE", "WLR_RENDERER"):
+        env.pop(key, None)
+    return env
+
+
+def validate():
+    cfg = load_config()
+    if not os.access(SERVER, os.X_OK):
+        raise Fail(2, f"server binary {SERVER} missing; run tasks/rdp.py")
+    session = select_session()
+    return cfg, session
+
+
+def wait_for_session(attempts=15, delay=1.0, select=None, sleep=None):
+    """At session startup the compositor may still be 'preparing'; wait briefly."""
+    import time
+    select = select or select_session
+    sleep = sleep or time.sleep
+    for attempt in range(attempts):
+        try:
+            return select()
+        except Fail:
+            if attempt == attempts - 1:
+                raise
+            sleep(delay)
+
+
+def systemctl(*args):
+    return subprocess.run(["systemctl", "--user", *args], check=False).returncode
+
+
+def main(argv):
+    cmd = argv[1] if len(argv) > 1 else ""
+    try:
+        if cmd == "validate":
+            cfg, session = validate()
+            check_gate(cfg, session)
+            print(f"ok: bind {cfg['bind']}, session {session['instance_signature']}")
+        elif cmd == "run":
+            cfg = load_config()
+            session = wait_for_session()
+            if not os.access(SERVER, os.X_OK):
+                raise Fail(2, f"server binary {SERVER} missing; run tasks/rdp.py")
+            check_gate(cfg, session)
+            os.execve(str(SERVER), [str(SERVER), "--config", str(CONFIG)], server_env(session))
+        elif cmd == "start":
+            cfg, session = validate()
+            check_gate(cfg, session)
+            if systemctl("start", UNIT):
+                raise Fail(1, f"systemctl --user start {UNIT} failed; see journalctl --user -u {UNIT}")
+            print(f"started on {cfg['bind']} for session {session['instance_signature']}")
+        elif cmd == "stop":
+            return systemctl("stop", UNIT)
+        elif cmd == "status":
+            systemctl("--no-pager", "status", UNIT)
+            last = Path(os.environ.get("XDG_RUNTIME_DIR", "/nonexistent"), "t2-mac-kde/rdp/session")
+            print("last hook event:", last.read_text().strip() if last.exists() else "none")
+        elif cmd == "mark-verified":
+            cfg, session = validate()
+            STATE.mkdir(parents=True, exist_ok=True)
+            MARKER.write_text(evidence_key(session) + "\n")
+            print(f"recorded native evidence for compositor {session.get('compositor_version')}")
+        else:
+            print(__doc__.strip(), file=sys.stderr)
+            return 2
+    except Fail as error:
+        print(f"hypr-rdp-control: {error.reason}", file=sys.stderr)
+        return error.code
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv))

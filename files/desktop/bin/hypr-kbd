@@ -1,0 +1,21 @@
+#!/bin/sh
+# Managed by t2-mac-kde (desktop). Keyboard layout:  hypr-kbd de|us|toggle|apply [--quiet]
+# Both layouts are loaded in one keymap (input.conf: kb_layout "de,us", German = Apple Mac
+# layout without dead keys, Option+L = @); this only changes the active one. The choice is
+# kept in ~/.local/state/hypr-kbd; "apply" re-applies it (run after every config load).
+state="$HOME/.local/state/hypr-kbd"
+cur=$(cat "$state" 2>/dev/null || echo de)
+case "$cur" in de|us) ;; *) cur=de ;; esac
+case "${1:-}" in
+  de|us) new=$1 ;;
+  toggle|"") [ "$cur" = us ] && new=de || new=us ;;
+  apply) new=$cur ;;
+  *) echo "usage: hypr-kbd de|us|toggle|apply   (de = German Mac layout, no dead keys)" >&2; exit 2 ;;
+esac
+[ "$new" = us ] && group=1 || group=0
+if [ "${1:-}" != apply ]; then
+  mkdir -p "${state%/*}" && echo "$new" > "$state"
+fi
+hyprctl switchxkblayout all "$group" >/dev/null
+pkill -RTMIN+9 -u "$(id -u)" -x waybar 2>/dev/null
+[ "${2:-}" = --quiet ] || echo "keyboard: $new"

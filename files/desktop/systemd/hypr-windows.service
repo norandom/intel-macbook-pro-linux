@@ -1,0 +1,13 @@
+# Managed by t2-mac-kde (desktop)
+[Unit]
+Description=Hyprland window worker (layout memory, aero snap, keep title bars reachable)
+PartOf=hypr-desktop.target graphical-session.target
+After=graphical-session.target
+
+[Service]
+ExecStart=%h/.local/bin/hypr-windows run
+Restart=on-failure
+RestartSec=2
+
+[Install]
+WantedBy=hypr-desktop.target

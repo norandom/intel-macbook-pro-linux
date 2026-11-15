@@ -1,0 +1,69 @@
+# Managed by t2-mac-kde (desktop). SUPER = Right Option on the Apple keyboard;
+# SHIFT + Print = one-shot Super (keyboards without a free Super key).
+# Every SUPER binding is mirrored into the one-shot "super" submap at the end.
+# Apps start through hypr-launch (uwsm app, argument-preserving; missing apps notify).
+{%- set L = "~/.local/bin/" %}
+{%- set keys = [
+  ("", "RETURN", "exec", L ~ "hypr-launch hypr-term", "Terminal"),
+  ("", "Y", "exec", L ~ "hypr-termtheme next", "Next terminal theme"),
+  ("SHIFT", "RETURN", "exec", L ~ "hypr-launch xfce4-terminal", "Terminal (paste review)"),
+  ("", "E", "exec", L ~ "hypr-launch xfe", "File manager"),
+  ("", "V", "exec", L ~ "hypr-cliphist pick", "Clipboard history"),
+  ("", "G", "exec", L ~ "hypr-glass", "Glass window on/off"),
+  ("", "P", "exec", L ~ "hypr-pin", "Stay on top on/off"),
+  ("", "SPACE", "exec", "uwsm app -- fuzzel", "Launcher (search)"),
+  ("", "A", "exec", L ~ "hypr-appmenu", "Application menu"),
+  ("", "ESCAPE", "exec", L ~ "hypr-appmenu power", "Power menu"),
+  ("", "W", "killactive", "", "Close window"),
+  ("", "F", "fullscreen", "0", "Full screen"),
+  ("SHIFT", "F", "fullscreen", "1", "Maximize"),
+  ("", "T", "togglefloating", "", "Toggle floating/tiling"),
+  ("", "L", "exec", L ~ "hypr-layout next", "Next layout mode"),
+  ("SHIFT", "M", "exec", "uwsm stop", "Log out (exit Hyprland)"),
+  ("", "LEFT", "movefocus", "l", "Focus left"),
+  ("", "RIGHT", "movefocus", "r", "Focus right"),
+  ("", "UP", "movefocus", "u", "Focus up"),
+  ("", "DOWN", "movefocus", "d", "Focus down"),
+  ("", "TAB", "cyclenext", "", "Next window"),
+  ("", "TAB", "bringactivetotop", "", "Raise window"),
+  ("", "code:20", "resizeactive", "-100 0", "Narrower"),
+  ("", "code:21", "resizeactive", "100 0", "Wider"),
+  ("SHIFT", "code:20", "resizeactive", "0 -100", "Shorter"),
+  ("SHIFT", "code:21", "resizeactive", "0 100", "Taller"),
+  ("", "M", "togglespecialworkspace", "minimized", "Show minimized windows"),
+] %}
+{%- set mouse = [
+  ("mouse:272", "movewindow", "Move window"),
+  ("mouse:273", "resizewindow", "Resize window"),
+] %}
+
+{% for mods, key, disp, arg, desc in keys -%}
+bindd = SUPER {{ mods }}, {{ key }}, {{ desc }}, {{ disp }}, {{ arg }}
+{% endfor %}
+# Mouse: SUPER + left drag = move, SUPER + right drag = resize
+{% for key, disp, desc in mouse -%}
+bindmd = SUPER, {{ key }}, {{ desc }}, {{ disp }}
+{% endfor %}
+# Right-click on the empty desktop opens the application menu at the cursor.
+# n = non-consuming: applications still receive every right-click.
+bindn = , mouse:273, exec, {{ L }}hypr-windows context
+
+# One-shot Super: SHIFT + Print (or the bar's SUPER badge shows it is armed), then the
+# key that would follow SUPER; the submap resets after that one action. Escape or any
+# other key cancels.
+bindd = SHIFT, Print, One-shot Super (next key), submap, super
+submap = super
+{% for mods, key, disp, arg, desc in keys -%}
+bindd = {{ mods }}, {{ key }}, {{ desc }}, {{ disp }}, {{ arg }}
+{% endfor -%}
+{% set seen = [] -%}
+{% for mods, key, disp, arg, desc in keys if (mods ~ "+" ~ key) not in seen -%}
+{% set _ = seen.append(mods ~ "+" ~ key) -%}
+bind = {{ mods }}, {{ key }}, submap, reset
+{% endfor -%}
+{% for key, disp, desc in mouse -%}
+bindmd = , {{ key }}, {{ desc }}, {{ disp }}
+{% endfor -%}
+bindd = , ESCAPE, Cancel one-shot Super, submap, reset
+bindd = , catchall, Cancel one-shot Super, submap, reset
+submap = reset

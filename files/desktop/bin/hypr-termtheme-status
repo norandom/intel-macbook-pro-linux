@@ -1,0 +1,18 @@
+#!/bin/sh
+# Managed by t2-mac-kde (desktop). Waybar terminal-theme dot: reads (never writes) the
+# coordinated-themes state ~/.local/state/terminator-profile (one line; missing = default).
+# Unknown or multi-line state is shown as an error, not silently defaulted.
+f="$HOME/.local/state/terminator-profile"
+if [ ! -e "$f" ]; then
+  t=default
+elif [ "$(wc -l < "$f")" -le 1 ]; then
+  t=$(cat "$f")
+else
+  t=invalid
+fi
+case "$t" in
+  default|navy|fixedsys|cream|petrol) tip="Terminal theme: $t (click: next, right-click: previous)" ;;
+  *) t=invalid; tip="Terminal theme: unreadable state in $f" ;;
+esac
+command -v "$HOME/.local/bin/hypr-termtheme" >/dev/null 2>&1 || tip="$tip (hypr-termtheme not installed)"
+printf '{"text":"●","class":"%s","tooltip":"%s"}\n' "$t" "$tip"

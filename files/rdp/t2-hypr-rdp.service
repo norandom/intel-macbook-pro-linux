@@ -1,0 +1,24 @@
+# Managed by t2-mac-kde tasks/rdp.py.
+# Starts with the Hyprland session: Hyprland exec-once starts hypr-desktop.target,
+# which wants this unit. Never in KDE: hypr-desktop.target is only started by
+# Hyprland, and the condition below also skips it without a Hyprland instance.
+# Stops with the session (PartOf).
+[Unit]
+Description=hypr-rdp RDP server for the Hyprland session
+PartOf=hypr-desktop.target
+After=hypr-desktop.target
+Requisite=hypr-desktop.target
+ConditionEnvironment=HYPRLAND_INSTANCE_SIGNATURE
+StartLimitIntervalSec=120
+StartLimitBurst=3
+
+[Service]
+Type=exec
+ExecStart=%h/.local/bin/hypr-rdp-control run
+Restart=on-failure
+RestartSec=5
+# exit 2 = invalid session/config, exit 1 = compatibility gate: do not loop
+RestartPreventExitStatus=1 2
+
+[Install]
+WantedBy=hypr-desktop.target

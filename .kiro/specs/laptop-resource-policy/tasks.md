@@ -1,84 +1,25 @@
-# Implementation Plan
+# Implementation Checklist: laptop-resource-policy
 
-All executable tasks are sized at 1–3 hours. Core parallel markers apply to independent code/fixture work; privileged host application is serialized through the final optional entry point. Tasks implement policy and automated validation; they do not authorize deployment to the owner's laptop. Foundation's reviewed permitted-package execution is an explicit upstream prerequisite to application. No root deploy/bootstrap or shell-startup edits belong to these tasks.
+Entry point: `tasks/resource_policy.py` (helpers `manage/resource_policy.py`, assets `files/resource-policy/`,
+tests `tests/test_resource_policy.py`). Ported from source `tasks/memory.py`, `tuning.py`, `services.py`, `away.py`.
 
-- [ ] 1. Establish inspectable resource preflight and restoration state
-- [ ] 1.1 Capture resource facts and enforce component conflict gates
-  - Add typed observations, statuses and read-only checks for supported OS, systemd access, packages, sysfs, swap, readable resume evidence, OOM managers, processes, config precedence and service activation paths.
-  - Require upstream package-policy readiness and validate missing/denied observations without inferring absence; capture unknown resume state as a pending preservation check.
-  - Done: fixtures distinguish absent, unsupported, conflicting and permission-denied states; importing read-only inspection produces no host mutations.
-  - _Boundary: ResourcePreflight_
-  - _Requirements: 1.3, 2.1, 2.4, 3.1, 3.4, 5.2, 6.1, 7.1, 7.3, 7.4_
-- [ ] 1.2 Preserve the first unmanaged baseline and implement safe restore bookkeeping
-  - Capture absent/present files, symlinks, ownership/modes, effective adopted values and service/mask states; preserve immutable first baseline and applied hashes.
-  - Reject unknown manifest schemas, cross-host/unexpected-path restore and edits made after application; record deferred swap restoration and retain added packages.
-  - Done: fixtures restore original state for created/replaced files and preexisting masks without overwriting local edits or changing unrelated state.
-  - _Boundary: ResourcePreflight_
-  - _Requirements: 7.1, 7.2, 7.3_
+## Implemented
+- [x] Packages `systemd-zram-generator`, `earlyoom` via `install_packages(PackageRequest(..., source="ubuntu"))`.
+- [x] Turbo boot default: `/etc/tmpfiles.d/no-turbo.conf` (exact rule); applied with `systemd-tmpfiles --create` + readback when changed; warns if sysfs is absent.
+- [x] Turbo aliases fragment at stable path `~/.config/t2-mac-kde/turbo.bash` (exact three aliases, 0644, user-owned). No shell startup file is edited; shell-user-tools sources it.
+- [x] zram drop-in `/etc/systemd/zram-generator.conf.d/60-t2-resource.conf`: `min(ram / 2, 4096)`, lz4, priority 100 (> disk swap -1). daemon-reload; zram0 started only when no zram device exists. No swapoff/mkswap/fstab/resume changes. Skipped with warning if zramswap/zram-config present.
+- [x] earlyoom `/etc/default/earlyoom`: source `-m 5 -s 10 -r 3600`; `--avoid` built from escaped 15-char comm names for KDE/Plasma/KWin/SDDM and Hyprland stacks plus PipeWire; source browser `--prefer` rejected. Not enabled if systemd-oomd/nohang is active. Restart only on change.
+- [x] journald drop-in `60-t2-resource.conf` (SystemMaxUse=500M, RuntimeMaxUse=100M); journald restart only on change.
+- [x] coredump drop-in (MaxUse=500M, KeepFree=1G) only when `core_pattern` uses systemd-coredump; otherwise removed and reported as not applicable.
+- [x] `fs.inotify.max_user_instances` floor 1024 (never lowers a larger value) in `/etc/sysctl.d/60-t2-resource-limits.conf`; only that file is applied.
+- [x] Avahi: `avahi-daemon.socket`/`.service` disabled, stopped and masked when installed and not already masked (the D-Bus activation goes through the masked alias). Bluetooth, CUPS, power, ModemManager and audio are left alone. Printing still works with a direct IP/hostname; mDNS discovery stops working.
+- [x] Rejected source tuning (design.md table): swappiness, vfs_cache_pressure, page-cluster, watermarks, dirty_*, max_user_watches, nofile, watchdog, all network sysctls/BBR, /tmp size, noatime/commit, GRUB cmdline, serial console, root SSH, module blacklist, qemu agent, hypr-away, snitch.
+- [x] Unit tests: exact turbo assets, zram settings, no teardown/boot ops, avoid regex coverage, 15-char limit, inotify floor, coredump applicability.
 
-- [ ] 1.3 Establish guarded native package execution for daemon prerequisites
-  - Prerequisite: completed foundation task 2.4 and its public `install_packages(request: PackageRequest, *, prevent_service_start: bool = False) -> None` contract. Call `install_packages(request, prevent_service_start=True)` through foundation's permitted-package path before daemon configuration/activation gates pass.
-  - Consume foundation-owned temporary deny-all policy-rc.d handling: retain known deny policy unchanged, reject unrecognized/conflicting existing policy before mutation, and rely on foundation journal recovery to restore owned temporary state on failure. Report unavailable guarded-install support as blocked; resource code owns no policy-rc.d transaction.
-  - Done: consumer fixtures assert the exact keyword call, propagate conflicts/failures without early activation, and exercise foundation-backed failure/recovery evidence without leaked guards. Snap/Flatpak/transition rejection and protected maintainer-hook/no-go checks still apply independently; suppression never permits boot/crypto changes.
-  - _Boundary: ResourcePreflight_
-  - _Requirements: 3.4, 7.1, 7.3, 7.4_
-
-- [ ] 2. Implement isolated native resource policies
-- [ ] 2.1 (P) Deliver the exact turbo boot rule and shell fragment
-  - Install the owner's exact tmpfiles rule and three aliases, detect sysfs and duplicate-rule conflicts, and apply only the owned tmpfiles file.
-  - Preserve user ownership and nvm/shell startup; provide the stable fragment path without adding a loader or privilege exemption.
-  - Done: exact-content and missing-interface/sudo failure tests pass; readback checks distinguish successful writes from failures and fragment sourcing has no toggle side effect.
-  - _Boundary: TurboPolicy_
-  - _Depends: 1.3_
-  - _Requirements: 1.1, 1.2, 1.3, 1.4, 7.2, 7.3_
-- [ ] 2.2 (P) Stage capped compressed swap without active-device transitions
-  - Resolve the permitted generator package through guarded foundation installation; check existing managers, algorithms, priorities and generator precedence before writing.
-  - Render capped4 GiB maximum, lz4 and priority100 policy only when compatible; preserve all disk-swap/resume configuration and defer activation to boot.
-  - Done: fixtures verify chosen size and priority, reject occupied/incompatible providers and show no swapoff, live setup restart, resume edits or disk-swap recreation in planned operations.
-  - _Boundary: SwapPolicy_
-  - _Depends: 1.3_
-  - _Requirements: 2.1, 2.2, 2.3, 2.4, 7.2, 7.3, 7.4_
-- [ ] 2.3 (P) Adapt earlyoom thresholds and desktop process selection
-  - Resolve permitted earlyoom installation with startup guarded until configuration/conflict checks pass; preserve existing OOM policies and reject competing userspace killers.
-  - Adapt source5% RAM/10% aggregate swap/hourly report policy and desktop avoidance to installed15-byte comm matching; record browser/electron preference rejection and score-bias semantics.
-  - Done: fixtures validate both threshold conditions, actual KDE/Hyprland comm names, no group killing, dryrun capability and change-only service restart; unknown flags/config conflicts block activation.
-  - _Boundary: OomPolicy_
-  - _Depends: 1.3_
-  - _Requirements: 3.1, 3.2, 3.3, 3.4, 7.2, 7.3, 7.4_
-- [ ] 2.4 (P) Bound diagnostic retention through applicable native drop-ins
-  - Render journal500M/100M and conditional systemd-coredump500M/1G settings, refreshing core_pattern/handler and checking merged precedence.
-  - Preserve other handlers, stricter conflicts and storage mode; use installed systemd reload/restart behavior and avoid destructive vacuuming.
-  - Done: fixtures cover current systemd-coredump, alternate Apport handler, higher-precedence conflicts and unchanged reruns without unnecessary restarts.
-  - _Boundary: DiagnosticPolicy_
-  - _Depends: 1.3_
-  - _Requirements: 4.1, 4.2, 4.3, 7.2, 7.3_
-- [ ] 2.5 (P) Apply only the justified development limit and expose tuning dispositions
-  - Implement the inotify-instance floor1024 without lowering larger existing values; use a distinct drop-in and apply only the adopted key.
-  - Expose every design-matrix source setting as adopted/rejected with observed value, rationale, check and restoration action; never generate rejected overrides.
-  - Done: operation/config fixtures prove higher-limit preservation and no reclaim/network/boot/SSH/module/root-mount/tmpfs/watchdog changes; restore returns the captured adopted-key value.
-  - _Boundary: DevelopmentPolicy_
-  - _Depends: 1.3_
-  - _Requirements: 5.1, 5.2, 5.3, 7.2, 7.3_
-- [ ] 2.6 (P) Prevent observed Avahi activation while preserving laptop capabilities
-  - Resolve installed canonical service/socket and D-Bus alias routes; stop/mask only reviewed paths and block an unexpected executable fallback.
-  - Preserve preexisting masks, Bluetooth including audio, package-owned T2 ALSA UCM profiles, PipeWire/WirePlumber, power manager, CUPS and modem service states; report direct-address printing and unavailable automatic discovery.
-  - Done: fixtures cover absent Avahi, observed Exec=false routing, unexpected fallback, bus-denied checks and restoration of original masks/state; no QEMU/snitchd/firewall operations appear.
-  - _Boundary: LaptopServices_
-  - _Depends: 1.3_
-  - _Requirements: 6.1, 6.2, 6.3, 6.4, 7.2, 7.3_
-
-- [ ] 3. Integrate optional execution and validate the assembled policy
-- [ ] 3.1 Integrate resource components with explicit plan/apply/status/restore modes
-  - Add the optional entry point using foundation's execution and permitted-package path; no shared root deploy/startup modifications.
-  - Verify the preflight-owned guarded package operations are used by both daemon components, with restoration on error and no change to existing guard semantics.
-  - Done: an assembled dry-run yields only owned operations, package resolution rejects banned routes, read-only modes do not mutate and restore does not call apply implicitly.
-  - _Boundary: ResourceEntry, ResourcePreflight, SwapPolicy, OomPolicy_
-  - _Depends: 2.1, 2.2, 2.3, 2.4, 2.5, 2.6_
-  - _Requirements: 7.1, 7.2, 7.3, 7.4_
-- [ ] 3.2 Verify effective policy, idempotence, preservation and restoration
-  - Add status/validation integration checks for persisted versus effective state, staged boot activation, permission-denied observations, partial failure and restore conflict behavior.
-  - Supply executable host checks for exact turbo/nvm consumer behavior, post-boot zram/disk priority, earlyoom dryrun, effective diagnostic limits, adopted sysctl, Avahi activation denial and preserved Bluetooth/CUPS/power capabilities.
-  - Done: fixture integration passes with no unnecessary rerun restarts or swap transitions, and host checker reports unperformed boot/pressure/hardware checks as pending rather than success; boot/resume/GPU preservation comparisons are explicit.
-  - _Boundary: ResourceValidation, ResourceEntry_
-  - _Depends: 3.1_
-  - _Requirements: 1.1, 1.2, 1.4, 2.1, 2.2, 2.3, 3.1, 3.2, 3.3, 4.1, 4.2, 4.3, 5.1, 5.2, 5.3, 6.1, 6.2, 6.3, 6.4, 7.1, 7.2, 7.3, 7.4_
+## Deferred / needs live owner check
+- [ ] Live deploy (needs sudo): run `pyinfra @local tasks/resource_policy.py` as owner.
+- [ ] After apply/reboot: `swapon --show` shows zram0 prio 100 and dm-1 still prio -1; `zramctl` reports lz4.
+- [ ] `earlyoom --dryrun` style check of avoid list in both KDE and Hyprland sessions (Hyprland comm names unobserved yet).
+- [ ] Confirm Avahi stays down after a socket/D-Bus activation attempt; confirm CUPS direct-address printing.
+- [ ] Not implemented (ceremony): snapshot manifests/restore tooling; restore is by deleting the managed drop-ins and running `systemctl unmask avahi-daemon.socket avahi-daemon.service`.
+- [ ] GPU power configuration: out of scope here, pending capture.

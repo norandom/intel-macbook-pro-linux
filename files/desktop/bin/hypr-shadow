@@ -1,0 +1,9 @@
+#!/bin/sh
+# Managed by t2-mac-kde (desktop). Window shadows (style follows hypr-deco):
+#   hypr-shadow on | off   (no argument: show)
+f="$HOME/.config/hypr/window-shadows"
+case "${1:-}" in
+  on|off) echo "$1" > "$f" && "$HOME/.local/bin/hypr-desktop-state" --reload && echo "window shadows: $1" ;;
+  "") cat "$f" 2>/dev/null || echo off ;;
+  *) echo "usage: hypr-shadow on|off" >&2; exit 2 ;;
+esac

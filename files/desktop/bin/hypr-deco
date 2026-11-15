@@ -1,0 +1,8 @@
+#!/bin/sh
+# Managed by t2-mac-kde (desktop). Title bar style:  hypr-deco win311 | mac   (no argument: show)
+f="$HOME/.config/hypr/decorations-style"
+case "${1:-}" in
+  win311|mac) echo "$1" > "$f" && "$HOME/.local/bin/hypr-desktop-state" --reload && echo "title bars: $1" ;;
+  "") cat "$f" 2>/dev/null || echo mac ;;
+  *) echo "usage: hypr-deco win311|mac" >&2; exit 2 ;;
+esac

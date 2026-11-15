@@ -1,0 +1,16 @@
+#!/bin/sh
+# hypr-rdp on_session_start / on_session_end hook (upstream hooks, no journal watcher).
+# Laptop policy: record and log only. Physical outputs, input devices, the lock
+# state, the cursor and local audio routing are left untouched, so a disconnect
+# cannot leave the local console blank or unusable. Idempotent; bounded runtime.
+set -u
+case "${1:-}" in
+  start) event=connected ;;
+  end) event=disconnected ;;
+  *) echo "Usage: hypr-rdp-session start|end" >&2; exit 2 ;;
+esac
+dir="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/t2-mac-kde/rdp"
+(umask 077; mkdir -p "$dir" && printf '%s %s %s\n' "$event" "$(date +%s)" \
+  "${HYPRLAND_INSTANCE_SIGNATURE:-unknown}" > "$dir/session.tmp" && mv -f "$dir/session.tmp" "$dir/session") || true
+timeout 3 logger -t hypr-rdp-session "remote client $event" 2>/dev/null || true
+exit 0

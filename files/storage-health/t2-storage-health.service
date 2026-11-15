@@ -1,0 +1,6 @@
+[Unit]
+Description=T2 workstation NVMe health check
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/t2-storage-health /dev/nvme0

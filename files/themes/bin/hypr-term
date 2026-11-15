@@ -1,0 +1,15 @@
+#!/bin/sh
+# Terminator with the theme chosen via hypr-termtheme (~/.local/state/terminator-profile).
+# Arguments pass through unchanged; exit status is Terminator's (127 when it is missing).
+state="$HOME/.local/state/terminator-profile"
+profile=default
+if [ -e "$state" ]; then
+  profile=$(cat "$state") || exit 1
+  [ "$(wc -l < "$state")" -le 1 ] || profile=
+  case "$profile" in
+    default|navy|fixedsys|cream|petrol) ;;
+    *) echo "hypr-term: invalid $state; repair with: hypr-termtheme default" >&2; exit 1 ;;
+  esac
+fi
+command -v terminator >/dev/null 2>&1 || { echo "hypr-term: terminator is not installed" >&2; exit 127; }
+exec terminator -p "$profile" "$@"
