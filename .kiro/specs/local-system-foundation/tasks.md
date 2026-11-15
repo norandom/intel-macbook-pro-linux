@@ -8,7 +8,7 @@ Scope: local-system-foundation only. Each executable item is a bounded 1–3 hou
 unit. GPU configuration and the broader desktop port remain outside this plan.
 Tests use fixtures and disposable targets; this plan does not schedule host deployment.
 
-- [ ] 1. Establish local execution and validation prerequisites
+- [x] 1. Establish local execution and validation prerequisites
 - [x] 1.1 Validate desktop-user execution before any mutation
   - Establish the shared management namespace and local-context checks described in the design.
   - Reject root execution, non-local inventory, and unsupported operating systems before writes.
@@ -25,7 +25,7 @@ Tests use fixtures and disposable targets; this plan does not schedule host depl
   - _Boundary: Bootstrap_
   - _Requirements: 1.1, 1.2, 1.3, 2.4_
 
-- [ ] 2. Implement strict system-package policy
+- [x] 2. Implement strict system-package policy
 - [x] 2.1 Validate requested and resolved package plans
   - Implement the validated request/plan contracts and native-Ubuntu source restriction from the design.
   - Reject direct or architecture-qualified prohibited packages, option-like arguments, unreviewed manifests, proposed removals, and dependency failures.
@@ -57,7 +57,7 @@ Tests use fixtures and disposable targets; this plan does not schedule host depl
   - _Depends: 2.1, 2.2_
   - _Requirements: 2.1, 2.3, 2.4, 2.5, 4.1, 4.2, 4.3, 4.4, 4.5_
 
-- [ ] 2.4 Provide guarded no-autostart installation for daemon prerequisites
+- [x] 2.4 Provide guarded no-autostart installation for daemon prerequisites
   - Extend the native package call with the backwards-compatible prevent_service_start keyword and an owned temporary deny-all policy transaction.
   - Preserve a known existing deny-all policy unchanged; fail before writes on foreign/conflicting policy or unresolved package-manager contention.
   - Journal temporary ownership, remove only unchanged owned policy on success/failure, and test interrupted recovery and edited-policy conflicts.
@@ -67,7 +67,7 @@ Tests use fixtures and disposable targets; this plan does not schedule host depl
   - _Depends: 2.3_
   - _Requirements: 2.1, 2.3, 2.4, 2.5, 5.6_
 
-- [ ] 3. Preserve the per-user Node toolchain
+- [x] 3. Preserve the per-user Node toolchain
 - [x] 3.1 Validate version and npm conflicts before changing user state
   - Validate the exact Node selection and diagnose conflicting user npm prefix/globalconfig settings and inherited overrides without exposing credentials.
   - Inspect the configured default alias target independently from the version it currently resolves to.

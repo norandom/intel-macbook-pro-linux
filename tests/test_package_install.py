@@ -1,4 +1,5 @@
 """Guard integration: no test invokes native apt or sudo."""
+from contextlib import nullcontext
 import subprocess
 import sys
 import tempfile
@@ -13,6 +14,9 @@ class InstallTests(unittest.TestCase):
     def setUp(self):
         self.request = guard.PackageRequest(('btop',), 'ubuntu')
         self.plan = guard.PackagePlan((('btop', '1.4.6-2'),), ())
+        transaction = patch('manage.package_transaction.package_transaction', side_effect=lambda **kw: nullcontext())
+        transaction.start()
+        self.addCleanup(transaction.stop)
 
     def test_preview_checks_context_policy_and_plan_before_scheduling(self):
         events = []
@@ -69,11 +73,16 @@ class InstallTests(unittest.TestCase):
             guard._apply_install(self.request)
             run.assert_not_called()
 
-    def test_suppression_fails_closed_until_transaction_is_implemented(self):
-        with patch('pyinfra.operations.server.shell') as shell:
-            with self.assertRaisesRegex(RuntimeError, 'service-start'):
-                guard.install_packages(self.request, prevent_service_start=True)
-            shell.assert_not_called()
+    def test_suppression_preview_is_read_only_and_reports_intent(self):
+        with patch('manage.preflight.validate_local_context'), patch.object(guard, 'validate_request'), \
+             patch('manage.package_policy.verify_effective_policy'), \
+             patch.object(guard, 'inspect_plan', return_value=self.plan), \
+             patch('manage.package_transaction.inspect_service_policy') as inspect, \
+             patch('pyinfra.operations.server.shell') as shell:
+            guard.install_packages(self.request, prevent_service_start=True)
+            inspect.assert_called_once_with()
+            self.assertIn('--prevent-service-start', shell.call_args.kwargs['commands'])
+            self.assertIn('service starts denied', shell.call_args.kwargs['name'])
 
     def test_unprivileged_internal_apply_is_rejected(self):
         with patch.object(guard.os, 'geteuid', return_value=1000), patch.object(guard.subprocess, 'run') as run:

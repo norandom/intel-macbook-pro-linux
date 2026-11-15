@@ -344,9 +344,8 @@ def install_packages(request: PackageRequest, *, prevent_service_start: bool = F
     Index refreshes are deliberately separate: this function never updates apt
     indexes after review or offers arbitrary apt options.
     """
-    if prevent_service_start:
-        raise RuntimeError("Guarded service-start suppression is not implemented yet; installation unresolved.")
     from manage.package_policy import verify_effective_policy
+    from manage.package_transaction import inspect_service_policy
     from manage.preflight import validate_local_context
     from pyinfra.operations import server
 
@@ -354,31 +353,39 @@ def install_packages(request: PackageRequest, *, prevent_service_start: bool = F
     validate_request(request)
     verify_effective_policy(preview=True)
     plan = inspect_plan(request)
+    if prevent_service_start:
+        inspect_service_policy()
     if not plan.installs:
         return
     project = Path(__file__).resolve().parents[1]
     command = ("cd " + shlex.quote(str(project))
                + " && /usr/bin/python3 -m manage.packages --apply "
+               + ("--prevent-service-start " if prevent_service_start else "")
                + shlex.join(request.packages))
-    server.shell(name="Install reviewed native Ubuntu packages", commands=command, _sudo=True)
+    name = "Install reviewed native Ubuntu packages"
+    if prevent_service_start:
+        name += " (service starts denied)"
+    server.shell(name=name, commands=command, _sudo=True)
 
 
-def _apply_install(request: PackageRequest) -> None:
+def _apply_install(request: PackageRequest, *, prevent_service_start: bool = False) -> None:
     """Privileged execution boundary; re-read current policy, indexes and state."""
     if os.geteuid() != 0:
         raise RuntimeError("The package apply helper requires root via the scheduled sudo operation.")
     from manage.package_policy import verify_effective_policy
+    from manage.package_transaction import package_transaction
 
     validate_request(request)
-    verify_effective_policy()
-    plan = inspect_plan(request)
-    if not plan.installs:
-        return
-    subprocess.run(
-        ("/usr/bin/apt-get", "--no-install-recommends", "--no-remove", "--yes", "install", *request.packages),
-        env={"PATH": "/usr/sbin:/usr/bin:/sbin:/bin", "LC_ALL": "C", "LANG": "C"},
-        check=True,
-    )
+    with package_transaction(prevent_service_start=prevent_service_start):
+        verify_effective_policy()
+        plan = inspect_plan(request)
+        if not plan.installs:
+            return
+        subprocess.run(
+            ("/usr/bin/apt-get", "--no-install-recommends", "--no-remove", "--yes", "install", *request.packages),
+            env={"PATH": "/usr/sbin:/usr/bin:/sbin:/bin", "LC_ALL": "C", "LANG": "C"},
+            check=True,
+        )
 
 
 if __name__ == "__main__":
@@ -386,6 +393,8 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description="Apply a reviewed native Ubuntu package request")
     parser.add_argument("--apply", action="store_true", required=True)
+    parser.add_argument("--prevent-service-start", action="store_true")
     parser.add_argument("packages", nargs="+")
     arguments = parser.parse_args()
-    _apply_install(PackageRequest(tuple(arguments.packages), "ubuntu"))
+    _apply_install(PackageRequest(tuple(arguments.packages), "ubuntu"),
+                   prevent_service_start=arguments.prevent_service_start)
