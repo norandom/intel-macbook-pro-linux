@@ -26,7 +26,7 @@ Tests use fixtures and disposable targets; this plan does not schedule host depl
   - _Requirements: 1.1, 1.2, 1.3, 2.4_
 
 - [ ] 2. Implement strict system-package policy
-- [ ] 2.1 Validate requested and resolved package plans
+- [x] 2.1 Validate requested and resolved package plans
   - Implement the validated request/plan contracts and native-Ubuntu source restriction from the design.
   - Reject direct or architecture-qualified prohibited packages, option-like arguments, unreviewed manifests, proposed removals, and dependency failures.
   - Inspect apt simulations with fixed locale and fail closed on unrecognized output; retain resolved versions and reject protected boot/storage/kernel transactions, including maintainer-script or trigger regeneration paths. Unknown hook behavior blocks the affected plan.
@@ -125,3 +125,5 @@ Tests use fixtures and disposable targets; this plan does not schedule host depl
 
 - Task1.1: Preflight implemented; independent review APPROVED; fresh unittest9/9 and compileall PASS. Entry-point wiring remains4.1. Git checkpoint pending author identity configuration.
 - Task1.2: Bootstrap independently APPROVED; fresh unittest23/23 and shell syntax PASS, including actual offline uv/stale-lock isolation checks.
+- Task2.1: PackageGuard independently APPROVED after2remediation rounds; fresh45/45tests+compileall PASS. Apt preference bytes excluded from script/hook baseline because2.2owns effective pins; other executable apt config and dpkg state remain bound. Production review registry stays empty until4.1.
+- Integration note for4.1: actual Ubuntu apt simulation for existing jq includes `jq set to manually installed.`; current fail-closed grammar intentionally rejects unrecognized lines. Review and add narrowly validated support when compiling the real CLI manifest, preserving no-op state behavior.
