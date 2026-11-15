@@ -8,8 +8,8 @@ sh bootstrap.sh
 export PATH="$HOME/.local/bin:$PATH"
 
 # Preview and install Node.js/npm first.
-uv run pyinfra @local tasks/node.py --dry
-uv run pyinfra @local tasks/node.py
+uv run --locked pyinfra @local tasks/node.py --dry
+uv run --locked pyinfra @local tasks/node.py
 
 # Existing CLI scaffold: preview only while the planned package/boot guards
 # are not yet implemented. System apply is pending foundation implementation.
@@ -26,6 +26,14 @@ export NVM_DIR="$HOME/.nvm"
 nvm use
 node --version
 npm --version
+```
+
+Changed Bash configuration is backed up beside `.bashrc`. To remove only the
+managed initialization block while keeping other shell settings and nvm data:
+
+```sh
+uv run --locked pyinfra @local tasks/node_restore.py --dry
+uv run --locked pyinfra @local tasks/node_restore.py
 ```
 
 npm globals belong to the active nvm Node version; use `npm install -g <package>`

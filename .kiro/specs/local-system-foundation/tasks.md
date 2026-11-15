@@ -76,7 +76,7 @@ Tests use fixtures and disposable targets; this plan does not schedule host depl
   - _Boundary: NodeDeploy_
   - _Requirements: 2.4, 3.1, 3.4, 3.6_
 
-- [ ] 3.2 Make user Node installation and Bash initialization repeatable
+- [x] 3.2 Make user Node installation and Bash initialization repeatable
   - Reuse pinned nvm and the selected Node runtime with bundled npm/npx; keep each operation's shell initialization explicit.
   - Preserve the exact default alias and one additive marked Bash block; avoid repeated PATH entries and preserve unrelated shell content.
   - Back up changed user files and verify restoration of the managed Bash changes without deleting unrelated configuration.

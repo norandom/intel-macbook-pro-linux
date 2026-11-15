@@ -5,6 +5,14 @@ from pathlib import Path
 import re
 from collections.abc import Mapping
 
+BASH_MARKER = '# {mark} t2-mac-kde developer tools'
+BASH_INIT = '''case ":$PATH:" in
+    *":$HOME/.local/bin:"*) ;;
+    *) export PATH="$HOME/.local/bin:$PATH" ;;
+esac
+export NVM_DIR="$HOME/.nvm"
+[ ! -s "$NVM_DIR/nvm.sh" ] || . "$NVM_DIR/nvm.sh"'''
+
 
 def validate_node_config(version: str, home: Path, environment: Mapping[str, str] | None = None) -> str:
     if not re.fullmatch(r'[0-9]+\.[0-9]+\.[0-9]+', version):

@@ -1,11 +1,55 @@
 import tempfile
 import unittest
+import subprocess
+import sys
 from pathlib import Path
 
-from manage.node import default_alias_matches, validate_node_config
+from manage.node import BASH_INIT, BASH_MARKER, default_alias_matches, validate_node_config
 
 
 class NodeConfigTests(unittest.TestCase):
+    def test_real_bash_block_apply_repeat_backup_and_scoped_restore(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            bashrc = root / '.bashrc'
+            original = 'export EXISTING_CUSTOMIZATION=preserved\n'
+            bashrc.write_text(original)
+            deploy = root / 'block.py'
+            def run(present):
+                deploy.write_text('from pyinfra.operations import files\n'
+                                  f'files.block(path={str(bashrc)!r}, content={BASH_INIT!r}, '
+                                  f'marker={BASH_MARKER!r}, backup=True, present={present!r})\n')
+                result = subprocess.run([sys.executable, '-m', 'pyinfra', '@local', str(deploy), '-y'],
+                                        capture_output=True, text=True)
+                self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            run(True)
+            self.assertIn(original, bashrc.read_text())
+            self.assertEqual(bashrc.read_text().count('# BEGIN t2-mac-kde developer tools'), 1)
+            self.assertTrue(any(path.read_text() == original for path in root.glob('.bashrc.*')))
+            before = bashrc.stat().st_mtime_ns
+            run(True)
+            self.assertEqual(before, bashrc.stat().st_mtime_ns)
+            with bashrc.open('a') as stream:
+                stream.write('export LATER_USER_CHANGE=preserved\n')
+            run(False)
+            self.assertIn(original, bashrc.read_text())
+            self.assertIn('export LATER_USER_CHANGE=preserved', bashrc.read_text())
+            self.assertNotIn('NVM_DIR', bashrc.read_text())
+
+    def test_bash_initialization_is_additive_and_does_not_duplicate_path(self):
+        with tempfile.TemporaryDirectory() as directory:
+            home = Path(directory)
+            nvm = home / '.nvm'
+            nvm.mkdir()
+            (nvm / 'nvm.sh').write_text('export T2_NVM_LOADED=yes\n')
+            result = subprocess.run(['/bin/bash', '--noprofile', '--norc', '-c',
+                                     BASH_INIT + '\n' + BASH_INIT + '\nprintf "%s\\n%s" "$PATH" "$T2_NVM_LOADED"'],
+                                    env={'HOME': str(home), 'PATH': '/usr/bin:/bin'},
+                                    text=True, capture_output=True, check=True)
+            path, loaded = result.stdout.splitlines()
+            self.assertEqual(path, str(home / '.local/bin') + ':/usr/bin:/bin')
+            self.assertEqual(loaded, 'yes')
+
     def test_exact_version_only(self):
         with tempfile.TemporaryDirectory() as directory:
             home = Path(directory)
