@@ -93,12 +93,10 @@ once(f"{hypr}/decorations-style", decorations_style)
 once(f"{hypr}/window-shadows", window_shadows)
 once(f"{hypr}/layout-mode", "dynamic")
 
-conf_names = sorted(p.name for p in Path(SRC, "hypr").glob("*.conf"))
-hypr_ops = [owned_put(f"{SRC}/hypr/{n}", f"{hypr}/{n}") for n in conf_names]
-hypr_ops.append(owned_put(f"{TPL}/bindings.conf.j2", f"{hypr}/bindings.conf", template=True))
-for shader in ("night-green.glsl", "night-dark.glsl"):
-    hypr_ops.append(owned_put(f"{SRC}/hypr/shaders/{shader}", f"{hypr}/shaders/{shader}"))
-
+# Hyprland reloads on every change of hyprland.conf: write everything it sources first
+# (generated files, other confs, bindings, shaders) and hyprland.conf itself last, so a
+# deploy never triggers "source= globbing error: found no match".
+hypr_ops = []
 # Internal panel scale from the user config (panel_scale; "auto" = Hyprland's choice).
 hypr_ops.append(owned_put(
     StringIO(f"# {MARKER}: panel_scale = {panel_scale} (~/.config/t2-mac-kde/config.toml)\n"
@@ -112,6 +110,13 @@ hypr_ops.append(owned_put(
     StringIO(f"# {MARKER} (tools/hostcolor): colour of {hostname}, white text {hc['contrast']}:1\n"
              f"$host_color = {hc['hex']}\n$host_pale = {hc['pale']}\n"),
     f"{hypr}/hostcolor.conf"))
+
+conf_names = sorted(p.name for p in Path(SRC, "hypr").glob("*.conf") if p.name != "hyprland.conf")
+hypr_ops += [owned_put(f"{SRC}/hypr/{n}", f"{hypr}/{n}") for n in conf_names]
+hypr_ops.append(owned_put(f"{TPL}/bindings.conf.j2", f"{hypr}/bindings.conf", template=True))
+for shader in ("night-green.glsl", "night-dark.glsl"):
+    hypr_ops.append(owned_put(f"{SRC}/hypr/shaders/{shader}", f"{hypr}/shaders/{shader}"))
+hypr_ops.append(owned_put(f"{SRC}/hypr/hyprland.conf", f"{hypr}/hyprland.conf"))
 
 # --- Helpers (~/.local/bin) --------------------------------------------------------------------
 HELPERS = (
