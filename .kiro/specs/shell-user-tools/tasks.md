@@ -24,7 +24,6 @@ Pins/config: `manage/shell_tools.py`. Assets: `files/shell/`. Tests: `tests/test
       `.nvmrc`; checks `npm prefix -g` is the nvm prefix; no `.npmrc` writes (3.1)
 - [x] euporie 2.10.4 + ipykernel 7.4.0 via `uv tool install`, kernel import verified (3.2)
 - [x] pretty-mermaid skill via pinned `skills@1.8.1`, skipped when `SKILL.md` exists (3.3)
-- [x] ax v0.3.1 (GOTOOLCHAIN go1.27.2) with private GOCACHE/GOMODCACHE, only when `go` exists (4.5)
 - [x] dev-disk-reclaim: report-only default, `--apply` deletes, sudo/apt/journal branch removed, volumes
       kept unless `--volumes`, `uv cache prune` without `--force`; units installed, timer off by default
       (`DEV_DISK_REPORT_TIMER`) (5.3, 5.4)
@@ -37,6 +36,6 @@ Pins/config: `manage/shell_tools.py`. Assets: `files/shell/`. Tests: `tests/test
 - [ ] Safe Chain 1.5.25: upstream installer rewrites shell profiles and can remove nvm; needs a wrapper review
 - [ ] Quarto Python env / TinyTeX: depends on application-suite Quarto; not ported yet
 - [ ] pretty-mermaid skill repo revision is not pinned (skills CLI resolves the default branch)
-- [ ] ax needs Go from application-suite; skipped silently until `go` is on PATH
+- [ ] ax: backlogged by owner (docs/backlog.md); its Go build broke the first live deploy
 - [ ] Restore beyond pyinfra `.bashrc`/`.inputrc` backups and the nvim backup dir: not implemented
 - [ ] Live check by owner: new Konsole terminal (prompt, history, Up/Down), `nvim` menu/F2/F4, `k <Tab>`

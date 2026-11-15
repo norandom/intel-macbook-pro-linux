@@ -12,7 +12,7 @@ ALERTS = STATE / 'alerts'
 HISTORY = STATE / 'storage-health.log'
 LAST = STATE / 'storage-health-last.json'
 DEVICE = sys.argv[1] if len(sys.argv) > 1 else '/dev/nvme0'
-WEAR_WARN, SPARE_MARGIN, TEMP_WARN = 80, 10, 75
+WEAR_WARN, TEMP_WARN = 80, 75
 
 
 def evaluate(health, previous):
@@ -20,9 +20,13 @@ def evaluate(health, previous):
     problems = []
     if health.get('critical_warning', 0):
         problems.append(f"critical warning flags 0x{health['critical_warning']:02x}")
+    # Apple SSDs report threshold 99% with 100% spare, so a margin test is useless:
+    # alert below the threshold, or on any drop since the previous check.
     spare, threshold = health.get('available_spare'), health.get('available_spare_threshold', 0)
-    if spare is not None and spare <= threshold + SPARE_MARGIN:
-        problems.append(f'available spare {spare}% (threshold {threshold}%)')
+    if spare is not None and spare < threshold:
+        problems.append(f'available spare {spare}% below threshold {threshold}%')
+    elif spare is not None and previous and spare < previous.get('available_spare', spare):
+        problems.append(f"available spare dropped {previous['available_spare']}% -> {spare}%")
     used = health.get('percentage_used')
     if used is not None and used >= WEAR_WARN:
         problems.append(f'SSD wear {used}% of rated endurance')

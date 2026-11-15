@@ -3,7 +3,7 @@ tasks/shell.py + tasks/user_tools.py.
 
 grml-inspired Bash, shared history, readline prefix search, completions,
 nvim-simple (pinned), npm globals under the foundation nvm Node, euporie via uv,
-pretty-mermaid skill, optional ax / rclone mounts / dev-disk-reclaim timer.
+pretty-mermaid skill, optional rclone mounts / dev-disk-reclaim timer.
 Run after tasks/node.py (needs nvm Node) and tasks/tools.py (neovim, git, curl).
 """
 import os
@@ -100,22 +100,7 @@ server.shell(
                 ' && "$(uv tool dir)/euporie/bin/python" -c "import ipykernel"'),
 )
 
-# --- ax (Google's agentic orchestration CLI), only when Go is installed ------------------
-ax_stamp = state_dir / "ax.version"
-ax_want = f"{cfg.AX_VERSION} {cfg.AX_GO_TOOLCHAIN}"
-server.shell(
-    name=f"ax {cfg.AX_VERSION} ({cfg.AX_GO_TOOLCHAIN}, private Go caches) - skipped without go",
-    commands=f"""set -e
-t=$(mktemp -d); trap 'chmod -R u+w "$t"; rm -rf "$t"' EXIT
-GOTOOLCHAIN={cfg.AX_GO_TOOLCHAIN} GOCACHE="$t/cache" GOMODCACHE="$t/mod" GOBIN="$t/bin" \\
-  go install github.com/google/ax/cmd/ax@{cfg.AX_VERSION}
-"$t/bin/ax" completion bash >/dev/null
-mkdir -p {quote(str(bin_dir))} {quote(str(state_dir))}
-install -m 755 "$t/bin/ax" {quote(str(bin_dir / 'ax'))}
-echo {quote(ax_want)} > {quote(str(ax_stamp))}""",
-    _shell_executable="bash",
-    _if=lambda: not missing("command -v go")() and missing(f'[ "$(cat {quote(str(ax_stamp))})" = {quote(ax_want)} ]')(),
-)
+# ax (Google's agentic orchestration CLI) is backlogged by the owner: docs/backlog.md.
 
 # --- Bash completions from installed tools (kubectl + k, helm, gh, ax, rc) --------------
 server.shell(

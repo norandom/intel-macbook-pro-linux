@@ -20,3 +20,10 @@ and configuration tasks, per explicit owner direction.
 - Do not install/configure them as part of the current desktop port. Existing
   packages remain untouched; unrelated selected apps may retain shared existing
   dependencies without treating that as LibreOffice installation.
+
+## ax (Google agentic orchestration CLI)
+
+- Backlogged by the owner on 2026-11-15 after its `go install` (v0.3.1,
+  GOTOOLCHAIN go1.27.2) failed in the first live deploy and stopped the run.
+- When reopened: prefer an upstream release binary (pinned + sha256) over a Go
+  build; keep it optional so a failure never blocks the rest of the deploy.

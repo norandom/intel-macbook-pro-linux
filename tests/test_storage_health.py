@@ -27,10 +27,14 @@ class EvaluateTests(unittest.TestCase):
     def test_healthy_disk_has_no_problems(self):
         ok = dict(critical_warning=0, available_spare=100, available_spare_threshold=99, percentage_used=3,
                   temperature=40, media_errors=0, num_err_log_entries=0)
-        self.assertEqual(self.health.evaluate(dict(ok, available_spare_threshold=5), ok), [])
+        self.assertEqual(self.health.evaluate(ok, ok), [])  # Apple: 100% spare, 99% threshold
+
+    def test_spare_drop_is_reported(self):
+        self.assertEqual(len(self.health.evaluate(dict(available_spare=98, available_spare_threshold=10),
+                                                  dict(available_spare=100))), 1)
 
     def test_problems_are_reported(self):
-        bad = dict(critical_warning=4, available_spare=12, available_spare_threshold=5, percentage_used=85,
+        bad = dict(critical_warning=4, available_spare=4, available_spare_threshold=5, percentage_used=85,
                    temperature=80, media_errors=3, num_err_log_entries=0)
         problems = self.health.evaluate(bad, dict(media_errors=1))
         self.assertEqual(len(problems), 5, problems)
