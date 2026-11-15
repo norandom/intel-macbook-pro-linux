@@ -8,11 +8,10 @@ dpkg version already equals the pin is skipped. Bumping a pin: edit VERSION + SH
 (GitHub shows the asset digest on the release page / `gh api .../releases`).
 """
 from pathlib import Path
-import shlex
 import subprocess
 
 from pyinfra.operations import files, server
-from manage.packages import LOCAL_DEBS, PackageRequest, install_packages
+from manage.packages import PackageRequest, install_packages, schedule_batch
 from manage.preflight import validate_local_context
 
 # Ubuntu archive: Writer + Calc with the GTK3 (Wayland) UI, German UI pack, de + en-US
@@ -55,27 +54,14 @@ def installed_version(package: str) -> str | None:
     return result.stdout.strip() if result.returncode == 0 else None
 
 
-def install_deb(package: str, version: str, url: str, sha256: str) -> None:
-    """Download, verify and guard-install one pinned .deb unless that version is installed."""
-    if installed_version(package) == version:
-        return
-    project = Path(__file__).resolve().parents[1]
-    deb = LOCAL_DEBS / url.rsplit("/", 1)[1]
-    server.shell(
-        name=f"{package} {version} (pinned .deb, sha256 + package guard)",
-        commands=(f"set -e; install -d -m 755 {LOCAL_DEBS}; curl -fsSL -o {deb} {shlex.quote(url)}; "
-                  f'echo "{sha256}  {deb}" | sha256sum -c -; '
-                  f"cd {shlex.quote(str(project))} && /usr/bin/python3 -m manage.packages --apply {deb}; "
-                  f"rm -f {deb}"),
-        _sudo=True,
-    )
-
-
 validate_local_context()
-install_packages(PackageRequest(packages=LIBREOFFICE))
+# One guarded transaction: missing LibreOffice packages + every pinned .deb not at its pin.
+missing_lo = tuple(p for p in LIBREOFFICE if installed_version(p) is None)
+if missing_lo:
+    install_packages(PackageRequest(packages=missing_lo), preview_only=True)  # plan-time guard preview
+schedule_batch("Office + Craft + OpenIDEA", packages=missing_lo,
+               debs=[(p, v, u, s) for p, (v, u, s) in debs().items() if installed_version(p) != v])
 # Tabbed UI (ribbon) for Writer and Calc as the system default: an admin .xcd layer;
 # the user's own choice in View > User Interface overrides it.
 files.put(name="LibreOffice: Tabbed UI layer", src=str(Path(__file__).resolve().parents[1] / "files/office-apps/t2-mac-kde.xcd"),
           dest=XCD_DEST, user="root", group="root", mode="644", _sudo=True)
-for _package, (_version, _url, _sha) in debs().items():
-    install_deb(_package, _version, _url, _sha)

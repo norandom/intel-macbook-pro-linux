@@ -85,3 +85,22 @@ class LocalDebTests(unittest.TestCase):
         with patch.object(guard, "_run", return_value="Package: obsidian\nVersion: 1.9.10\n"):
             self.assertEqual(guard._local_deb("obsidian", "1.9.10", R((deb,))), Path(deb))
             self.assertIsNone(guard._local_deb("btop", "1.4", R((deb,))))
+
+
+class BatchTests(unittest.TestCase):
+    def test_one_transaction_for_repo_packages_and_staged_debs(self):
+        import subprocess
+        with patch("pyinfra.operations.server.shell") as shell:
+            guard.schedule_batch("T", packages=("code",), source_lists=("vscode",),
+                                 debs=[("zoom", "7.2", "https://cdn.example/zoom.deb", "a" * 64)])
+        script = shell.call_args.kwargs["commands"][0]
+        self.assertEqual(script.count("manage.packages --apply"), 1)
+        self.assertIn("--apply code /var/cache/t2-mac-kde/debs/zoom_7.2.deb", script)
+        self.assertIn("sourcelist=/dev/null", script)
+        self.assertTrue(shell.call_args.kwargs["_sudo"])
+        self.assertEqual(subprocess.run(["bash", "-n"], input=script, text=True).returncode, 0)
+
+    def test_nothing_missing_schedules_nothing(self):
+        with patch("pyinfra.operations.server.shell") as shell:
+            guard.schedule_batch("T")
+        shell.assert_not_called()

@@ -176,7 +176,8 @@ def check_archive(deb: Path) -> None:
                 raise RuntimeError(f"{deb.name} {script.name} references {match[0].decode()}; blocked.")
 
 
-def install_packages(request: PackageRequest, *, prevent_service_start: bool = False) -> None:
+def install_packages(request: PackageRequest, *, prevent_service_start: bool = False,
+                     preview_only: bool = False) -> None:
     """Preview now; schedule a sudo helper only if something is missing."""
     from manage.package_policy import verify_effective_policy
     from manage.package_transaction import inspect_service_policy
@@ -189,13 +190,53 @@ def install_packages(request: PackageRequest, *, prevent_service_start: bool = F
     plan = inspect_plan(request)
     if prevent_service_start:
         inspect_service_policy()
-    if not plan.installs:
+    if not plan.installs or preview_only:
         return
     project = Path(__file__).resolve().parents[1]
     command = ("cd " + shlex.quote(str(project)) + " && /usr/bin/python3 -m manage.packages --apply "
                + ("--prevent-service-start " if prevent_service_start else "") + shlex.join(request.packages))
     shown = ", ".join(p for p, _ in plan.installs[:6]) + (" ..." if len(plan.installs) > 6 else "")
     server.shell(name=f"apt install {len(plan.installs)} package(s): {shown}", commands=command, _sudo=True)
+
+
+def schedule_batch(name: str, *, packages=(), debs=(), source_lists=(), preseed: str = "",
+                   cleanup: bool = True) -> None:
+    """One guarded transaction for many vendor items (instead of one apt run per app).
+
+    debs: (package, version, url, sha256) to stage in LOCAL_DEBS (downloaded in parallel,
+    sha256-checked); source_lists: /etc/apt/sources.list.d/<x>.list names refreshed together
+    in one `apt-get update`; packages: archive/repo package names. dpkg then runs once, so
+    its triggers (man-db, desktop/MIME/icon caches, ldconfig) run once too.
+    """
+    import shlex
+    from pyinfra.operations import server
+
+    if not (packages or debs):
+        return
+    project = Path(__file__).resolve().parents[1]
+    staged = [f"{LOCAL_DEBS}/{package}_{version}.deb" for package, version, _url, _sha in debs]
+    script = ["set -eu", f"install -d -m 755 {LOCAL_DEBS}"]
+    if debs:
+        script.append("pids=''")
+        for (package, version, url, sha), deb in zip(debs, staged):
+            script.append(f"( echo '{sha}  {deb}' | sha256sum -c --quiet - 2>/dev/null || "
+                          f"{{ curl -fsSL --proto '=https' --tlsv1.2 -o {deb}.part {shlex.quote(url)} && "
+                          f"mv -f {deb}.part {deb} && echo '{sha}  {deb}' | sha256sum -c --quiet -; }} ) & pids=\"$pids $!\"")
+        script.append('for p in $pids; do wait "$p"; done')
+    if source_lists:
+        script += ['parts=$(mktemp -d); trap \'rm -rf "$parts"\' EXIT']
+        script += [f"ln -s /etc/apt/sources.list.d/{l}.list \"$parts/\"" for l in source_lists]
+        script.append('apt-get update -o Dir::Etc::sourcelist=/dev/null -o Dir::Etc::sourceparts="$parts" '
+                      '-o APT::Get::List-Cleanup=0')
+    if preseed:
+        script.append(preseed)
+    script.append(f"cd {shlex.quote(str(project))} && /usr/bin/python3 -m manage.packages --apply "
+                  + " ".join(shlex.quote(x) for x in (*packages, *staged)))
+    if cleanup and staged:
+        script.append("rm -f " + " ".join(staged))
+    shown = [p for p in packages] + [d[0] for d in debs]
+    server.shell(name=f"{name}: one guarded install of {len(shown)} ({', '.join(shown[:5])}{' ...' if len(shown) > 5 else ''})",
+                 commands=["\n".join(script)], _shell_executable="bash", _sudo=True)
 
 
 def _apply_install(request: PackageRequest, *, prevent_service_start: bool = False) -> None:
@@ -213,8 +254,11 @@ def _apply_install(request: PackageRequest, *, prevent_service_start: bool = Fal
             return
         argv = _apt_args(request)
         subprocess.run((argv[0], "--download-only", "--yes", *argv[1:]), env=_ENV, check=True)
-        for package, version in plan.installs:
-            check_archive(_local_deb(package, version, request) or _deb_path(package, version))
+        from concurrent.futures import ThreadPoolExecutor
+        archives = [_local_deb(package, version, request) or _deb_path(package, version)
+                    for package, version in plan.installs]
+        with ThreadPoolExecutor(max_workers=min(8, os.cpu_count() or 2)) as pool:
+            list(pool.map(check_archive, archives))  # first failure raises here
         subprocess.run((argv[0], "--yes", *argv[1:]), env=_ENV, check=True)
 
 

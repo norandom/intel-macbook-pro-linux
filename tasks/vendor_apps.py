@@ -25,7 +25,7 @@ from pyinfra import logger
 from pyinfra.operations import files, python, server
 
 from manage.applications import VENDOR_DEBS, VENDOR_REPOS, VENDOR_TARBALLS, _dpkg_version
-from manage.packages import LOCAL_DEBS
+from manage.packages import LOCAL_DEBS, schedule_batch
 from manage.preflight import validate_local_context
 
 validate_local_context()
@@ -50,6 +50,7 @@ def _refresh(name):
 # XtraDeb carries many apps (firefox, ...): pin it to Chromium only, before its list exists.
 files.put(name="XtraDeb PPA pin (chromium packages only)", src=str(src / "90-t2-xtradeb.pref"),
           dest="/etc/apt/preferences.d/90-t2-xtradeb.pref", mode="0644", _sudo=True)
+repo_packages, repo_lists, preseed = [], [], ""
 for app_id, (name, packages, exe, _sha) in VENDOR_REPOS.items():
     files.put(name=f"{name} archive key", src=str(src / f"{name}-keyring.gpg"),
               dest=f"/usr/share/keyrings/{name}-archive-keyring.gpg", mode="0644", _sudo=True)
@@ -57,18 +58,10 @@ for app_id, (name, packages, exe, _sha) in VENDOR_REPOS.items():
               dest=f"/etc/apt/sources.list.d/{name}.list", mode="0644", _sudo=True)
     missing = [p for p in packages if not _dpkg_version(p)]
     if missing or not shutil.which(exe):
-        # VS Code's postinst would add its own vscode.sources + key; we own the repo entry.
-        preseed = ("echo 'code code/add-microsoft-repo boolean false' | debconf-set-selections && "
-                   if app_id == "code" else "")
-        server.shell(name=f"Install {' '.join(packages)} (guarded, {name} repo)",
-                     commands=preseed + _refresh(name) + " && " + helper + shlex.join(packages), _sudo=True)
-
-# chromedriver drives the browser for AI agents: majors must match (same source package).
-server.shell(
-    name="chromedriver major == chromium major",
-    commands=('c=$(chromium --version | grep -oE "[0-9]+" | head -1); d=$(chromedriver --version | grep -oE "[0-9]+" | head -1); '
-              '[ -n "$c" ] && [ "$c" = "$d" ] || { echo "chromium $c vs chromedriver $d" >&2; exit 1; }'),
-)
+        repo_packages += list(packages)
+        repo_lists.append(name)
+        if app_id == "code":  # VS Code's postinst would add its own vscode.sources + key; we own it.
+            preseed = "echo 'code code/add-microsoft-repo boolean false' | debconf-set-selections"
 
 # --- Pinned vendor .debs -------------------------------------------------------------
 # Slack's /etc/cron.daily/slack would add packagecloud's repo + unscoped keys in
@@ -76,16 +69,17 @@ server.shell(
 files.put(name="Slack: no cron-added apt repo", dest="/etc/default/slack", mode="0644", _sudo=True,
           src=StringIO('# Managed by t2-mac-kde: updates come from the pinned .deb\n'
                        'repo_add_once="false"\nrepo_reenable_on_distupgrade="false"\n'))
-for app_id, (package, version, url, sha, _exe) in VENDOR_DEBS.items():
-    if _dpkg_version(package) == version:
-        continue
-    deb = f"{LOCAL_DEBS}/{package}_{version}.deb"
-    server.shell(
-        name=f"Install {package} {version} (pinned .deb, guarded)",
-        commands=(f"mkdir -p {LOCAL_DEBS} && {CURL} -o {deb} {shlex.quote(url)} && "
-                  f"echo '{sha}  {deb}' | sha256sum -c - && " + helper + deb),
-        _sudo=True,
-    )
+missing_debs = [(package, version, url, sha) for package, version, url, sha, _exe in VENDOR_DEBS.values()
+                if _dpkg_version(package) != version]
+# Everything missing (repo apps + pinned .debs) in ONE guarded apt transaction.
+schedule_batch("Vendor apps", packages=repo_packages, debs=missing_debs, source_lists=repo_lists, preseed=preseed)
+
+# chromedriver drives the browser for AI agents: majors must match (same source package).
+server.shell(
+    name="chromedriver major == chromium major",
+    commands=('c=$(chromium --version | grep -oE "[0-9]+" | head -1); d=$(chromedriver --version | grep -oE "[0-9]+" | head -1); '
+              '[ -n "$c" ] && [ "$c" = "$d" ] || { echo "chromium $c vs chromedriver $d" >&2; exit 1; }'),
+)
 
 
 
