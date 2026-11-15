@@ -86,7 +86,7 @@ Tests use fixtures and disposable targets; this plan does not schedule host depl
   - _Depends: 1.1, 3.1_
   - _Requirements: 2.2, 2.5, 3.1, 3.2, 3.3, 3.4, 3.5, 3.6_
 
-- [ ] 4. Integrate the foundation workflow
+- [x] 4. Integrate the foundation workflow
 - [x] 4.1 Route existing package consumers through the foundation contracts
   - Review the existing CLI manifest and its resolved versions for native packaging and prohibited transition behavior; reject unresolved entries rather than fall back.
   - Replace direct system-package calls with guarded installation and order preflight/policy before package consumers.
@@ -97,7 +97,7 @@ Tests use fixtures and disposable targets; this plan does not schedule host depl
   - _Depends: 1.2, 2.4, 3.2_
   - _Requirements: 1.2, 2.1, 2.2, 2.3, 2.4, 4.1, 4.3, 4.4, 5.1, 5.2, 5.3, 5.4_
 
-- [ ] 4.2 Establish disposable end-to-end validation and verify non-mutating previews
+- [x] 4.2 Establish disposable end-to-end validation and verify non-mutating previews
   - Prepare an isolated Ubuntu target with the required local desktop-user context, fixture package sources, and test-time authentication arrangement.
   - Compare managed files and package state across dry runs, including initially missing policy pins.
   - Verify standalone and combined entry-point checks and that Node-only operation needs no sudo.
@@ -105,7 +105,7 @@ Tests use fixtures and disposable targets; this plan does not schedule host depl
   - _Boundary: Integration validation_
   - _Requirements: 1.1, 1.2, 1.3, 2.1, 2.2, 2.3_
 
-- [ ] 4.3 Verify repeatability, preservation, and restoration
+- [x] 4.3 Verify repeatability, preservation, and restoration
   - Apply the permitted workflow twice on the disposable target and confirm the second apply makes no changes.
   - Compare protected login, GPU, T2 boot/initramfs/module/firmware/audio support and original snapd block across runs; keep mic/camera/touchbar/suspend functional acceptance explicitly pending until live checks.
   - Exercise restoration of backed-up user and owned policy files, preserving unrelated configuration and the original prohibition.
@@ -113,7 +113,7 @@ Tests use fixtures and disposable targets; this plan does not schedule host depl
   - _Boundary: Integration validation_
   - _Requirements: 2.5, 3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 4.2, 5.1, 5.2, 5.3, 5.5, 5.6_
 
-- [ ] 4.4 Verify policy failures and truthful partial-result reporting
+- [x] 4.4 Verify policy failures and truthful partial-result reporting
   - Exercise authentication/download failures, prohibited installed runtimes, policy conflicts and prohibited package plans in the disposable harness.
   - Confirm failures stop affected work and retain nonzero status without fallback installation or deletion of user applications.
   - Confirm earlier successful operations and unresolved work remain distinguishable after a partial apply.
@@ -128,3 +128,6 @@ Tests use fixtures and disposable targets; this plan does not schedule host depl
 - Task2.1: PackageGuard independently APPROVED after2remediation rounds; fresh45/45tests+compileall PASS. Apt preference bytes excluded from script/hook baseline because2.2owns effective pins; other executable apt config and dpkg state remain bound. Production review registry stays empty until4.1.
 - Integration note for4.1: actual Ubuntu apt simulation for existing jq includes `jq set to manually installed.`; current fail-closed grammar intentionally rejects unrecognized lines. Review and add narrowly validated support when compiling the real CLI manifest, preserving no-op state behavior.
 - Task2.2: Independent review APPROVED;62tests and native read-only preference-overlay checks PASS; no host policy applied.
+- Task4.1: Native CLI manifest independently reviewed against all42 archive checksums and payload inventories; combined preview PASS (36 additions, zero upgrades/removals). Metadata queries are batched. Satisfied requests remain no-op after installation; actual changes still require the exact reviewed baseline.
+- Tasks4.2–4.4: Independent review APPROVED; six actual namespace integration tests and full95-test suite PASS without skips. Native apt/dpkg install, repeat, scoped restore, protected preservation and failure cases verified. See docs/foundation-integration.md; physical hardware acceptance remains pending.
+- Deployment is owner-run. Live CLI deployment was not completed; the attempted privileged operation failed authentication before any system command executed. Future work prepares and announces readiness, without opening terminals or attempting authentication.

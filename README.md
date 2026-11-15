@@ -1,19 +1,18 @@
 # T2 Mac KDE local management
 
 uv-managed `.venv` with pinned pyinfra dependencies for this Ubuntu 26.04
-workstation. Run everything as your desktop user. Only apt operations use sudo.
+workstation. Run everything as your desktop user. Only system operations use sudo.
 
 ```sh
 sh bootstrap.sh
-export PATH="$HOME/.local/bin:$PATH"
 
 # Preview and install Node.js/npm first.
-uv run --locked pyinfra @local tasks/node.py --dry
-uv run --locked pyinfra @local tasks/node.py
+.venv/bin/pyinfra @local tasks/node.py --dry
+.venv/bin/pyinfra @local tasks/node.py
 
 # Preview reviewed native CLI packages, then apply from your terminal.
-uv run --locked pyinfra @local deploy.py --dry
-uv run --locked pyinfra @local deploy.py --use-sudo-password
+.venv/bin/pyinfra @local deploy.py --dry
+.venv/bin/pyinfra @local deploy.py --use-sudo-password
 ```
 
 Node/npm are installed per-user with [nvm](https://github.com/nvm-sh/nvm),
@@ -28,12 +27,12 @@ node --version
 npm --version
 ```
 
-Changed Bash configuration is backed up beside `.bashrc`. To remove only the
-managed initialization block while keeping other shell settings and nvm data:
+Changed Bash configuration is backed up beside `.bashrc`.
+Optional undo of the managed Bash initialization, preserving nvm data:
 
 ```sh
-uv run --locked pyinfra @local tasks/node_restore.py --dry
-uv run --locked pyinfra @local tasks/node_restore.py
+.venv/bin/pyinfra @local tasks/node_restore.py --dry
+.venv/bin/pyinfra @local tasks/node_restore.py
 ```
 
 npm globals belong to the active nvm Node version; use `npm install -g <package>`
@@ -44,6 +43,8 @@ No spec workflow package has been selected yet.
 
 `uv sync --locked` creates `.venv`; activation is optional (`. .venv/bin/activate`).
 The bootstrap installs uv 0.13.8 if uv is missing; an existing uv is preserved.
+Run pyinfra directly from `.venv/bin`, or activate the venv and use `pyinfra`.
+uv's lock options belong to environment setup, not the pyinfra commands.
 System packages follow the configured Ubuntu repositories and are installed if
 missing, without a full system upgrade or added third-party repositories.
 
