@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+# Managed by t2-mac-kde (desktop). hypr-power-profile next|power-saver|balanced|performance|status
+# power-profiles-daemon via powerprofilesctl (no root); OSD shows the result.
+# Turbo is separate (resource policy keeps it off at boot; `turbo on` in a shell).
+set -u
+order=(power-saver balanced performance)
+cur=$(powerprofilesctl get 2>/dev/null) || { echo "power-profiles-daemon not running" >&2; exit 1; }
+case "${1:-next}" in
+  status) echo "$cur"; exit 0 ;;
+  next) for i in 0 1 2; do [ "${order[$i]}" = "$cur" ] && want=${order[$(( (i + 1) % 3 ))]}; done; want=${want:-balanced} ;;
+  power-saver|balanced|performance) want=$1 ;;
+  *) echo "usage: hypr-power-profile next|power-saver|balanced|performance|status" >&2; exit 2 ;;
+esac
+powerprofilesctl set "$want" || exit 1
+note=""
+powerprofilesctl list 2>/dev/null | awk -v p="$want" '$0 ~ "^[* ] *"p":" {f=1; next} /^[* ] *[a-z-]+:$/ {f=0} f && /Degraded/' | grep -q yes \
+  && note=" (degraded: running hot)"
+case "$want" in power-saver) pct=33 ;; balanced) pct=66 ;; *) pct=100 ;; esac
+~/.local/bin/hypr-osd power "$pct" "Power: $want$note"
