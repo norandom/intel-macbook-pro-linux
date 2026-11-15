@@ -21,6 +21,7 @@ from pyinfra.operations.util import any_changed
 
 from manage.desktop_hostcolor import color_for
 from manage.pixel_snap import conf as pixel_snap_conf
+from manage import password_store
 from manage.packages import PackageRequest, install_packages
 from manage.preflight import validate_local_context
 from manage.userconfig import setting
@@ -179,6 +180,16 @@ server.shell(name=f"GTK/portal apps: cursor {cursor_theme} {cursor_size}", comma
     f"[ \"$(gsettings get org.gnome.desktop.interface cursor-size)\" = '{cursor_size}' ] || "
     f"gsettings set org.gnome.desktop.interface cursor-size {cursor_size}"])
 
+# Chromium/Electron password backend in Hyprland = the one KDE uses (wallet), so saved
+# passwords stay readable in both sessions (config: password_store; "" disables).
+store = str(setting("password_store", "kwallet6" if os.path.exists("/usr/bin/kwalletd6") else "gnome-libsecret"))
+for app in (password_store.APPS if store else ()):
+    system_entry = Path("/usr/share/applications", app)
+    if system_entry.is_file():
+        files.put(name=f"{app}: --password-store={store}", dest=f"{home}/.local/share/applications/{app}",
+                  src=StringIO(password_store.override(system_entry.read_text(), store)),
+                  mode="644", create_remote_dir=True)
+
 # Default applications per MIME type from the user config, e.g. PDFs -> PdfCraft:
 #   [default_apps]  "application/pdf" = "ai.storyteller.pdfcraft.desktop"
 for mime, app in dict(setting("default_apps", {})).items():
@@ -225,7 +236,7 @@ owned_put(StringIO(f"# {MARKER}\nexport XCURSOR_THEME=Adwaita\nexport XCURSOR_SI
 # --- Session-scoped user services -----------------------------------------------------------------
 UNITS = ("hypr-desktop.target", "hypr-windows.service", "hypr-clip-bridge.service",
          "hypr-cliphist.service", "hypr-cliphist-wipe.service", "hypr-cliphist-wipe.timer",
-         "hypr-tailscale-tray.service")
+         "hypr-tailscale-tray.service", "hypr-secret-service.service")
 unit_ops = [owned_put(f"{SRC}/systemd/{u}", f"{cfg}/systemd/user/{u}") for u in UNITS]
 server.shell(name="systemd --user daemon-reload (desktop units changed)", commands=["systemctl --user daemon-reload"],
              _if=any_changed(*[o for o in unit_ops if o]))
@@ -233,7 +244,7 @@ server.shell(name="systemd --user daemon-reload (desktop units changed)", comman
 server.shell(
     name="Desktop services wanted by hypr-desktop.target (waybar, worker, clipboard, 01:00 wipe)",
     commands=["systemctl --user enable hypr-windows.service hypr-clip-bridge.service "
-              "hypr-cliphist.service hypr-cliphist-wipe.timer hypr-tailscale-tray.service",
+              "hypr-cliphist.service hypr-cliphist-wipe.timer hypr-tailscale-tray.service hypr-secret-service.service",
               "systemctl --user add-wants hypr-desktop.target waybar.service"],
 )
 server.shell(
