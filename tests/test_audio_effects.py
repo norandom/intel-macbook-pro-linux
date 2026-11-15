@@ -43,7 +43,7 @@ class PinTests(unittest.TestCase):
     def test_task_checks_pins_and_uses_the_guarded_installer(self):
         self.assertIn("install_packages(PackageRequest(packages=ae.PACKAGES", TASK)
         self.assertNotRegex(TASK, r"apt(-get)? install|_sudo=True|/etc/|/usr/share/(wireplumber|pipewire|alsa)")
-        self.assertEqual(set(ae.PACKAGES), {"easyeffects", "lsp-plugins-lv2", "calf-plugins"})
+        self.assertEqual(set(ae.PACKAGES), {"easyeffects", "lsp-plugins-lv2", "calf-plugins", "zam-plugins"})
 
 
 class IrTests(unittest.TestCase):
@@ -198,3 +198,10 @@ class RoomPresetTests(unittest.TestCase):
         self.assertEqual(out["reverb#0"]["room-size"], "Small")
         self.assertLess(out["reverb#0"]["decay-time"], 1.0)
         self.assertEqual(ae.preset_3d(text, 3)["output"]["plugins_order"].count("reverb#0"), 0)
+
+
+class PlusPresetTests(unittest.TestCase):
+    def test_plus_adds_exciter_and_maximizer_before_the_limiter(self):
+        text = (Path(__file__).resolve().parents[1] / "files/audio-effects/autoeq" / ae.AUTOEQ_FILE).read_text()
+        order = ae.preset_3d_plus(text, 5)["output"]["plugins_order"]
+        self.assertEqual(order[-4:], ["reverb#0", "exciter#0", "maximizer#0", "limiter#0"])

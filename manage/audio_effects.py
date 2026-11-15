@@ -20,8 +20,10 @@ IR_SHA256 = "131c76e7c73aa0235945f12d71e2386e2552a63662a4ce14cd34f06ee5137828"
 
 PRESET_3D, PRESET_BYPASS = "QC35 3D", "Bypass"
 PRESET_3D_ROOM = "QC35 3D Room"
+PRESET_3D_PLUS = "QC35 3D Room+"
 PLUGINS_3D = ("equalizer#0", "bass_enhancer#0", "crossfeed#0", "convolver#0", "limiter#0")
 PACKAGES = ("easyeffects",
+            "zam-plugins",  # maximizer (ZaMaximX2, "QC35 3D Room+")
             "lsp-plugins-lv2",  # equalizer (para_equalizer_x32_lr) + limiter (sc_limiter_stereo)
             "calf-plugins")     # bass enhancer (calf BassEnhancer); crossfeed/convolver are built in
 
@@ -121,6 +123,23 @@ def preset_3d_room(autoeq_text, boost_db=0.0):
                        "room-size": "Small", "decay-time": 0.4, "predelay": 12.0, "diffusion": 0.6,
                        "hf-damp": 5000.0, "bass-cut": 300.0, "treble-cut": 7000.0,
                        "amount": -16.0, "dry": 0.0}   # wet about 15 %, full dry
+    return preset
+
+
+def preset_3d_plus(autoeq_text, boost_db=0.0):
+    """Room + gentle exciter and maximizer, tuned for dense orchestral / symphonic metal: the
+    exciter adds a little air above 7.5 kHz (what SBC shaves off) at a low amount; the maximizer
+    only shaves the top 2 dB so crescendos keep their dynamics. The -1 dB limiter stays last."""
+    preset = preset_3d_room(autoeq_text, boost_db)
+    out = preset["output"]
+    order = out["plugins_order"]
+    i = order.index("limiter#0")
+    order[i:i] = ["exciter#0", "maximizer#0"]
+    out["exciter#0"] = {"bypass": False, "input-gain": 0.0, "output-gain": 0.0, "amount": 2.0,
+                        "harmonics": 7.0, "scope": 7500.0, "ceil": 16000.0, "ceil-active": False,
+                        "blend": 0.0, "listen": False}
+    out["maximizer#0"] = {"bypass": False, "input-gain": 0.0, "output-gain": 0.0,
+                          "release": 25.0, "threshold": -2.0}
     return preset
 
 

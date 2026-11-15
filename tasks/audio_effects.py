@@ -54,9 +54,10 @@ def put(content, dest, mode="644", name=None):
 # --- Presets, IR, Bypass autoloads (always) ------------------------------------------------------
 boost = float(setting("music_boost_db", 0))
 # music_preset: "plain" = QC35 3D, "room" = QC35 3D Room (short reverb); hypr-3d room|plain switches live.
-music_preset = ae.PRESET_3D_ROOM if str(setting("music_preset", "plain")) == "room" else ae.PRESET_3D
+music_preset = {"room": ae.PRESET_3D_ROOM, "room+": ae.PRESET_3D_PLUS}.get(str(setting("music_preset", "plain")), ae.PRESET_3D)
 ee_ops = [put(ae.dumps(ae.preset_3d(eq_file.read_text(), boost)), f"{data}/output/{ae.PRESET_3D}.json"),
           put(ae.dumps(ae.preset_3d_room(eq_file.read_text(), boost)), f"{data}/output/{ae.PRESET_3D_ROOM}.json"),
+          put(ae.dumps(ae.preset_3d_plus(eq_file.read_text(), boost)), f"{data}/output/{ae.PRESET_3D_PLUS}.json"),
           put(ae.dumps(ae.preset_bypass()), f"{data}/output/{ae.PRESET_BYPASS}.json")]
 files.put(name=f"EasyEffects IR: {ae.IR_NAME}.irs (MIT KEMAR, +-30 deg)", src=str(ir_file),
           dest=f"{data}/irs/{ae.IR_NAME}.irs", mode="644", create_remote_dir=True)
