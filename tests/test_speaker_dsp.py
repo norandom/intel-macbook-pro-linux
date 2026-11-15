@@ -23,6 +23,14 @@ class SpeakerDspTests(unittest.TestCase):
         self.assertNotIn("mic.json", conf)
         lua = (ROOT / "files/speaker-dsp" / sd.SCRIPT).read_text()
         self.assertNotIn("BuiltinMic", lua)
+        self.assertNotIn('Pod.Array({ "Spa:Float", 1.0 })', lua)   # one value = front-left only
+
+    def test_dsp_attaches_to_the_split_speaker_sink(self):
+        conf = sd.wireplumber_conf("/x/graph.json")
+        self.assertIn(sd.SPEAKER_SINK, conf)
+        self.assertNotIn("monitor.alsa.rules", conf)
+        text = sd.graph((ROOT / "files/speaker-dsp/16_1/graph.json").read_text(), "/u")
+        self.assertEqual(json.loads(text)["playback.props"]["target.object"], sd.SPEAKER_SINK)
 
     def test_licence_is_shipped(self):
         self.assertIn("MIT", (ROOT / "files/speaker-dsp/COPYRIGHT").read_text())

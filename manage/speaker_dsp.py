@@ -14,41 +14,26 @@ SCRIPT = "t2-speaker-unmute.lua"
 PACKAGES = ("bankstown-lv2", "swh-lv2", "lsp-plugins-lv2",
             "libspa-0.2-modules-extra", "libpipewire-0.3-modules-extra")
 UPSTREAM_DIR = f"/usr/share/t2-linux-audio/{MODEL_DIR}"
+UPSTREAM_TARGET = "alsa_output.platform-sound.RawSpeakers"
+# Ubuntu's apple-t2-audio-config builds the speaker sink as a PipeWire UCM split node on top of the
+# raw 6-channel device; the DSP attaches to it by name (no ALSA rename rule can reach a split node).
+SPEAKER_SINK = "alsa_output.pci-0000_04_00.3.HiFi__Speaker__sink"
 
 
-def graph(text: str, data_dir: str) -> str:
-    """The upstream graph with its FIR paths pointed at the per-user copy."""
-    out = text.replace(UPSTREAM_DIR, data_dir)
+def graph(text: str, data_dir: str, target: str = SPEAKER_SINK) -> str:
+    """The upstream graph with its FIR paths pointed at the per-user copy and its output at the
+    6-channel speaker sink (same FL, SL, RL, FR, SR, RR order)."""
+    out = text.replace(UPSTREAM_DIR, data_dir).replace(UPSTREAM_TARGET, target)
     json.loads(out)  # still valid JSON
     return out
 
 
-def wireplumber_conf(graph_path: str) -> str:
+def wireplumber_conf(graph_path: str, target: str = SPEAKER_SINK) -> str:
     return f"""# Managed by t2-mac-kde (tasks/speaker_dsp.py): MacBookPro16,1 speaker DSP, speakers only.
 # From lemmyg/t2-apple-audio-dsp (MIT). Delete this file and restart WirePlumber to revert.
-monitor.alsa.rules = [
-  {{
-    matches = [
-      {{
-        api.alsa.card.name = "Apple T2 Audio"
-        node.name = "~alsa_output.pci.*.HiFi__Speaker__sink"
-        media.class = "Audio/Sink"
-      }}
-    ]
-    actions = {{
-      update-props = {{
-        audio.allowed-rates = [48000, 44100]
-        node.name = "alsa_output.platform-sound.RawSpeakers"
-        node.description = "Raw Speaker Device (do not use)"
-        node.nick = "RawSpeakers"
-      }}
-    }}
-  }}
-]
-
 node.software-dsp.rules = [
   {{
-    matches = [ {{ node.name = "alsa_output.platform-sound.RawSpeakers" }} ]
+    matches = [ {{ node.name = "{target}" }} ]
     actions = {{
       create-filter = {{
         filter-path = "{graph_path}"

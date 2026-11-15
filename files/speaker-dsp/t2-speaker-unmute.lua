@@ -1,5 +1,5 @@
 -- t2-mac-kde: speakers-only variant of t2-apple-audio-dsp's t2-force-unmute.lua (MIT,
--- (C) Linux T2 Kernel Team): microphone routes are left untouched.
+-- (C) Linux T2 Kernel Team): microphone routes are left untouched; unity on every channel.
 -- Keep T2 hardware routes at unity so volume is controlled by the DSP nodes.
 -- Based on Asahi Linux's asahi-limit-volume.lua.
 
@@ -34,11 +34,19 @@ function handleDevice(device)
       pr = pr.properties
     end
 
-    if pr and (pr.channelVolumes == nil or pr.channelVolumes[1] ~= 1.0 or pr.mute == true) then
+    -- unity on EVERY channel: a one-element array left only channel 1 (front-left) at full volume
+    local n = (pr and pr.channelVolumes and #pr.channelVolumes) or 0
+    local needs = pr and pr.mute == true
+    for i = 1, n do
+      if pr.channelVolumes[i] ~= 1.0 then needs = true end
+    end
+    if pr and n > 0 and needs then
+      local vols = { "Spa:Float" }
+      for i = 1, n do vols[#vols + 1] = 1.0 end
       local props = {
         "Spa:Pod:Object:Param:Props", "Route",
         mute = false,
-        channelVolumes = Pod.Array({ "Spa:Float", 1.0 })
+        channelVolumes = Pod.Array(vols)
       }
       local param = Pod.Object {
         "Spa:Pod:Object:Param:Route", "Route",
