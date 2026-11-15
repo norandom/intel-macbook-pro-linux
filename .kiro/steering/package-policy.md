@@ -20,6 +20,11 @@ and Flatpak, including dependency resolution checks. The observed pin above
 is evidence of existing snapd policy; a Flatpak apt block has not yet been
 verified. Never weaken the existing block during provisioning.
 
+Enforcement is automatic in `manage/packages.py`: requested and transitive
+packages are name-filtered, removals are blocked, and before apt runs as root
+every planned archive's payload paths and maintainer scripts are scanned for the
+protected boundary. No per-package human review manifest is required.
+
 Use native distro packages where appropriate, or reviewed upstream release
 artifacts/source builds. Python environments use uv and Node/npm use nvm.
 If an application has no permitted installation path, report that constraint

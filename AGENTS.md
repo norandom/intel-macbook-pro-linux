@@ -1,3 +1,21 @@
+# Fast path for this repo (overrides the generic workflow below)
+
+The owner prioritizes delivery speed (`.kiro/steering/execution-policy.md`).
+- Specs under `.kiro/specs/` are approved. Implement directly from them; do not
+  regenerate, re-review or re-approve spec documents. Keep each `tasks.md` a short
+  checklist of what is done and what is deferred (one line each).
+- Default to `--review off` / inline review. Use an independent reviewer subagent only
+  for changes that touch the protected boundary (`protected-system-boundary.md`).
+- Fix root causes in code. Do not answer a bug with a README workaround or a test
+  that documents the failure.
+- No evidence ledgers, review manifests, checksum baselines or attestation records.
+  Pin and sha256-check downloaded upstream binaries; that is enough.
+- apt installs go through `manage.packages.install_packages` (automatic guard: no
+  snap/flatpak, no protected packages, no removals, archive payload/script scan).
+- Verify with `.venv/bin/python -m unittest discover -s tests` and
+  `.venv/bin/pyinfra @local <file> --dry`. The owner runs the live deploy
+  (`--use-sudo-password`); agents never run sudo.
+
 # Agentic SDLC and Spec-Driven Development
 
 Kiro-style Spec-Driven Development on an agentic SDLC

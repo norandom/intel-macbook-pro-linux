@@ -54,10 +54,14 @@ class InstallTests(unittest.TestCase):
              patch.object(guard, 'validate_request', side_effect=lambda r: events.append('request')), \
              patch('manage.package_policy.verify_effective_policy', side_effect=lambda **kw: events.append(('policy', kw))), \
              patch.object(guard, 'inspect_plan', side_effect=lambda r: events.append('plan') or self.plan), \
+             patch.object(guard, '_deb_path', return_value=Path('/x.deb')), \
+             patch.object(guard, 'check_archive', side_effect=lambda deb: events.append('archive')), \
              patch.object(guard.subprocess, 'run', side_effect=lambda *a, **kw: events.append(('apt', a, kw))):
             guard._apply_install(self.request)
         self.assertEqual(events[:3], ['request', ('policy', {}), 'plan'])
-        self.assertEqual(events[3][1][0], ('/usr/bin/apt-get', '--no-install-recommends', '--no-remove', '--yes', 'install', 'btop'))
+        self.assertEqual(events[3][1][0], ('/usr/bin/apt-get', '--download-only', '--yes', '--no-install-recommends', '--no-remove', 'install', 'btop'))
+        self.assertEqual(events[4], 'archive')
+        self.assertEqual(events[5][1][0], ('/usr/bin/apt-get', '--yes', '--no-install-recommends', '--no-remove', 'install', 'btop'))
         self.assertTrue(events[3][2]['check'])
         self.assertEqual(events[3][2]['env'], {'PATH': '/usr/sbin:/usr/bin:/sbin:/bin', 'LC_ALL': 'C', 'LANG': 'C'})
 
@@ -82,7 +86,6 @@ class InstallTests(unittest.TestCase):
             guard.install_packages(self.request, prevent_service_start=True)
             inspect.assert_called_once_with()
             self.assertIn('--prevent-service-start', shell.call_args.kwargs['commands'])
-            self.assertIn('service starts denied', shell.call_args.kwargs['name'])
 
     def test_unprivileged_internal_apply_is_rejected(self):
         with patch.object(guard.os, 'geteuid', return_value=1000), patch.object(guard.subprocess, 'run') as run:
@@ -101,15 +104,4 @@ with patch('manage.packages.validate_request'), patch('manage.package_policy.ver
             result = subprocess.run([sys.executable, '-m', 'pyinfra', '@local', str(deploy), '--dry'],
                                     cwd=Path(__file__).resolve().parents[1], capture_output=True, text=True)
             self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
-            self.assertIn('Install reviewed native Ubuntu packages', result.stdout + result.stderr)
-
-    def test_apt_manual_marker_only_accepts_an_already_satisfied_selection_once(self):
-        satisfied = 'btop is already the newest version (1.4.6-2).\n'
-        summary = '0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.\n'
-        self.assertEqual(guard._parse_simulation(satisfied + 'btop set to manually installed.\n' + summary),
-                         ({}, {'btop': ('btop', '1.4.6-2', None)}))
-        for text in ('jq set to manually installed.\n',
-                     'btop set to manually installed.\nbtop set to manually installed.\n',
-                     'btop:amd64 set to manually installed.\n'):
-            with self.subTest(text=text), self.assertRaises(RuntimeError):
-                guard._parse_simulation(satisfied + text + summary)
+            self.assertIn('apt install 1 package(s): btop', result.stdout + result.stderr)

@@ -12,7 +12,7 @@ sh bootstrap.sh
 
 # Preview reviewed native CLI packages, then apply from your terminal.
 .venv/bin/pyinfra @local deploy.py --dry
-.venv/bin/pyinfra @local deploy.py --same-sudo-password
+.venv/bin/pyinfra @local deploy.py --use-sudo-password
 ```
 
 Node/npm are installed per-user with [nvm](https://github.com/nvm-sh/nvm),
@@ -53,12 +53,10 @@ missing, without a full system upgrade or added third-party repositories.
 
 The implemented baseline includes uv/pyinfra, nvm-managed Node/npm, local-only
 preflight, package-plan validation and effective Snap/Flatpak policy checks.
-CLI deployment uses the guarded API and an exact reviewed Ubuntu package
-manifest. The current plan adds 36 packages, including btop and Neovim, with
-zero upgrades or removals. Changed package versions or executable host state
-block installation until reviewed again. An already satisfied request remains
-a read-only no-op. See the [package review](docs/package-reviews/cli.md).
-CLI application requires terminal sudo authentication. The broader desktop port
+apt installs use a guard (`manage/packages.py`) that blocks snap/flatpak,
+protected kernel/boot/storage/T2/audio packages and removals, and scans each
+downloaded archive for protected paths and initramfs/grub hooks before installing.
+The broader desktop port
 has not been installed yet.
 Completed spec documents are not installed features.
 
