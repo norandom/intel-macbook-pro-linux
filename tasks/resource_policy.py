@@ -17,6 +17,7 @@ from pyinfra.operations import files, server, systemd
 from manage.packages import PackageRequest, install_packages
 from manage.preflight import validate_local_context
 from manage import resource_policy as rp
+from manage.userconfig import setting
 
 validate_local_context()
 local.include("tasks/package_policy.py")
@@ -140,3 +141,18 @@ if avahi:
         commands=[f"systemctl disable --now {' '.join(avahi)}", f"systemctl mask {' '.join(avahi)}"],
         _sudo=True,
     )
+
+# --- Crash report upload (config crash_upload; Ubuntu default: on) ------------------------
+# Off: whoopsie (uploads apport reports to errors.ubuntu.com) stopped and masked, and its
+# start-limit failures after crash bursts are cleared. Local capture stays (systemd-coredump /
+# coredumpctl). On again: unmasked. Plain systemctl state, so it is fully revertable.
+WHOOPSIE = ("whoopsie.path", "whoopsie.service")
+upload = bool(setting("crash_upload", True))
+installed = [u for u in WHOOPSIE if rp.unit_installed(rp.unit_state(u))]
+if installed and not upload and any(rp.unit_state(u) != "masked" for u in installed):
+    server.shell(name=f"Crash upload off: stop and mask {' '.join(installed)}", _sudo=True, commands=[
+        f"systemctl stop {' '.join(installed)}", f"systemctl mask {' '.join(installed)}",
+        f"systemctl reset-failed {' '.join(installed)} || true"])
+elif installed and upload and any(rp.unit_state(u) == "masked" for u in installed):
+    server.shell(name=f"Crash upload on: unmask {' '.join(installed)}", _sudo=True, commands=[
+        f"systemctl unmask {' '.join(installed)}", "systemctl enable --now whoopsie.path"])
