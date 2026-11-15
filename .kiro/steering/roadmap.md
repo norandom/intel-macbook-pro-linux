@@ -106,3 +106,23 @@ implementation tasks. Independent cross-spec review passed after one repair
 round. Checked boxes above mean specification documents completed, not software
 installed or runtime acceptance passed. Existing foundation task approval and
 GPU evidence follow-up remain listed separately. No implementation was performed.
+
+## Implementation status (2026-11-15)
+
+All eight source-port specs are implemented and deployed on the owner's MacBookPro16,1
+(each `tasks.md` lists done / deferred items). Added on owner request, outside the original
+specs (one module each under `tasks/`, wired in `deploy.py`):
+
+- storage_health: smartd + daily NVMe check, alerts in new shells (`t2-alerts`)
+- remote_access: Tailscale (+ tray, operator), sshd at boot, fail2ban, RDP firewalled to tailscale0
+- vendor_apps / office_apps / xfe: vendor repos and pinned .debs/tarballs, LibreOffice, Craft
+  suite, OpenIDEA, Xfe unpacked to keep KDE's im-config; one guarded apt transaction per task
+- virtualization: virt-manager on KVM, libvirt NAT, KVM ignore_msrs
+- audio_effects: EasyEffects presets for music headphones (default "QC35 3D Stage"), Bluetooth
+  device roles; speaker_dsp: MacBookPro16,1 speaker DSP (lemmyg/t2-apple-audio-dsp, speakers only)
+- laptop layer in the desktop: brightness/volume OSD, panel off via backlight 0, power profile
+  menu, Satty screenshots, high-visibility cursor, keyring in Hyprland, pixel snapping at
+  fractional scale
+
+Personal values live in `~/.config/t2-mac-kde/config.toml` (manage/userconfig.py), never in
+the repo. Backlog: `docs/backlog.md` (hibernate, ax, GPU render placement).

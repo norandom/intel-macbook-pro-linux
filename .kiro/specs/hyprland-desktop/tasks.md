@@ -46,3 +46,15 @@ Then pick "Hyprland (uwsm-managed)" at the unchanged SDDM login screen.
 - [ ] Xwayland restart re-registration of fonts (only initial start is wired)
 - [ ] Win31 appmenu icons (optional external download, not ported); receipts/restore ledger (not built)
 - [ ] T2 hardware acceptance (camera, touch bar, Wi-Fi/Bluetooth, suspend/resume) in the Hyprland session
+
+## Added after the first live sessions (2026-11-15)
+
+- [x] Laptop layer (laptop.conf): brightness/keyboard light via logind, volume/mic/media keys with OSD,
+      panel off below minimum brightness (backlight 0, no DPMS flash), polkit agent, nm-applet, blueman,
+      hypridle, Tailscale tray, Satty screenshots (SUPER+SHIFT+4/S/X)
+- [x] Waybar: portals after `uwsm finalize`, compact modules, power-profile drop-down, battery/network
+      icons as Material Design glyphs, grey palette, clock right, left reserve strip (config)
+- [x] Panel: scale and left reserve from config; whole-pixel border/title bar at fractional scale
+- [x] Keyring in Hyprland (ksecretd activation), Chromium/Electron `--password-store=kwallet6` overrides
+- [x] High-visibility cursor theme t2-highvis (tools/make_cursor.py), SUPER+SHIFT+C find pointer
+- [ ] GPU render placement on the iGPU (laptop-gpu-policy research 2026-11-15)

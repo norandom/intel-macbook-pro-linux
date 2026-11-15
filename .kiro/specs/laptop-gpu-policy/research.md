@@ -48,3 +48,15 @@ See protected-system-boundary.md. This supersedes any earlier implication that
 GPU reproduction might edit module/boot settings. Capture and preservation
 checks remain read-only; no corrective change to the existing GPU setup is
 authorized. Any eventual design must honor that stricter boundary.
+
+
+## Measurement 2026-11-15 (Hyprland session, no external display)
+
+- Owner's policy confirmed: `apple-gmux force_igd=y` (iGPU drives the panel) and
+  `/etc/udev/rules.d/30-amdgpu-pm.rules` (AMD DPM "low"). The AMD GPU stays available on
+  purpose: the external display ports are wired to it (owner).
+- AMD runtime PM is `on` (never suspended); amdgpu at ~40 % busy, ~8 W: Hyprland, Xwayland,
+  Vivaldi, EasyEffects and xdg-desktop-portal render on its node (renderD129).
+- Next step (not applied): make the iGPU Hyprland's primary render device
+  (`AQ_DRM_DEVICES=/dev/dri/card1:/dev/dri/card2`) so apps render on Intel while AMD keeps the
+  external outputs; then measure AMD power with no external display and with one attached.

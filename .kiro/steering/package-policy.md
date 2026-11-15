@@ -1,6 +1,8 @@
 # Package installation policy
 
-Strict user rule: no Snap/snapd and no Flatpak. This applies to all specs,
+Strict user rule: no Snap/snapd and no Flatpak. Reason (owner): both install dependencies
+nobody here controls, and some packages are built poorly for this setup (e.g. the Chromium
+Snap pulls in GNOME components). This applies to all specs,
 provisioning, application ports, dependencies, and fallback installation paths.
 Do not install their runtimes, enable their services, add their stores/remotes,
 or install applications through either packaging system. Do not bypass the

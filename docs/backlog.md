@@ -22,3 +22,9 @@ and configuration tasks, per explicit owner direction.
   systemd units are ready, but 16 GiB disk swap vs 64 GiB RAM makes it fail under load.
 - When reopened: owner-run swap LV resize keeping path + UUID (docs/hibernate-swap.md),
   then a guarded Hibernate power-menu entry (see git history: hypr-hibernate).
+
+## GPU render placement (battery)
+
+- With no external display, Hyprland/Xwayland/apps render on the AMD GPU (~8 W). Try iGPU as
+  primary render device (AQ_DRM_DEVICES=card1:card2), keeping AMD for external outputs. Details:
+  `.kiro/specs/laptop-gpu-policy/research.md` (2026-11-15).
