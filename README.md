@@ -12,7 +12,7 @@ sh bootstrap.sh
 
 # Preview reviewed native CLI packages, then apply from your terminal.
 .venv/bin/pyinfra @local deploy.py --dry
-.venv/bin/pyinfra @local deploy.py --use-sudo-password
+.venv/bin/pyinfra @local deploy.py --same-sudo-password
 ```
 
 Node/npm are installed per-user with [nvm](https://github.com/nvm-sh/nvm),
@@ -38,7 +38,8 @@ Optional undo of the managed Bash initialization, preserving nvm data:
 npm globals belong to the active nvm Node version; use `npm install -g <package>`
 without sudo. Do not set npm's `prefix`: it conflicts with nvm.
 `npx` comes with Node/npm. CLI system packages still use apt; for those,
-`--use-sudo-password` prompts for authentication in your terminal.
+`--same-sudo-password` prompts once in your terminal before privileged operations.
+This avoids pyinfra 3.10.0's automatic-prompt mismatch with this sudo-rs version.
 No spec workflow package has been selected yet.
 
 `uv sync --locked` creates `.venv`; activation is optional (`. .venv/bin/activate`).

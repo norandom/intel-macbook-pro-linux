@@ -130,7 +130,9 @@ writes apt pins, installs packages, edits shell files, or changes services.
 Preflight rejects root execution and unsupported targets before mutation.
 Node-only deployment needs no sudo. The complete deploy installs/validates
 package pins before any system package installation; use
-`--use-sudo-password` for interactive authentication. No unattended password
+`--same-sudo-password` for upfront interactive authentication with local sudo-rs.
+Pyinfra 3.10.0's automatic retry does not recognize this sudo-rs diagnostic prefix.
+No unattended password
 storage. pyinfra errors remain failures; no catch-all success masking.
 
 A dry run on an unpinned host simulates using a temporary policy overlay so it
