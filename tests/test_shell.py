@@ -145,3 +145,12 @@ class ConfigTests(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+class BleshMarkerTests(unittest.TestCase):
+    def test_block_markers_have_no_regex_metacharacters(self):
+        # pyinfra's files.block matches markers as regular expressions: "(...)" never matched
+        # its own block and duplicated it on every run.
+        from manage import shell_tools as st
+        for marker in (st.BLESH_TOP_MARKER, st.BLESH_END_MARKER, st.BASH_MARKER, st.INPUTRC_MARKER):
+            self.assertNotRegex(marker, r"[()\[\]*+?|^$\\]", marker)

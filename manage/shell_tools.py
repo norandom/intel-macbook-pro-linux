@@ -11,6 +11,13 @@ BASH_INIT = '''if [[ $- == *i* ]]; then
     unset __t2_f
 fi'''
 
+# ble.sh (optional, config shell_blesh): load early, attach last, as its README recommends.
+BLESH = "/usr/share/blesh/ble.sh"
+BLESH_TOP_MARKER = "# {mark} t2-mac-kde: ble.sh load, must stay first"
+BLESH_TOP = '[[ $- == *i* && -r ' + BLESH + ' ]] && source ' + BLESH + ' --noattach --rcfile "$HOME/.config/bash/blerc"'
+BLESH_END_MARKER = "# {mark} t2-mac-kde: ble.sh attach, must stay last"
+BLESH_END = '[[ ${BLE_VERSION-} ]] && ble-attach'
+
 INPUTRC_MARKER = '# {mark} t2-mac-kde: shell-user-tools'
 INPUTRC_INIT = '''$include /etc/inputrc
 $include ~/.config/bash/readline.inputrc'''

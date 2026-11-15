@@ -20,6 +20,7 @@ from pyinfra.operations import files, server, systemd
 from manage.packages import PackageRequest, install_packages
 from manage.preflight import validate_local_context
 from manage import shell_tools as cfg
+from manage.userconfig import setting
 
 validate_local_context()
 cfg.validate_mounts(cfg.RCLONE_MOUNTS)
@@ -164,4 +165,22 @@ files.block(
     content=cfg.BASH_INIT,
     try_prevent_shell_expansion=True,
     backup=True,
+)
+
+
+# --- ble.sh (optional): Kali/zsh-like suggestions, syntax colours, completion menu ----------
+blesh = bool(setting("shell_blesh", False))
+if blesh:
+    install_packages(PackageRequest(packages=("ble.sh",)))
+    files.put(name="ble.sh settings ~/.config/bash/blerc", src=str(src / "blerc"),
+              dest=str(home / ".config/bash/blerc"), mode="644", create_remote_dir=True)
+files.block(
+    name=f"bash: ble.sh load at the top of ~/.bashrc ({'on' if blesh else 'removed'})",
+    path=str(home / ".bashrc"), marker=cfg.BLESH_TOP_MARKER, content=cfg.BLESH_TOP,
+    before=True, line=".*", present=blesh, try_prevent_shell_expansion=True, backup=True,
+)
+files.block(
+    name=f"bash: ble.sh attach at the end of ~/.bashrc ({'on' if blesh else 'removed'})",
+    path=str(home / ".bashrc"), marker=cfg.BLESH_END_MARKER, content=cfg.BLESH_END,
+    present=blesh, try_prevent_shell_expansion=True, backup=True,
 )

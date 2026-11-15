@@ -1,0 +1,9 @@
+# Managed by t2-mac-kde (shell-user-tools): ble.sh settings (config shell_blesh = true).
+# ble.sh adds Kali/zsh-like typing: grey inline suggestions from history (Right arrow or End
+# accepts), syntax colouring and a completion menu (Tab, then arrows). Docs: man ble.sh is not
+# shipped; see /usr/share/doc/ble.sh/README.md.gz. Remove `shell_blesh` to go back to plain readline.
+
+# Suggestions and the completion menu appear after a short pause, not on every keystroke.
+bleopt complete_auto_delay=100
+# Keep the terminal bell quiet on failed completion.
+bleopt edit_abell=
