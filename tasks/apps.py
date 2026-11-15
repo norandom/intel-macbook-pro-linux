@@ -78,5 +78,15 @@ for src, dest in (("files/htop/htoprc", ".config/htop/htoprc"),):
     if not host.get_fact(File, path=f"{home}/{dest}"):
         files.put(name=f"Seed ~/{dest}", src=src, dest=f"{home}/{dest}", mode="644", create_remote_dir=True)
 
+# Owner preference from the source repo: process lists sorted by memory. Only these keys are
+# enforced (htop/btop rewrite the rest of their files themselves).
+for path, line, replace in (
+    (".config/htop/htoprc", r"^sort_key=.*", "sort_key=47"),             # 47 = PERCENT_MEM
+    (".config/htop/htoprc", r"^sort_direction=.*", "sort_direction=-1"),  # descending
+    (".config/btop/btop.conf", r"^proc_sorting = .*", 'proc_sorting = "memory"'),
+):
+    files.line(name=f"~/{path}: {replace}", path=f"{home}/{path}", line=line, replace=replace,
+               ensure_newline=True)
+
 python.call(name="Availability report (~/.local/state/t2-mac-kde/applications.json)",
             function=lambda: logger.info(f"apps: wrote {write_report(home)}"))
