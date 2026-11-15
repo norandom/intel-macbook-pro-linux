@@ -4,7 +4,15 @@ import os
 import platform
 
 from pyinfra import host
+from pyinfra.connectors import util as _connector_util
 from pyinfra.connectors.local import LocalConnector
+
+# sudo-rs 0.2.x prints "sudo: interactive authentication is required", but
+# pyinfra 3.10 only retries with a password on the "sudo-rs:" spelling.
+# Without this, --use-sudo-password fails instead of prompting.
+_SUDO_RS_LINE = "sudo: interactive authentication is required"
+if _SUDO_RS_LINE not in _connector_util.SUDO_PASSWORD_REQUIRED_LINES:
+    _connector_util.SUDO_PASSWORD_REQUIRED_LINES += (_SUDO_RS_LINE,)
 
 
 def validate_local_context() -> None:

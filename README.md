@@ -38,8 +38,8 @@ Optional undo of the managed Bash initialization, preserving nvm data:
 npm globals belong to the active nvm Node version; use `npm install -g <package>`
 without sudo. Do not set npm's `prefix`: it conflicts with nvm.
 `npx` comes with Node/npm. CLI system packages still use apt; for those,
-`--same-sudo-password` prompts once in your terminal before privileged operations.
-This avoids pyinfra 3.10.0's automatic-prompt mismatch with this sudo-rs version.
+`--same-sudo-password` prompts once upfront; `--use-sudo-password` also works
+(`manage/preflight.py` teaches pyinfra 3.10 the sudo-rs 0.2 diagnostic).
 No spec workflow package has been selected yet.
 
 `uv sync --locked` creates `.venv`; activation is optional (`. .venv/bin/activate`).
