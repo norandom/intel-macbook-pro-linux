@@ -1,6 +1,6 @@
 #!/bin/sh
 # Managed by t2-mac-kde (audio_effects). Toggle the QC35 "3D" sound (EasyEffects global bypass).
-#   hypr-3d on | off | toggle | status | room | plain | plus   (room/plain/plus: switch the QC35 preset live)
+#   hypr-3d on | off | toggle | status | room | plain | plus | auditorium   (switch: switch the QC35 preset live)
 # Speakers/T2 headphones always autoload the empty "Bypass" preset, so this only changes the QC35.
 set -eu
 unit=easyeffects.service
@@ -21,9 +21,9 @@ off)
     # without a running EasyEffects the audio path is already untouched
     if running; then easyeffects -b 1 >/dev/null; fi
     echo off > "$state" ;;
-room|plain|plus)
+room|plain|plus|auditorium)
     running || { echo "hypr-3d: EasyEffects not running" >&2; exit 1; }
-    case "$1" in room) p="QC35 3D Room" ;; plus) p="QC35 3D Room+" ;; *) p="QC35 3D" ;; esac
+    case "$1" in room) p="QC35 3D Room" ;; plus) p="QC35 3D Room+" ;; auditorium) p="QC35 3D Auditorium" ;; *) p="QC35 3D" ;; esac
     easyeffects -l "$p" >/dev/null && easyeffects -b 2 >/dev/null && echo on > "$state" && echo "3D: $p" ;;
 toggle)
     if [ "$(current)" = on ]; then exec "$0" off; else exec "$0" on; fi ;;
@@ -31,5 +31,5 @@ status)
     if running; then echo "3D: $(current) (EasyEffects running, preset: $(easyeffects -a output 2>/dev/null || echo '?'))"
     else echo "3D: off (EasyEffects not running)"; fi ;;
 *)
-    echo "usage: hypr-3d on|off|toggle|status|room|plain|plus" >&2; exit 2 ;;
+    echo "usage: hypr-3d on|off|toggle|status|room|plain|plus|auditorium" >&2; exit 2 ;;
 esac

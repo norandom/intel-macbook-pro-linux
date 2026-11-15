@@ -205,3 +205,14 @@ class PlusPresetTests(unittest.TestCase):
         text = (Path(__file__).resolve().parents[1] / "files/audio-effects/autoeq" / ae.AUTOEQ_FILE).read_text()
         order = ae.preset_3d_plus(text, 5)["output"]["plugins_order"]
         self.assertEqual(order[-4:], ["reverb#0", "exciter#0", "maximizer#0", "limiter#0"])
+
+
+class AuditoriumPresetTests(unittest.TestCase):
+    def test_auditorium_uses_the_ash_brir_without_crossfeed_or_reverb(self):
+        text = (Path(__file__).resolve().parents[1] / "files/audio-effects/autoeq" / ae.AUTOEQ_FILE).read_text()
+        out = ae.preset_auditorium(text, 5)["output"]
+        self.assertEqual(out["plugins_order"], ["equalizer#0", "bass_enhancer#0", "convolver#0",
+                                                "exciter#0", "maximizer#0", "limiter#0"])
+        self.assertEqual(out["convolver#0"]["kernel-name"], ae.ASH_IR_NAME)
+        self.assertRegex(ae.ASH_IR_SHA256, r"^[0-9a-f]{64}$")
+        self.assertIn(ae.ASH_COMMIT, ae.ASH_IR_URL)

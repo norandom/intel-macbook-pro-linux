@@ -54,11 +54,25 @@ def put(content, dest, mode="644", name=None):
 # --- Presets, IR, Bypass autoloads (always) ------------------------------------------------------
 boost = float(setting("music_boost_db", 0))
 # music_preset: "plain" = QC35 3D, "room" = QC35 3D Room (short reverb); hypr-3d room|plain switches live.
-music_preset = {"room": ae.PRESET_3D_ROOM, "room+": ae.PRESET_3D_PLUS}.get(str(setting("music_preset", "plain")), ae.PRESET_3D)
+music_preset = {"room": ae.PRESET_3D_ROOM, "room+": ae.PRESET_3D_PLUS,
+                "auditorium": ae.PRESET_AUDITORIUM}.get(str(setting("music_preset", "plain")), ae.PRESET_3D)
 ee_ops = [put(ae.dumps(ae.preset_3d(eq_file.read_text(), boost)), f"{data}/output/{ae.PRESET_3D}.json"),
           put(ae.dumps(ae.preset_3d_room(eq_file.read_text(), boost)), f"{data}/output/{ae.PRESET_3D_ROOM}.json"),
           put(ae.dumps(ae.preset_3d_plus(eq_file.read_text(), boost)), f"{data}/output/{ae.PRESET_3D_PLUS}.json"),
+          put(ae.dumps(ae.preset_auditorium(eq_file.read_text(), boost)), f"{data}/output/{ae.PRESET_AUDITORIUM}.json"),
           put(ae.dumps(ae.preset_bypass()), f"{data}/output/{ae.PRESET_BYPASS}.json")]
+# ASH auditorium BRIR (CC BY-NC-SA 4.0): fetched per user, pinned + sha256-checked, never committed.
+ash_ir = f"{data}/irs/{ae.ASH_IR_NAME}.irs"
+server.shell(
+    name=f"EasyEffects IR: {ae.ASH_IR_NAME}.irs (ASH Listening Set R10 C2, sha256 verified)",
+    commands=[f"""set -eu
+mkdir -p "{data}/irs"; t=$(mktemp "{data}/irs/.ash.XXXXXX")
+curl -fsSL --proto '=https' -o "$t" '{ae.ASH_IR_URL}'
+echo "{ae.ASH_IR_SHA256}  $t" | sha256sum -c --quiet -
+mv -f "$t" "{ash_ir}"
+printf '%s' '{ae.ASH_CREDIT}' > "{data}/irs/{ae.ASH_IR_NAME}.CREDITS.txt" """],
+    _if=lambda: not (os.path.isfile(ash_ir) and hashlib.sha256(open(ash_ir, "rb").read()).hexdigest() == ae.ASH_IR_SHA256),
+)
 files.put(name=f"EasyEffects IR: {ae.IR_NAME}.irs (MIT KEMAR, +-30 deg)", src=str(ir_file),
           dest=f"{data}/irs/{ae.IR_NAME}.irs", mode="644", create_remote_dir=True)
 for fname, entry in ae.t2_autoloads():

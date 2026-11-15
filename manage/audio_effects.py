@@ -21,6 +21,17 @@ IR_SHA256 = "131c76e7c73aa0235945f12d71e2386e2552a63662a4ce14cd34f06ee5137828"
 PRESET_3D, PRESET_BYPASS = "QC35 3D", "Bypass"
 PRESET_3D_ROOM = "QC35 3D Room"
 PRESET_3D_PLUS = "QC35 3D Room+"
+PRESET_AUDITORIUM = "QC35 3D Auditorium"
+# ASH Listening Set, room R10 "Room Auditorium 3" (TU Berlin, KEMAR), set C2 (RT60 0.74 s),
+# true-stereo BRIR (4 ch, 44.1 kHz). CC BY-NC-SA 4.0: downloaded per user at deploy, not committed.
+ASH_COMMIT = "472cfa08166a579df786f8b3041d6f58ba8bd1dc"
+ASH_IR_NAME = "ash_r10_auditorium3_c2"
+ASH_IR_URL = (f"https://raw.githubusercontent.com/ShanonPearce/ASH-Listening-Set/{ASH_COMMIT}"
+              "/BRIRs/R10/BRIR_R10_C2_True_Stereo.wav")
+ASH_IR_SHA256 = "474198635d627fd3a92269b1741f2cc81868d6ab117fad7e700e0497a9808ef6"
+ASH_CREDIT = ("ASH Listening Set (Shanon Pearce), BRIR R10 'Room Auditorium 3' C2, true stereo, "
+              f"commit {ASH_COMMIT}. CC BY-NC-SA 4.0: https://creativecommons.org/licenses/by-nc-sa/4.0/ "
+              "Source: https://github.com/ShanonPearce/ASH-Listening-Set\n")
 PLUGINS_3D = ("equalizer#0", "bass_enhancer#0", "crossfeed#0", "convolver#0", "limiter#0")
 PACKAGES = ("easyeffects",
             "zam-plugins",  # maximizer (ZaMaximX2, "QC35 3D Room+")
@@ -141,6 +152,19 @@ def preset_3d_plus(autoeq_text, boost_db=0.0):
     out["maximizer#0"] = {"bypass": False, "input-gain": 0.0, "output-gain": 0.0,
                           "release": 25.0, "threshold": -2.0}
     return preset
+
+
+def preset_auditorium(autoeq_text, boost_db=0.0):
+    """Measured head + room (ASH R10 C2 BRIR) instead of KEMAR HRIR + crossfeed + reverb: a
+    spherical stage from one real measurement, kept mostly dry-of-room by the 85 % wet mix;
+    then the Room+ exciter / gentle maximizer and the -1 dB limiter."""
+    plus = preset_3d_plus(autoeq_text, boost_db)["output"]
+    out = {"blocklist": [], "plugins_order": ["equalizer#0", "bass_enhancer#0", "convolver#0",
+                                              "exciter#0", "maximizer#0", "limiter#0"]}
+    for key in out["plugins_order"]:
+        out[key] = dict(plus[key])
+    out["convolver#0"]["kernel-name"] = ASH_IR_NAME
+    return {"output": out}
 
 
 def dumps(data):
