@@ -22,6 +22,7 @@ from pyinfra.operations.util import any_changed
 from manage.desktop_hostcolor import color_for
 from manage.packages import PackageRequest, install_packages
 from manage.preflight import validate_local_context
+from manage.userconfig import setting
 
 validate_local_context()
 local.include("tasks/package_policy.py")
@@ -35,12 +36,13 @@ hypr = f"{cfg}/hypr"
 bin_dir = f"{home}/.local/bin"
 
 # Source defaults (group_data/all.py); override in host data.
-decorations_style = host.data.get("decorations_style", "win311")
-window_shadows = host.data.get("window_shadows", "off")
-bar_graphs = bool(host.data.get("bar_graphs", False))
-# Defective strip at the left edge of this MacBook 16" panel (KDE used a 20 px panel there).
-left_reserve = int(host.data.get("desktop_left_reserve", 20))
-font_rendering = host.data.get("font_rendering", "rgb")
+decorations_style = setting("decorations_style", "win311")
+window_shadows = setting("window_shadows", "off")
+bar_graphs = bool(setting("bar_graphs", False))
+# Optional strip at the internal panel's left edge kept free (config desktop_left_reserve; 0 = off).
+left_reserve = int(setting("desktop_left_reserve", 0))
+panel_scale = str(setting("panel_scale", "auto"))
+font_rendering = setting("font_rendering", "rgb")
 
 # --- Native packages (no recommends: Snap/Flatpak-free, guarded by manage.packages) --------
 # Audio (PipeWire/WirePlumber/pipewire-pulse), fonts, terminals and applications belong to
@@ -97,9 +99,15 @@ hypr_ops.append(owned_put(f"{TPL}/bindings.conf.j2", f"{hypr}/bindings.conf", te
 for shader in ("night-green.glsl", "night-dark.glsl"):
     hypr_ops.append(owned_put(f"{SRC}/hypr/shaders/{shader}", f"{hypr}/shaders/{shader}"))
 
+# Internal panel scale from the user config (panel_scale; "auto" = Hyprland's choice).
+hypr_ops.append(owned_put(
+    StringIO(f"# {MARKER}: panel_scale = {panel_scale} (~/.config/t2-mac-kde/config.toml)\n"
+             + ("" if panel_scale == "auto" else f"monitor = eDP-1, preferred, auto, {panel_scale}\n")),
+    f"{hypr}/panel.conf"))
+
 # Host colour (source tools/hostcolor.py) from this machine's hostname: bars and borders.
 hostname = socket.gethostname()
-hc = color_for(hostname, host.data.get("decor_colors", {}).get(hostname), host.data.get("fleet_hosts", []))
+hc = color_for(hostname, setting("decor_colors", {}).get(hostname), setting("fleet_hosts", []))
 hypr_ops.append(owned_put(
     StringIO(f"# {MARKER} (tools/hostcolor): colour of {hostname}, white text {hc['contrast']}:1\n"
              f"$host_color = {hc['hex']}\n$host_pale = {hc['pale']}\n"),
@@ -172,7 +180,8 @@ owned_put(StringIO(f"# {MARKER}\nexport XCURSOR_THEME=Adwaita\nexport XCURSOR_SI
 
 # --- Session-scoped user services -----------------------------------------------------------------
 UNITS = ("hypr-desktop.target", "hypr-windows.service", "hypr-clip-bridge.service",
-         "hypr-cliphist.service", "hypr-cliphist-wipe.service", "hypr-cliphist-wipe.timer")
+         "hypr-cliphist.service", "hypr-cliphist-wipe.service", "hypr-cliphist-wipe.timer",
+         "hypr-tailscale-tray.service")
 unit_ops = [owned_put(f"{SRC}/systemd/{u}", f"{cfg}/systemd/user/{u}") for u in UNITS]
 server.shell(name="systemd --user daemon-reload (desktop units changed)", commands=["systemctl --user daemon-reload"],
              _if=any_changed(*[o for o in unit_ops if o]))
@@ -180,7 +189,7 @@ server.shell(name="systemd --user daemon-reload (desktop units changed)", comman
 server.shell(
     name="Desktop services wanted by hypr-desktop.target (waybar, worker, clipboard, 01:00 wipe)",
     commands=["systemctl --user enable hypr-windows.service hypr-clip-bridge.service "
-              "hypr-cliphist.service hypr-cliphist-wipe.timer",
+              "hypr-cliphist.service hypr-cliphist-wipe.timer hypr-tailscale-tray.service",
               "systemctl --user add-wants hypr-desktop.target waybar.service"],
 )
 server.shell(

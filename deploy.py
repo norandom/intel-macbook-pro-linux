@@ -15,6 +15,7 @@ for task in (
     "storage_health",   # smartd + daily NVMe check, alerts in new shells
     "remote_access",    # tailscale, sshd at boot, fail2ban, RDP firewall
     "containers",       # rootless podman, docker compat, compose, podman-tui
+    "virtualization",   # virt-manager on KVM, libvirt default NAT network
     "fonts",            # nerd fonts, fixedsys, fontconfig
     "apps",             # application suite + release tools
     "vendor_apps",      # vendor repos/.debs/tarballs (before themes: editors get palettes)

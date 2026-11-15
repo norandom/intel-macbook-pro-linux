@@ -135,6 +135,8 @@ class DetectionTests(unittest.TestCase):
         info = {MAC: self.INFO, "AA:BB:CC:00:11:22": self.INFO}
         self.assertEqual(ae.bose_macs(devices, info.get), [(MAC, "bla", False)])
         self.assertEqual(ae.bose_macs(devices, info.get, "aa:bb:cc:00:11:22"), [("AA:BB:CC:00:11:22", "bla", False)])
+        self.assertEqual(ae.bose_macs(devices, info.get, ["BLA"]), [(MAC, "bla", False), ("AA:BB:CC:00:11:22", "bla", False)])
+        self.assertEqual(ae.bose_macs(devices, info.get, ["AirPods"]), [("AA:BB:CC:00:11:22", "bla", False)])
         self.assertEqual(ae.bose_macs(devices, lambda m: "Alias: x\n"), [])  # no A2DP sink
         self.assertEqual(ae.bose_macs("", info.get), [])
 

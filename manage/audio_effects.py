@@ -182,17 +182,19 @@ def set_kconfig(text, settings):
 
 
 def bose_macs(devices_text, info_of, configured=None):
-    """Paired Bose A2DP sinks: host.data qc35_mac if set, else Bose OUI + Audio Sink UUID.
+    """Paired music headphones with an A2DP sink.
 
-    info_of(mac) -> `bluetoothctl info` text. Returns [(MAC, alias, trusted)].
+    configured: config `music_headphones` (MACs and/or device names/aliases, any case);
+    unset -> every paired Bose (OUI). info_of(mac) -> `bluetoothctl info` text.
+    Returns [(MAC, alias, trusted)].
     """
-    wanted = [m.upper() for m in ([configured] if isinstance(configured, str) else configured or [])]
+    wanted = {str(m).strip().lower() for m in ([configured] if isinstance(configured, str) else configured or [])}
     found = []
     for mac, _name in parse_devices(devices_text):
-        if (mac in wanted) if wanted else is_bose(mac):
-            sink, trusted, alias = parse_info(info_of(mac))
-            if sink:
-                found.append((mac, alias or _name, trusted))
+        sink, trusted, alias = parse_info(info_of(mac))
+        names = {mac.lower(), (_name or "").lower(), (alias or "").lower()}
+        if sink and ((names & wanted) if wanted else is_bose(mac)):
+            found.append((mac, alias or _name, trusted))
     return found
 
 

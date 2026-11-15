@@ -37,6 +37,14 @@ if not shutil.which('tailscale'):
     )
 systemd.service(name='tailscaled at boot', service='tailscaled.service', running=True, enabled=True, _sudo=True)
 logger.info('Tailscale: log in once with `sudo tailscale up` (prints a login URL).')
+# The desktop's Tailscale tray switches the exit node as this user (no sudo): make the user
+# the operator. With an exit node on, the LAN (printers, NAS, the VMs' host side) stays
+# reachable; with it off, host and VM guests use the normal internet.
+server.shell(
+    name='Tailscale: desktop user is operator; exit node keeps LAN access',
+    commands=[f'tailscale set --operator={pwd.getpwuid(os.getuid()).pw_name} --exit-node-allow-lan-access=true'],
+    _if=lambda: shutil.which('tailscale') is not None, _sudo=True,
+)
 
 # --- sshd ------------------------------------------------------------------
 install_packages(PackageRequest(packages=('openssh-server', 'fail2ban')))

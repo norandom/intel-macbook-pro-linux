@@ -13,6 +13,7 @@ from pyinfra.facts.files import File, FindInFile
 from pyinfra.operations import files, server
 
 from manage.preflight import validate_local_context
+from manage.userconfig import setting
 
 validate_local_context()
 
@@ -131,7 +132,7 @@ if shutil.which("xfce4-terminal") and shutil.which("xfconf-query"):
     )
 
 # --- Chromium frame colour: constant cream, explicit opt-in (native /etc/chromium only) -------
-if host.data.get("themes_chromium_policy") and os.path.isdir("/etc/chromium"):
+if setting("themes_chromium_policy") and os.path.isdir("/etc/chromium"):
     files.put(name="Chromium theme colour policy (cream)", src=f"{SRC}/chromium/debian-hypr-theme.json",
               dest="/etc/chromium/policies/managed/debian-hypr-theme.json", mode="644", _sudo=True)
 

@@ -1,0 +1,16 @@
+# Managed by t2-mac-kde (desktop)
+[Unit]
+Description=Tailscale tray (connect, exit node on/off) in the Waybar tray
+PartOf=hypr-desktop.target graphical-session.target
+After=graphical-session.target waybar.service
+ConditionPathExists=/usr/bin/tailscale
+
+[Service]
+# Changing the exit node without sudo needs `tailscale set --operator=$USER`
+# (tasks/remote_access.py does that once).
+ExecStart=/usr/bin/tailscale systray
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=hypr-desktop.target

@@ -19,6 +19,7 @@ from pyinfra.facts.server import Command
 from pyinfra.operations import files, server
 from manage.packages import PackageRequest, install_packages
 from manage.preflight import validate_local_context
+from manage.userconfig import setting
 
 validate_local_context()
 
@@ -36,8 +37,8 @@ if Path.home() != home:
     raise RuntimeError("HOME must match the local desktop account before provisioning hypr-rdp.")
 
 # All interfaces, but tasks/remote_access.py firewalls 3389 to tailscale0/lo only.
-bind = str(host.data.get("rdp_bind") or "0.0.0.0:3389")
-audio_mode = str(host.data.get("rdp_audio_mode") or "mirror")
+bind = str(setting("rdp_bind") or "0.0.0.0:3389")
+audio_mode = str(setting("rdp_audio_mode") or "mirror")
 if audio_mode not in ("mirror", "off"):
     raise RuntimeError("rdp_audio_mode must be mirror or off; redirect would move local audio.")
 
@@ -94,7 +95,7 @@ files.template(
     src=str(repo / "templates/rdp/config.toml.j2"),
     dest=str(cfg_dir / "config.toml"),
     mode="600",
-    rdp_version=VERSION, bind=bind, rdp_user=user, password_file=str(password_file), fps=int(host.data.get("rdp_fps") or 20), egfx_codec=str(host.data.get("rdp_egfx_codec") or "clearcodec"),
+    rdp_version=VERSION, bind=bind, rdp_user=user, password_file=str(password_file), fps=int(setting("rdp_fps") or 20), egfx_codec=str(setting("rdp_egfx_codec") or "clearcodec"),
     audio_mode=audio_mode, hook=str(bin_dir / "hypr-rdp-session"),
 )
 for name in ("hypr-rdp-control", "hypr-rdp-session"):

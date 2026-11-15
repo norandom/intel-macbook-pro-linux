@@ -12,13 +12,14 @@ from pyinfra import host
 from pyinfra.operations import files, server
 
 from manage.preflight import validate_local_context
+from manage.userconfig import setting
 from manage.packages import PackageRequest, install_packages
 from manage import fonts as F
 
 validate_local_context()
 F.validate_manifest()
 
-rendering = host.data.get("font_rendering", "grayscale")
+rendering = setting("font_rendering", "grayscale")
 if rendering not in F.RENDERING_MODES:
     raise ValueError(f"font_rendering must be one of {F.RENDERING_MODES}, not {rendering!r}")
 

@@ -7,7 +7,7 @@ Run: .venv/bin/pyinfra @local tasks/audio_effects.py [--dry] [--use-sudo-passwor
   (AutoEq EQ -> bass enhancer -> crossfeed -> KEMAR convolver 85 % wet -> limiter -1 dB) and
   "Bypass" (empty chain); autoload Bypass for the T2 speaker/headphone sinks and as the fallback
   for every other device. No PipeWire/WirePlumber/UCM system file is touched.
-- Paired Bose (host.data qc35_mac, else Bose OUI + A2DP sink): autoload "QC35 3D" on its sink,
+- Music headphones (config music_headphones: MACs or names; default any paired Bose): autoload "QC35 3D" on its sink,
   `bluetoothctl trust` so A2DP reconnects, and a user WirePlumber drop-in (music only: A2DP
   auto-connect, its mic never becomes the default source). WirePlumber restarts only when that
   drop-in changed (brief audio interruption).
@@ -27,6 +27,7 @@ from pyinfra.operations.util import any_changed
 from manage import audio_effects as ae
 from manage.packages import PackageRequest, install_packages
 from manage.preflight import validate_local_context
+from manage.userconfig import setting
 
 validate_local_context()
 local.include("tasks/package_policy.py")
@@ -79,7 +80,7 @@ def _bt(*args):
         return ""
 
 
-bose = ae.bose_macs(_bt("devices", "Paired"), lambda mac: _bt("info", mac), host.data.get("qc35_mac"))
+bose = ae.bose_macs(_bt("devices", "Paired"), lambda mac: _bt("info", mac), setting("music_headphones", setting("qc35_mac")))
 wp_conf = f"{cfg}/wireplumber/wireplumber.conf.d/{ae.WP_CONF}"
 wp_script = f"{home}/.local/share/wireplumber/scripts/{ae.WP_SCRIPT}"
 if bose:

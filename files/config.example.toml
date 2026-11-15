@@ -1,0 +1,33 @@
+# t2-mac-kde per-user settings: copy to ~/.config/t2-mac-kde/config.toml and edit.
+# Everything is optional; unset keys use the generic defaults shown here.
+# `--data key=value` on the pyinfra command line overrides this file.
+
+# --- Desktop (tasks/desktop.py) ---------------------------------------------------
+# panel_scale = "auto"            # internal panel (eDP-1) scale, e.g. 1.6 on a 16" Retina
+# desktop_left_reserve = 0         # px strip at the panel's left edge kept free (defective line)
+# bar_graphs = false               # CPU/MEM/net as sparklines instead of numbers
+# decorations_style = "win311"     # "win311" | "mac" title bars
+# window_shadows = "off"           # "off" | "mac" | "win311"
+# fleet_hosts = []                 # hostnames for distinct title-bar colours (tools/hostcolor)
+# [decor_colors]                   # per-host colour override: hostname = "#rrggbb"
+
+# --- Fonts (tasks/fonts.py) -------------------------------------------------------
+# font_rendering = "grayscale"     # "grayscale" | "rgb" (subpixel)
+
+# --- Themes (tasks/themes.py) -----------------------------------------------------
+# themes_chromium_policy = false   # write the Chromium theme policy (needs /etc/chromium)
+
+# --- Audio (tasks/audio_effects.py) -----------------------------------------------
+# Music headphones get the 3D preset, A2DP-only (never call quality) and their mic is never
+# the default. Bluetooth MACs and/or device names (as in `bluetoothctl devices`), any case.
+# Unset: every paired Bose headset. Other headsets (e.g. AirPods for calls) stay default.
+# music_headphones = ["My QC35"]
+
+# --- RDP (tasks/rdp.py) -----------------------------------------------------------
+# rdp_bind = "0.0.0.0:3389"        # firewalled to tailscale0 + loopback
+# rdp_egfx_codec = "clearcodec"    # "clearcodec" | "avc420"
+# rdp_fps = 20
+# rdp_audio_mode = "mirror"        # never "redirect" on a laptop
+
+# --- Remote access (tasks/remote_access.py) ---------------------------------------
+# tailscale_exit_node = ""         # informational; switch it in the Tailscale tray
