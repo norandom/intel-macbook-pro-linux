@@ -57,4 +57,4 @@ Then pick "Hyprland (uwsm-managed)" at the unchanged SDDM login screen.
 - [x] Panel: scale and left reserve from config; whole-pixel border/title bar at fractional scale
 - [x] Keyring in Hyprland (ksecretd activation), Chromium/Electron `--password-store=kwallet6` overrides
 - [x] High-visibility cursor theme t2-highvis (tools/make_cursor.py), SUPER+SHIFT+C find pointer
-- [ ] GPU render placement on the iGPU (laptop-gpu-policy research 2026-11-15)
+- [x] GPU render placement: hypr-gpu battery|external (laptop-gpu-policy research 2026-11-15)

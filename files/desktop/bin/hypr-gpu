@@ -1,0 +1,50 @@
+#!/usr/bin/env bash
+# Managed by t2-mac-kde (desktop). Which GPUs Hyprland uses (applies at the next Hyprland login):
+#   hypr-gpu battery    Intel only: nothing renders on the AMD GPU, external displays off
+#   hypr-gpu external   Intel renders, AMD drives the external display ports
+#   hypr-gpu status     configured vs running mode, AMD load and power draw
+#   hypr-gpu battery|external --now   switch and log out right away
+# KDE is not affected. This Mac has no runtime power-off for the AMD GPU ("Runtime PM not
+# available"), so battery mode keeps it idle at its lowest power level rather than off.
+set -u
+export LC_NUMERIC=C
+state=${XDG_STATE_HOME:-$HOME/.local/state}/t2-mac-kde/gpu-mode
+configured=$(cat "$state" 2>/dev/null || echo battery)
+amd_dev=""
+for c in /sys/class/drm/card[0-9]; do   # by driver, so it works before the udev names exist
+  [ "$(basename "$(readlink -f "$c/device/driver" 2>/dev/null)")" = amdgpu ] && amd_dev=$c/device && break
+done
+
+running() {
+  local pid; pid=$(pgrep -x -u "$(id -u)" Hyprland | head -1)
+  [ -n "$pid" ] || { echo "not running"; return; }
+  case "$(tr '\0' '\n' < "/proc/$pid/environ" | sed -n 's/^AQ_DRM_DEVICES=//p')" in
+    *amd-dgpu*) echo external ;; *intel-igpu*) echo battery ;; *) echo "default (all GPUs)" ;;
+  esac
+}
+
+status() {
+  echo "configured: $configured (next login)"
+  [ -e /dev/dri/intel-igpu ] || echo "note:       /dev/dri/intel-igpu missing: run the desktop deploy (udev rule)"
+  echo "running:    $(running)"
+  if [ -n "$amd_dev" ]; then
+    local w; w=$(cat "$amd_dev"/hwmon/hwmon*/power1_average 2>/dev/null | head -1)
+    echo "AMD GPU:    $(cat "$amd_dev/gpu_busy_percent" 2>/dev/null || echo ?)% busy, $(awk -v u="${w:-0}" 'BEGIN{printf "%.1f", u/1000000}') W"
+  else
+    echo "AMD GPU:    not found"
+  fi
+  local ext; ext=$(hyprctl -j monitors 2>/dev/null | jq -r '[.[] | select(.name | test("^(DP|HDMI)")) | .name] | join(", ")' 2>/dev/null)
+  echo "external:   ${ext:-none connected}"
+}
+
+case "${1:-status}" in
+  status) status ;;
+  battery|external)
+    mkdir -p "$(dirname "$state")"; echo "$1" > "$state"
+    if [ "${2:-}" = --now ]; then
+      notify-send -a GPU "GPU mode: $1" "Logging out to apply" 2>/dev/null; sleep 1; exec uwsm stop
+    fi
+    msg="GPU mode $1 from the next Hyprland login (log out: SUPER+SHIFT+M, or hypr-gpu $1 --now)"
+    echo "$msg"; notify-send -a GPU "GPU mode: $1" "Applies at the next Hyprland login" 2>/dev/null || true ;;
+  *) echo "usage: hypr-gpu battery|external [--now] | status" >&2; exit 2 ;;
+esac

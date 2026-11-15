@@ -60,3 +60,13 @@ authorized. Any eventual design must honor that stricter boundary.
 - Next step (not applied): make the iGPU Hyprland's primary render device
   (`AQ_DRM_DEVICES=/dev/dri/card1:/dev/dri/card2`) so apps render on Intel while AMD keeps the
   external outputs; then measure AMD power with no external display and with one attached.
+
+## Implemented 2026-11-15: hypr-gpu (owner decision: battery by default)
+
+- Kernel: `amdgpu 0000:03:00.0: Runtime PM not available` - no runtime power-off on this Mac;
+  idle floor ~4 W at the owner's DPM "low". Battery mode removes the rendering load (~8 W seen).
+- udev `61-t2-gpu-names.rules`: `/dev/dri/intel-igpu`, `/dev/dri/amd-dgpu` (by driver; no ':').
+- `~/.config/uwsm/env-hyprland` sets `AQ_DRM_DEVICES` from `~/.local/state/t2-mac-kde/gpu-mode`
+  (seeded from config `gpu_mode`, default battery); only when the udev names exist.
+- `hypr-gpu battery|external [--now] | status`; applies at the next Hyprland login. KDE untouched;
+  owner's force_igd and DPM-low rule untouched.

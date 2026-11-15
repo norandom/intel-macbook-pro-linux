@@ -1,0 +1,4 @@
+# Managed by t2-mac-kde (desktop): stable GPU names for Hyprland's AQ_DRM_DEVICES (hypr-gpu).
+# card numbers can change between boots and PCI paths contain ':' (the AQ_DRM_DEVICES separator).
+SUBSYSTEM=="drm", KERNEL=="card[0-9]*", DRIVERS=="i915", SYMLINK+="dri/intel-igpu"
+SUBSYSTEM=="drm", KERNEL=="card[0-9]*", DRIVERS=="amdgpu", SYMLINK+="dri/amd-dgpu"

@@ -42,13 +42,13 @@ KDE never gets removed, so going back is always one logout away.
 ### Battery and heat
 
 The Intel iGPU drives the built-in display. The AMD GPU stays available because the external
-display ports are wired to it, and it's held at its lowest power level. Right now apps still
-render on it even without an external monitor, which costs a few watts; moving that rendering
-onto the Intel GPU is the next battery item (see the GPU spec). Turbo boost is off by default,
-which keeps the machine cooler, quieter and longer on battery. Type `turbo-on` in a shell when
-you need the speed. Compressed RAM swap (zram) and an early out-of-memory guard keep things
-responsive when memory runs short, and clicking the battery icon lets you choose power saver,
-balanced or performance.
+display ports are wired to it, and it's held at its lowest power level. In Hyprland's default
+battery mode nothing renders on it, so it sits idle (about 4 W; this Mac can't cut its power
+completely). Before you plug in a monitor, run `hypr-gpu external`; `hypr-gpu battery` switches
+back. Turbo boost is off by default, which keeps the machine cooler, quieter and longer on
+battery. Type `turbo-on` in a shell when you need the speed. Compressed RAM swap (zram) and an
+early out-of-memory guard keep things responsive when memory runs short, and clicking the
+battery icon lets you choose power saver, balanced or performance.
 
 ### Audio
 
@@ -138,6 +138,7 @@ Power and battery:
 | `turbo-on` / `turbo-off` / `turbo-status` | Intel turbo boost on or off (off after every boot) |
 | `hypr-power-profile balanced` | power-saver, balanced or performance; the battery icon has the same menu |
 | `hypr-brightness screen -5` | screen or keyboard light (`kbd`); one step below the minimum turns the panel off |
+| `hypr-gpu battery` / `external` / `status` | Hyprland on the Intel GPU only, or with the AMD-driven external ports; applies at the next login (`--now` logs out) |
 
 Audio:
 

@@ -142,7 +142,7 @@ HELPERS = (
     "hypr-desktop-state", "hypr-launch", "hypr-deco", "hypr-shadow", "hypr-layout", "hypr-pin",
     "hypr-glass", "hypr-kbd", "hypr-nightmode", "hypr-windows", "hypr-session", "hypr-appmenu",
     "hypr-sparkline", "hypr-agent-quota", "hypr-cliphist", "hypr-clip-bridge", "hypr-termtheme-status",
-    "hypr-brightness", "hypr-screenshot", "hypr-osd", "hypr-volume", "hypr-power-profile", "hypr-findcursor", "hypr-netrate",
+    "hypr-brightness", "hypr-screenshot", "hypr-osd", "hypr-volume", "hypr-power-profile", "hypr-findcursor", "hypr-netrate", "hypr-gpu",
 )
 helper_ops = [owned_put(f"{SRC}/bin/{h}", f"{bin_dir}/{h}", mode="755") for h in HELPERS]
 
@@ -229,9 +229,27 @@ if not host.get_fact(File, path=f"{cfg}/gtk-3.0/settings.ini"):
 else:
     logger.info("desktop: ~/.config/gtk-3.0/settings.ini exists (KDE); initial seed skipped")
 
-# uwsm session environment for Hyprland (source file; no llvmpipe / software rendering).
-owned_put(StringIO(f"# {MARKER}\nexport XCURSOR_THEME=Adwaita\nexport XCURSOR_SIZE=24\n"),
-          f"{cfg}/uwsm/env-hyprland")
+# uwsm session environment for Hyprland, sourced before Hyprland starts: cursor from the config,
+# and the GPU set from hypr-gpu's mode file (battery = Intel only; external = Intel + AMD outputs).
+# AQ_DRM_DEVICES is only set when the udev names exist, so a missing rule never blanks the session.
+gpu_mode = str(setting("gpu_mode", "battery"))
+gpu_state = f"{home}/.local/state/t2-mac-kde/gpu-mode"
+if not os.path.exists(gpu_state):
+    files.put(name=f"GPU mode seed: {gpu_mode} (config gpu_mode; hypr-gpu changes it)", src=StringIO(gpu_mode + "\n"),
+              dest=gpu_state, mode="644", create_remote_dir=True)
+owned_put(StringIO(
+    f"# {MARKER}\n"
+    f"export XCURSOR_THEME={cursor_theme}\nexport XCURSOR_SIZE={cursor_size}\n"
+    'if [ -e /dev/dri/intel-igpu ]; then\n'
+    f'  case "$(cat "{gpu_state}" 2>/dev/null)" in\n'
+    '    external) if [ -e /dev/dri/amd-dgpu ]; then export AQ_DRM_DEVICES=/dev/dri/intel-igpu:/dev/dri/amd-dgpu; fi ;;\n'
+    '    *) export AQ_DRM_DEVICES=/dev/dri/intel-igpu ;;\n'
+    '  esac\n'
+    'fi\n'), f"{cfg}/uwsm/env-hyprland")
+gpu_rule = files.put(name="udev: stable GPU names /dev/dri/intel-igpu, /dev/dri/amd-dgpu", src=f"{SRC}/udev/61-t2-gpu-names.rules",
+                     dest="/etc/udev/rules.d/61-t2-gpu-names.rules", mode="644", _sudo=True)
+server.shell(name="udev: apply the GPU names now", _if=gpu_rule.did_change, _sudo=True,
+             commands=["udevadm control --reload", "udevadm trigger --subsystem-match=drm --action=change"])
 
 # --- Session-scoped user services -----------------------------------------------------------------
 UNITS = ("hypr-desktop.target", "hypr-windows.service", "hypr-clip-bridge.service",
