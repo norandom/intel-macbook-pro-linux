@@ -19,6 +19,7 @@ IR_NAME = "kemar_stereo_30deg"
 IR_SHA256 = "131c76e7c73aa0235945f12d71e2386e2552a63662a4ce14cd34f06ee5137828"
 
 PRESET_3D, PRESET_BYPASS = "QC35 3D", "Bypass"
+PRESET_3D_ROOM = "QC35 3D Room"
 PLUGINS_3D = ("equalizer#0", "bass_enhancer#0", "crossfeed#0", "convolver#0", "limiter#0")
 PACKAGES = ("easyeffects",
             "lsp-plugins-lv2",  # equalizer (para_equalizer_x32_lr) + limiter (sc_limiter_stereo)
@@ -107,6 +108,20 @@ def preset_3d(autoeq_text, boost_db=0.0):
 
 def preset_bypass():
     return {"output": {"blocklist": [], "plugins_order": []}}
+
+
+def preset_3d_room(autoeq_text, boost_db=0.0):
+    """QC35 3D + a short room (Calf reverb after the convolver): early-reflection space that
+    pushes the image outside the head, like Boom3D's spatial mode, without an echo tail."""
+    preset = preset_3d(autoeq_text, boost_db)
+    out = preset["output"]
+    order = out["plugins_order"]
+    order.insert(order.index("limiter#0"), "reverb#0")
+    out["reverb#0"] = {"bypass": False, "input-gain": 0.0, "output-gain": 0.0,
+                       "room-size": "Small", "decay-time": 0.4, "predelay": 12.0, "diffusion": 0.6,
+                       "hf-damp": 5000.0, "bass-cut": 300.0, "treble-cut": 7000.0,
+                       "amount": -16.0, "dry": 0.0}   # wet about 15 %, full dry
+    return preset
 
 
 def dumps(data):

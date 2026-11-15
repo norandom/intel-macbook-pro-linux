@@ -188,3 +188,13 @@ class WirePlumberTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class RoomPresetTests(unittest.TestCase):
+    def test_room_preset_adds_a_short_reverb_before_the_limiter(self):
+        text = (Path(__file__).resolve().parents[1] / "files/audio-effects/autoeq" / ae.AUTOEQ_FILE).read_text()
+        out = ae.preset_3d_room(text, 3)["output"]
+        self.assertEqual(out["plugins_order"][-2:], ["reverb#0", "limiter#0"])
+        self.assertEqual(out["reverb#0"]["room-size"], "Small")
+        self.assertLess(out["reverb#0"]["decay-time"], 1.0)
+        self.assertEqual(ae.preset_3d(text, 3)["output"]["plugins_order"].count("reverb#0"), 0)

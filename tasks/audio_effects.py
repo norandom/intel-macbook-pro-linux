@@ -52,7 +52,11 @@ def put(content, dest, mode="644", name=None):
 
 
 # --- Presets, IR, Bypass autoloads (always) ------------------------------------------------------
-ee_ops = [put(ae.dumps(ae.preset_3d(eq_file.read_text(), float(setting("music_boost_db", 0)))), f"{data}/output/{ae.PRESET_3D}.json"),
+boost = float(setting("music_boost_db", 0))
+# music_preset: "plain" = QC35 3D, "room" = QC35 3D Room (short reverb); hypr-3d room|plain switches live.
+music_preset = ae.PRESET_3D_ROOM if str(setting("music_preset", "plain")) == "room" else ae.PRESET_3D
+ee_ops = [put(ae.dumps(ae.preset_3d(eq_file.read_text(), boost)), f"{data}/output/{ae.PRESET_3D}.json"),
+          put(ae.dumps(ae.preset_3d_room(eq_file.read_text(), boost)), f"{data}/output/{ae.PRESET_3D_ROOM}.json"),
           put(ae.dumps(ae.preset_bypass()), f"{data}/output/{ae.PRESET_BYPASS}.json")]
 files.put(name=f"EasyEffects IR: {ae.IR_NAME}.irs (MIT KEMAR, +-30 deg)", src=str(ir_file),
           dest=f"{data}/irs/{ae.IR_NAME}.irs", mode="644", create_remote_dir=True)
@@ -85,8 +89,8 @@ wp_conf = f"{cfg}/wireplumber/wireplumber.conf.d/{ae.WP_CONF}"
 wp_script = f"{home}/.local/share/wireplumber/scripts/{ae.WP_SCRIPT}"
 if bose:
     for mac, alias, trusted in bose:
-        fname, entry = ae.autoload_entry(ae.bt_sink_node(mac), alias, ae.BT_ROUTE, ae.PRESET_3D)
-        put(ae.dumps(entry), f"{data}/autoload/output/{fname}", name=f"Autoload {ae.PRESET_3D}: {fname}")
+        fname, entry = ae.autoload_entry(ae.bt_sink_node(mac), alias, ae.BT_ROUTE, music_preset)
+        put(ae.dumps(entry), f"{data}/autoload/output/{fname}", name=f"Autoload {music_preset}: {fname}")
         if not trusted:
             server.shell(name=f"bluetoothctl trust {mac} (A2DP auto-reconnect)", commands=[f"bluetoothctl trust {mac}"])
     macs = [m for m, _a, _t in bose]
