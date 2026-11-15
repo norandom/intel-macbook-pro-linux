@@ -13,6 +13,7 @@
 #
 # Safe while containers, MCP servers and builds are running. Uses nice/ionice and
 # `uv cache prune` (not clean) so in-use tool envs stay.
+export LC_NUMERIC=C  # awk/printf parse "0.60" as 0 under a comma-decimal locale (de_DE)
 
 set -euo pipefail
 

@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 # Managed by t2-mac-kde (desktop). hypr-volume up|down|mute|micmute  (wpctl + OSD)
+export LC_NUMERIC=C  # awk/printf parse "0.60" as 0 under a comma-decimal locale (de_DE)
 set -u
 osd=~/.local/bin/hypr-osd
 case "${1:-}" in

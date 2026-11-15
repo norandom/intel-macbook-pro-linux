@@ -3,6 +3,7 @@
 # Waybar module with a history graph: hypr-sparkline cpu|mem|net [interval] [samples]
 # Prints one JSON line per interval: current value plus a sparkline (▁..█) of the
 # last samples. Reads /proc and /sys only; one small bash loop per bar module.
+export LC_NUMERIC=C  # awk/printf parse "0.60" as 0 under a comma-decimal locale (de_DE)
 what=${1:-cpu} interval=${2:-5} n=${3:-10}
 bars=(▁ ▂ ▃ ▄ ▅ ▆ ▇ █)
 hist=()

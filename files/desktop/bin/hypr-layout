@@ -1,6 +1,7 @@
 #!/bin/bash
 # Managed by t2-mac-kde (desktop). Layout mode:
 #   hypr-layout dynamic|golden-h|golden-v|golden-spiral|next   (no argument: print the mode)
+export LC_NUMERIC=C  # awk/printf parse "0.60" as 0 under a comma-decimal locale (de_DE)
 set -u
 f="$HOME/.config/hypr/layout-mode"
 modes=(dynamic golden-h golden-v golden-spiral)
