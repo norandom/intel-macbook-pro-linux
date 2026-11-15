@@ -17,7 +17,7 @@ Tests use fixtures and disposable targets; this plan does not schedule host depl
   - _Boundary: Preflight_
   - _Requirements: 2.2, 2.4, 5.1, 5.2, 5.3, 5.5, 5.6_
 
-- [ ] 1.2 Preserve locked, isolated bootstrap behavior
+- [x] 1.2 Preserve locked, isolated bootstrap behavior
   - Validate Python/curl prerequisites and report missing tools without attempting prohibited fallback installation.
   - Preserve existing uv or install the pinned bootstrap version, clean temporary files on failure, and sync only against the committed lock.
   - Verify a valid lock creates the project-local environment and a stale declaration fails without changing the lock or global Python.
@@ -124,3 +124,4 @@ Tests use fixtures and disposable targets; this plan does not schedule host depl
 ## Implementation Notes
 
 - Task1.1: Preflight implemented; independent review APPROVED; fresh unittest9/9 and compileall PASS. Entry-point wiring remains4.1. Git checkpoint pending author identity configuration.
+- Task1.2: Bootstrap independently APPROVED; fresh unittest23/23 and shell syntax PASS, including actual offline uv/stale-lock isolation checks.
