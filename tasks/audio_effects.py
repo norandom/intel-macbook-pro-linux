@@ -55,11 +55,12 @@ def put(content, dest, mode="644", name=None):
 boost = float(setting("music_boost_db", 0))
 # music_preset: "plain" = QC35 3D, "room" = QC35 3D Room (short reverb); hypr-3d room|plain switches live.
 music_preset = {"room": ae.PRESET_3D_ROOM, "room+": ae.PRESET_3D_PLUS,
-                "auditorium": ae.PRESET_AUDITORIUM}.get(str(setting("music_preset", "plain")), ae.PRESET_3D)
+                "auditorium": ae.PRESET_AUDITORIUM, "stage": ae.PRESET_STAGE}.get(str(setting("music_preset", "plain")), ae.PRESET_3D)
 ee_ops = [put(ae.dumps(ae.preset_3d(eq_file.read_text(), boost)), f"{data}/output/{ae.PRESET_3D}.json"),
           put(ae.dumps(ae.preset_3d_room(eq_file.read_text(), boost)), f"{data}/output/{ae.PRESET_3D_ROOM}.json"),
           put(ae.dumps(ae.preset_3d_plus(eq_file.read_text(), boost)), f"{data}/output/{ae.PRESET_3D_PLUS}.json"),
           put(ae.dumps(ae.preset_auditorium(eq_file.read_text(), boost)), f"{data}/output/{ae.PRESET_AUDITORIUM}.json"),
+          put(ae.dumps(ae.preset_stage(eq_file.read_text(), boost)), f"{data}/output/{ae.PRESET_STAGE}.json"),
           put(ae.dumps(ae.preset_bypass()), f"{data}/output/{ae.PRESET_BYPASS}.json")]
 # ASH auditorium BRIR (CC BY-NC-SA 4.0): fetched per user, pinned + sha256-checked, never committed.
 ash_ir = f"{data}/irs/{ae.ASH_IR_NAME}.irs"

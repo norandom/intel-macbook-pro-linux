@@ -27,7 +27,8 @@
 # music_headphones = ["My QC35"]
 # music_preset = "plain"          # "room" = 3D + short room reverb (more spherical, like Boom3D);
                                   # "room+" = room + exciter + gentle maximizer;
-                                  # "auditorium" = measured head+room BRIR (ASH R10, CC BY-NC-SA)
+                                  # "auditorium" = measured head+room BRIR (ASH R10, CC BY-NC-SA);
+                                  # "stage" = room with more space but vocals kept in front
 # music_codec = "sbc"             # "sbc_xq": cleaner, but may tick when Wi-Fi uses 2.4 GHz
 # music_boost_db = 0               # extra level for music headphones (+2 dB ≈ +20% louder); limiter caps peaks
 

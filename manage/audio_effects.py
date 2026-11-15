@@ -22,6 +22,7 @@ PRESET_3D, PRESET_BYPASS = "QC35 3D", "Bypass"
 PRESET_3D_ROOM = "QC35 3D Room"
 PRESET_3D_PLUS = "QC35 3D Room+"
 PRESET_AUDITORIUM = "QC35 3D Auditorium"
+PRESET_STAGE = "QC35 3D Stage"
 # ASH Listening Set, room R10 "Room Auditorium 3" (TU Berlin, KEMAR), set C2 (RT60 0.74 s),
 # true-stereo BRIR (4 ch, 44.1 kHz). CC BY-NC-SA 4.0: downloaded per user at deploy, not committed.
 ASH_COMMIT = "472cfa08166a579df786f8b3041d6f58ba8bd1dc"
@@ -123,7 +124,7 @@ def preset_bypass():
     return {"output": {"blocklist": [], "plugins_order": []}}
 
 
-def preset_3d_room(autoeq_text, boost_db=0.0):
+def preset_3d_room(autoeq_text, boost_db=0.0, decay=0.4, predelay=12.0, amount=-16.0):
     """QC35 3D + a short room (Calf reverb after the convolver): early-reflection space that
     pushes the image outside the head, like Boom3D's spatial mode, without an echo tail."""
     preset = preset_3d(autoeq_text, boost_db)
@@ -131,9 +132,9 @@ def preset_3d_room(autoeq_text, boost_db=0.0):
     order = out["plugins_order"]
     order.insert(order.index("limiter#0"), "reverb#0")
     out["reverb#0"] = {"bypass": False, "input-gain": 0.0, "output-gain": 0.0,
-                       "room-size": "Small", "decay-time": 0.4, "predelay": 12.0, "diffusion": 0.6,
+                       "room-size": "Small", "decay-time": decay, "predelay": predelay, "diffusion": 0.6,
                        "hf-damp": 5000.0, "bass-cut": 300.0, "treble-cut": 7000.0,
-                       "amount": -16.0, "dry": 0.0}   # wet about 15 %, full dry
+                       "amount": amount, "dry": 0.0}   # -16 dB: wet about 15 %, full dry
     return preset
 
 
@@ -152,6 +153,12 @@ def preset_3d_plus(autoeq_text, boost_db=0.0):
     out["maximizer#0"] = {"bypass": False, "input-gain": 0.0, "output-gain": 0.0,
                           "release": 25.0, "threshold": -2.0}
     return preset
+
+
+def preset_stage(autoeq_text, boost_db=0.0):
+    """Between Room and Auditorium: a bit more space (0.55 s, ~18 % wet) but a later room
+    (20 ms pre-delay), so vocals and guitars stay in front - the Haas trick for 'big but close'."""
+    return preset_3d_room(autoeq_text, boost_db, decay=0.55, predelay=20.0, amount=-14.5)
 
 
 def preset_auditorium(autoeq_text, boost_db=0.0):
