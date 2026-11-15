@@ -32,6 +32,10 @@
 # music_codec = "sbc"             # "sbc_xq": cleaner, but may tick when Wi-Fi uses 2.4 GHz
 # music_boost_db = 0               # extra level for music headphones (+2 dB ≈ +20% louder); limiter caps peaks
 
+# --- Speakers (tasks/speaker_dsp.py) ----------------------------------------------
+# speaker_dsp = false              # MacBookPro16,1 only: Asahi-style speaker DSP (FIR crossover,
+#                                  # bankstown bass, limiter); false again + re-run reverts it
+
 # --- RDP (tasks/rdp.py) -----------------------------------------------------------
 # rdp_bind = "0.0.0.0:3389"        # firewalled to tailscale0 + loopback
 # rdp_egfx_codec = "clearcodec"    # "clearcodec" | "avc420"

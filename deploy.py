@@ -25,6 +25,7 @@ for task in (
     "themes",           # five palettes + hypr-termtheme
     "desktop",          # Hyprland session, waybar, decorations, night filter
     "audio_effects",    # EasyEffects: QC35 3D preset, speakers bypass, BT device roles
+    "speaker_dsp",      # MacBookPro16,1 speaker DSP (config speaker_dsp; off = plain speakers)
     "rdp",              # hypr-rdp inside the Hyprland session
 ):
     local.include(f"tasks/{task}.py")
