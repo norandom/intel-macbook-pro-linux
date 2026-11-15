@@ -7,7 +7,7 @@ validate_local_context()
 local.include('tasks/package_policy.py')
 install_packages(PackageRequest(
     packages=(
-        "curl", "ca-certificates", "git", "jq", "unzip", "htop", "btop",
+        "curl", "ca-certificates", "git", "jq", "unzip", "7zip", "7zip-rar", "htop", "btop",
         "neovim", "ripgrep", "fd-find", "fzf", "gcc", "make", "bat", "tree",
     ),
     source='ubuntu',
