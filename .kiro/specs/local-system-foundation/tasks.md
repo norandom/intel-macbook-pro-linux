@@ -47,7 +47,7 @@ Tests use fixtures and disposable targets; this plan does not schedule host depl
   - _Depends: 1.1_
   - _Requirements: 2.1, 2.4, 2.5, 4.2, 4.5_
 
-- [ ] 2.3 Integrate package-plan validation with guarded installation
+- [x] 2.3 Integrate package-plan validation with guarded installation
   - Combine request validation, effective policy and plan inspection into the sole managed apt-install entry point.
   - Revalidate after indexes/policy change and immediately before applying the same package arguments used for simulation.
   - Preserve no-recommends behavior, reject removals and policy bypass options, and propagate apt/authentication failures.

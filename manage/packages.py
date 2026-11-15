@@ -12,8 +12,10 @@ the current CLI manifest is reviewed in the integration task, not here.
 
 from dataclasses import dataclass
 import hashlib
+import os
 from pathlib import Path, PurePosixPath
 import re
+import shlex
 import stat
 import subprocess
 from typing import Literal
@@ -210,6 +212,7 @@ def _run(argv: tuple[str, ...]) -> str:
 
 def _parse_simulation(output: str):
     installs, configurations, satisfied = {}, {}, {}
+    manual_markers = set()
     summary = None
     list_header = False
     upgraded = newly = 0
@@ -255,6 +258,14 @@ def _parse_simulation(output: str):
             if name in satisfied:
                 raise RuntimeError("Duplicate satisfied package in apt output.")
             satisfied[name] = (match[1], match[2], architecture)
+            continue
+        match = re.fullmatch(r"(\S+) set to manually installed\.", line)
+        if match:
+            name, _, _ = _selection(match[1])
+            if (name not in satisfied or satisfied[name][0] != match[1]
+                    or name in manual_markers):
+                raise RuntimeError("Unexpected or duplicate manual package marker in apt output.")
+            manual_markers.add(name)
             continue
         raise RuntimeError("Unrecognized apt simulation output; installation unresolved.")
     if summary is None or summary[:2] != (upgraded, newly) or configurations != installs:
@@ -322,3 +333,59 @@ def inspect_plan(request: PackageRequest) -> PackagePlan:
     if _baseline_digest(additional) != baseline:
         raise RuntimeError("Package baseline changed during inspection; retry after review.")
     return PackagePlan(tuple((package, version) for package, version, _ in installs.values()), ())
+
+
+def install_packages(request: PackageRequest, *, prevent_service_start: bool = False) -> None:
+    """Preview a guarded request and schedule its revalidation under sudo.
+
+    The package-policy operation must precede this operation in the deploy.
+    Preview validates its prospective policy without writing system preferences;
+    apply requires the real policy and reruns all package evidence checks.
+    Index refreshes are deliberately separate: this function never updates apt
+    indexes after review or offers arbitrary apt options.
+    """
+    if prevent_service_start:
+        raise RuntimeError("Guarded service-start suppression is not implemented yet; installation unresolved.")
+    from manage.package_policy import verify_effective_policy
+    from manage.preflight import validate_local_context
+    from pyinfra.operations import server
+
+    validate_local_context()
+    validate_request(request)
+    verify_effective_policy(preview=True)
+    plan = inspect_plan(request)
+    if not plan.installs:
+        return
+    project = Path(__file__).resolve().parents[1]
+    command = ("cd " + shlex.quote(str(project))
+               + " && /usr/bin/python3 -m manage.packages --apply "
+               + shlex.join(request.packages))
+    server.shell(name="Install reviewed native Ubuntu packages", commands=command, _sudo=True)
+
+
+def _apply_install(request: PackageRequest) -> None:
+    """Privileged execution boundary; re-read current policy, indexes and state."""
+    if os.geteuid() != 0:
+        raise RuntimeError("The package apply helper requires root via the scheduled sudo operation.")
+    from manage.package_policy import verify_effective_policy
+
+    validate_request(request)
+    verify_effective_policy()
+    plan = inspect_plan(request)
+    if not plan.installs:
+        return
+    subprocess.run(
+        ("/usr/bin/apt-get", "--no-install-recommends", "--no-remove", "--yes", "install", *request.packages),
+        env={"PATH": "/usr/sbin:/usr/bin:/sbin:/bin", "LC_ALL": "C", "LANG": "C"},
+        check=True,
+    )
+
+
+if __name__ == "__main__":
+    import argparse
+
+    parser = argparse.ArgumentParser(description="Apply a reviewed native Ubuntu package request")
+    parser.add_argument("--apply", action="store_true", required=True)
+    parser.add_argument("packages", nargs="+")
+    arguments = parser.parse_args()
+    _apply_install(PackageRequest(tuple(arguments.packages), "ubuntu"))
