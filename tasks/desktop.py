@@ -53,6 +53,9 @@ install_packages(PackageRequest(
         "waybar", "mako-notifier", "fuzzel", "hyprlock",
         "python3-gi", "gir1.2-gtk-3.0", "gir1.2-gtklayershell-0.1",
         "wl-clipboard", "cliphist", "jq", "adwaita-icon-theme",
+        # laptop layer (files/desktop/hypr/laptop.conf)
+        "hyprland-qtutils", "hypridle", "hyprpolkitagent", "grim", "slurp", "playerctl",
+        "network-manager-gnome", "blueman", "libnotify-bin",
     ),
     source="ubuntu",
 ))
@@ -104,6 +107,7 @@ HELPERS = (
     "hypr-desktop-state", "hypr-launch", "hypr-deco", "hypr-shadow", "hypr-layout", "hypr-pin",
     "hypr-glass", "hypr-kbd", "hypr-nightmode", "hypr-windows", "hypr-session", "hypr-appmenu",
     "hypr-sparkline", "hypr-agent-quota", "hypr-cliphist", "hypr-clip-bridge", "hypr-termtheme-status",
+    "hypr-brightness", "hypr-screenshot",
 )
 helper_ops = [owned_put(f"{SRC}/bin/{h}", f"{bin_dir}/{h}", mode="755") for h in HELPERS]
 

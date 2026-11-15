@@ -6,7 +6,7 @@
   "spacing": 14,
   "modules-left": ["custom/menu", "custom/files", "custom/term", "custom/web", "custom/layout", "wlr/taskbar"],
   "modules-center": ["clock"],
-  "modules-right": ["custom/quota", {% if bar_graphs %}"custom/cpu", "custom/mem", "custom/net"{% else %}"cpu", "memory", "network"{% endif %}, "group/audio", "tray", "hyprland/submap", "custom/cliphist", "custom/nightmode", "custom/termtheme", "custom/kbd", "custom/power"],
+  "modules-right": ["custom/quota", {% if bar_graphs %}"custom/cpu", "custom/mem", "custom/net"{% else %}"cpu", "memory", "network"{% endif %}, "group/audio", "backlight", "battery", "tray", "hyprland/submap", "custom/cliphist", "custom/nightmode", "custom/termtheme", "custom/kbd", "custom/power"],
   "custom/menu": {
     "format": "☰ Apps",
     "tooltip-format": "Applications (right-click: search)",
@@ -78,6 +78,17 @@
     "on-click": "activate",
     "on-click-middle": "close",
     "ignore-list": ["fuzzel"]
+  },
+  // Laptop: screen brightness (scroll = +/-5%) and battery (macsmc-battery on T2).
+  "backlight": {
+    "device": "gmux_backlight", "format": "☀ {percent}%", "tooltip": false,
+    "on-scroll-up": "$HOME/.local/bin/hypr-brightness screen +5",
+    "on-scroll-down": "$HOME/.local/bin/hypr-brightness screen -5"
+  },
+  "battery": {
+    "states": { "warning": 25, "critical": 10 },
+    "format": "{icon} {capacity}%", "format-charging": "⚡ {capacity}%", "format-plugged": "⚡ {capacity}%",
+    "format-icons": ["", "", "", "", ""], "tooltip-format": "{timeTo} ({power} W)"
   },
   "clock": { "format": "{:%A %H:%M}", "format-alt": "{:%d %B %Y  W%V}", "tooltip": false },
 {% if bar_graphs %}

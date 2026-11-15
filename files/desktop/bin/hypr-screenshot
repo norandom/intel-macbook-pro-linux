@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+# Managed by t2-mac-kde (desktop). hypr-screenshot area|screen -> ~/Pictures/Screenshots + clipboard
+set -eu
+dir=${XDG_PICTURES_DIR:-$HOME/Pictures}/Screenshots; mkdir -p "$dir"
+file="$dir/$(date +%Y-%m-%d_%H-%M-%S).png"
+case "${1:-area}" in
+  area) geom=$(slurp) || exit 0; grim -g "$geom" "$file" ;;
+  screen) grim -o "$(hyprctl -j monitors | jq -r '.[] | select(.focused) | .name')" "$file" ;;
+  *) echo "usage: hypr-screenshot area|screen" >&2; exit 2 ;;
+esac
+wl-copy < "$file"
+notify-send -a Screenshot "Screenshot saved" "$file" 2>/dev/null || true

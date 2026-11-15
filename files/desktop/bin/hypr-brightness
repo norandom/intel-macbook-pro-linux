@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+# Managed by t2-mac-kde (desktop). Brightness via logind (no root, no udev rule):
+#   hypr-brightness screen|kbd +5|-5|N%   (percent steps; never fully dark)
+set -eu
+case "${1:-}" in
+  screen) dev=$(basename "$(ls -d /sys/class/backlight/gmux_backlight /sys/class/backlight/* 2>/dev/null | grep -v appletb | head -1)"); sub=backlight; base=/sys/class/backlight/$dev; min=2 ;;
+  kbd) dev=$(basename "$(ls -d /sys/class/leds/*kbd_backlight* 2>/dev/null | head -1)"); sub=leds; base=/sys/class/leds/$dev; min=0 ;;
+  *) echo "usage: hypr-brightness screen|kbd +N|-N|N%" >&2; exit 2 ;;
+esac
+[ -n "$dev" ] && [ -r "$base/max_brightness" ] || { echo "hypr-brightness: no $1 device" >&2; exit 1; }
+max=$(cat "$base/max_brightness"); cur=$(cat "$base/brightness"); step=${2:-+5}
+pct=$(( (cur * 100 + max / 2) / max ))
+case "$step" in
+  +*) pct=$(( pct + ${step#+} )) ;;
+  -*) pct=$(( pct - ${step#-} )) ;;
+  *%) pct=${step%\%} ;;
+esac
+[ "$pct" -gt 100 ] && pct=100; [ "$pct" -lt "$min" ] && pct=$min
+busctl call org.freedesktop.login1 /org/freedesktop/login1/session/auto \
+  org.freedesktop.login1.Session SetBrightness ssu "$sub" "$dev" $(( max * pct / 100 ))
