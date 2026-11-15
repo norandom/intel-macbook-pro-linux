@@ -94,7 +94,7 @@ if bose:
         if not trusted:
             server.shell(name=f"bluetoothctl trust {mac} (A2DP auto-reconnect)", commands=[f"bluetoothctl trust {mac}"])
     macs = [m for m, _a, _t in bose]
-    wp_ops = [put(ae.wireplumber_conf(macs), wp_conf, name=f"WirePlumber drop-in {ae.WP_CONF} (Bose = music only)"),
+    wp_ops = [put(ae.wireplumber_conf(macs, str(setting("music_codec", "sbc"))), wp_conf, name=f"WirePlumber drop-in {ae.WP_CONF} (Bose = music only)"),
               put(ae.wireplumber_script(macs), wp_script, name=f"WirePlumber hook {ae.WP_SCRIPT}")]
     server.shell(name="Restart WirePlumber (drop-in changed; audio pauses for a moment)",
                  commands=["systemctl --user restart wireplumber.service"],

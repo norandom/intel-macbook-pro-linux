@@ -220,7 +220,7 @@ WP_CONF = "60-t2-bluetooth-roles.conf"
 WP_SCRIPT = "t2-bose-mic-never-default.lua"
 
 
-def wireplumber_conf(macs):
+def wireplumber_conf(macs, codec="sbc"):
     """SPA-JSON drop-in for ~/.config/wireplumber/wireplumber.conf.d (merged into the system config).
 
     - monitor.bluez.rules: the Bose card only auto-(re)connects A2DP (no HFP/HSP from our side).
@@ -230,6 +230,10 @@ def wireplumber_conf(macs):
       mic) never fires for it. AirPods/other headsets keep the defaults.
     """
     cards = "\n".join(f'      {{ device.name = "bluez_card.{m.replace(":", "_")}" }}' for m in macs)
+    # codec "sbc_xq": higher bitrate (cleaner), but more sensitive to 2.4 GHz Wi-Fi sharing the
+    # radio (short ticks); "sbc" is the robust default (config music_codec).
+    order = ["a2dp-sink-sbc_xq", "a2dp-sink"] if codec == "sbc_xq" else ["a2dp-sink", "a2dp-sink-sbc_xq"]
+    priorities = "[ " + ", ".join(order) + " ]"
     return f"""# Managed by t2-mac-kde (tasks/audio_effects.py). Bose QC35 = music only.
 monitor.bluez.rules = [
   {{
@@ -251,7 +255,7 @@ device.profile.priority.rules = [
     ]
     actions = {{
       update-props = {{
-        priorities = [ a2dp-sink, a2dp-sink-sbc_xq ]
+        priorities = {priorities}
       }}
     }}
   }}

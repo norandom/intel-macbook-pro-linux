@@ -26,6 +26,7 @@
 # Unset: every paired Bose headset. Other headsets (e.g. AirPods for calls) stay default.
 # music_headphones = ["My QC35"]
 # music_preset = "plain"          # "room" = 3D + short room reverb (more spherical, like Boom3D)
+# music_codec = "sbc"             # "sbc_xq": cleaner, but may tick when Wi-Fi uses 2.4 GHz
 # music_boost_db = 0               # extra level for music headphones (+2 dB ≈ +20% louder); limiter caps peaks
 
 # --- RDP (tasks/rdp.py) -----------------------------------------------------------
