@@ -59,6 +59,10 @@ _PROTECTED_SCRIPT = re.compile(
     rb"update-initramfs|mkinitcpio|dracut|update-grub|grub-install|grub-mkconfig|cryptsetup|"
     rb"depmod|dkms|kernel-install")
 _MAX_PACKAGES = 256
+# Vendor .deb files (pinned + sha256-checked by their task) are staged here and passed
+# to the root helper by absolute path; the guard scans them like archive packages.
+LOCAL_DEBS = Path("/var/cache/t2-mac-kde/debs")
+_LOCAL_DEB = re.compile(r"/var/cache/t2-mac-kde/debs/[A-Za-z0-9][A-Za-z0-9+._~-]*\.deb\Z")
 
 
 def _protected(name: str) -> bool:
@@ -72,6 +76,8 @@ def validate_request(request: PackageRequest) -> None:
     if len({p.split("=")[0].split(":")[0] for p in request.packages}) != len(request.packages):
         raise RuntimeError("Duplicate package selections are not allowed.")
     for package in request.packages:
+        if isinstance(package, str) and _LOCAL_DEB.match(package):
+            continue  # name checked from the plan (Inst lines) and the archive scan
         if not isinstance(package, str) or not _NAME.match(package):
             raise RuntimeError(f"Invalid package selection: {package!r}")
         if _protected(package.split("=")[0].split(":")[0]):
@@ -113,6 +119,15 @@ def inspect_plan(request: PackageRequest) -> PackagePlan:
     validate_request(request)
     argv = _apt_args(request)
     return _parse_simulation(_run((argv[0], "--simulate", *argv[1:])))
+
+
+def _local_deb(package: str, version: str, request: PackageRequest) -> Path | None:
+    for candidate in request.packages:
+        if _LOCAL_DEB.match(candidate):
+            fields = _run(("/usr/bin/dpkg-deb", "--field", candidate, "Package", "Version")).split("\n")
+            if fields[0].split(": ", 1)[-1] == package.split(":")[0] and fields[1].split(": ", 1)[-1] == version:
+                return Path(candidate)
+    return None
 
 
 def _deb_path(package: str, version: str) -> Path:
@@ -187,7 +202,7 @@ def _apply_install(request: PackageRequest, *, prevent_service_start: bool = Fal
         argv = _apt_args(request)
         subprocess.run((argv[0], "--download-only", "--yes", *argv[1:]), env=_ENV, check=True)
         for package, version in plan.installs:
-            check_archive(_deb_path(package, version))
+            check_archive(_local_deb(package, version, request) or _deb_path(package, version))
         subprocess.run((argv[0], "--yes", *argv[1:]), env=_ENV, check=True)
 
 

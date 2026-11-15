@@ -58,6 +58,7 @@ install_packages(PackageRequest(
         # laptop layer (files/desktop/hypr/laptop.conf)
         "hyprland-qtutils", "hypridle", "hyprpolkitagent", "grim", "slurp", "playerctl",
         "network-manager-gnome", "blueman", "libnotify-bin",
+        "libgtk-4-1", "libadwaita-1-0",  # Satty (screenshot annotation, below)
     ),
     source="ubuntu",
 ))
@@ -112,6 +113,26 @@ HELPERS = (
     "hypr-brightness", "hypr-screenshot", "hypr-osd", "hypr-volume",
 )
 helper_ops = [owned_put(f"{SRC}/bin/{h}", f"{bin_dir}/{h}", mode="755") for h in HELPERS]
+
+# Satty: Greenshot-style screenshot annotation (arrows, boxes, text, blur, crop). Not in
+# Ubuntu; upstream release binary, pinned + sha256, user-level. hypr-screenshot opens it.
+SATTY_VERSION = "0.22.0"
+SATTY_SHA256 = "eb7a028c4a5ce331c2f355add8e2b807a7d697fe4495f7e1965786a4f6bcd5b8"
+satty_dir = f"{home}/.local/opt/satty-{SATTY_VERSION}"
+server.shell(
+    name=f"Satty {SATTY_VERSION} (screenshot editor, checksum verified)",
+    commands=[f"""set -e
+t=$(mktemp -d); trap 'rm -rf "$t"' EXIT
+curl -fsSL -o "$t/satty.tgz" https://github.com/Satty-org/Satty/releases/download/v{SATTY_VERSION}/satty-x86_64-unknown-linux-gnu.tar.gz
+echo "{SATTY_SHA256}  $t/satty.tgz" | sha256sum -c --quiet -
+mkdir -p "$t/x" && tar xzf "$t/satty.tgz" -C "$t/x"
+"$t/x/satty" --version >/dev/null
+mkdir -p {satty_dir} {bin_dir} {home}/.local/share/bash-completion/completions
+install -m 755 "$t/x/satty" {satty_dir}/satty
+ln -sfn {satty_dir}/satty {bin_dir}/satty
+install -m 644 "$t/x/completions/satty.bash" {home}/.local/share/bash-completion/completions/satty"""],
+    _if=lambda: not os.path.exists(f"{satty_dir}/satty"),
+)
 
 # state.conf: layout / title bar style / shadows + the package-owned hyprbars path (dpkg).
 server.shell(name="Hyprland: render state.conf (layout, title bars, shadows, hyprbars path)",

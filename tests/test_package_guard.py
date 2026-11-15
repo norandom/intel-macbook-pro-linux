@@ -65,3 +65,18 @@ class ArchiveTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class LocalDebTests(unittest.TestCase):
+    def test_staged_vendor_debs_validate_but_other_paths_do_not(self):
+        guard.validate_request(R(("/var/cache/t2-mac-kde/debs/obsidian_1.9.10_amd64.deb", "btop")))
+        for bad in ("/tmp/x.deb", "/var/cache/t2-mac-kde/debs/../x.deb", "./x.deb",
+                    "/var/cache/t2-mac-kde/debs/x.deb; rm -rf /"):
+            with self.subTest(bad=bad), self.assertRaises(RuntimeError):
+                guard.validate_request(R((bad,)))
+
+    def test_planned_local_deb_is_the_scanned_archive(self):
+        deb = "/var/cache/t2-mac-kde/debs/obsidian_1.9.10_amd64.deb"
+        with patch.object(guard, "_run", return_value="Package: obsidian\nVersion: 1.9.10\n"):
+            self.assertEqual(guard._local_deb("obsidian", "1.9.10", R((deb,))), Path(deb))
+            self.assertIsNone(guard._local_deb("btop", "1.4", R((deb,))))
