@@ -17,7 +17,15 @@ panel_on() { hyprctl -j monitors all 2>/dev/null | jq -e --arg p "$panel" '.[] |
 if [ "$1" = screen ] && [ "${HYPR_OSD:-1}" != 0 ]; then
   if ! panel_on; then   # panel off (by this helper): only a step up wakes it, at the minimum
     case "$step" in
-      +*) hyprctl dispatch dpms on "$panel" >/dev/null; ~/.local/bin/hypr-osd screen "$pct" "Brightness" ;;
+      +*) hyprctl dispatch dpms on "$panel" >/dev/null
+          # the panel wakes at full backlight (gmux resets it on modeset): set the minimum
+          # again once the modeset has settled, a second time to be sure it sticks
+          for wait in 0.3 0.7; do
+            sleep "$wait"
+            busctl call org.freedesktop.login1 /org/freedesktop/login1/session/auto \
+              org.freedesktop.login1.Session SetBrightness ssu "$sub" "$dev" $(( max * min / 100 ))
+          done
+          ~/.local/bin/hypr-osd screen "$min" "Brightness" ;;
     esac
     exit 0
   fi
