@@ -68,7 +68,7 @@ Tests use fixtures and disposable targets; this plan does not schedule host depl
   - _Requirements: 2.1, 2.3, 2.4, 2.5, 5.6_
 
 - [ ] 3. Preserve the per-user Node toolchain
-- [ ] 3.1 Validate version and npm conflicts before changing user state
+- [x] 3.1 Validate version and npm conflicts before changing user state
   - Validate the exact Node selection and diagnose conflicting user npm prefix/globalconfig settings and inherited overrides without exposing credentials.
   - Inspect the configured default alias target independently from the version it currently resolves to.
   - Keep user npm configuration intact and report the specific corrective action for conflicting inputs.

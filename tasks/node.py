@@ -1,20 +1,19 @@
 """Per-user nvm and Node/npm; no system packages or npm prefix override."""
 import os
-import re
 from pathlib import Path
 from shlex import quote
 
 from pyinfra import host
 from pyinfra.facts.server import Command
 from pyinfra.operations import files, server
+from manage.node import default_alias_matches, validate_node_config
 
 if os.geteuid() == 0:
     raise RuntimeError("Run pyinfra as your desktop user, not via sudo.")
 
 home = Path.home()
 version = (Path(__file__).resolve().parent.parent / ".nvmrc").read_text().strip()
-if not re.fullmatch(r"\d+\.\d+\.\d+", version):
-    raise ValueError(".nvmrc must contain an exact Node version (major.minor.patch)")
+validate_node_config(version, home)
 nvm_version = "0.41.0"
 env = f"export NVM_DIR={quote(str(home / '.nvm'))}; "
 load = env + '. "$NVM_DIR/nvm.sh" --no-use; '
@@ -47,7 +46,7 @@ server.shell(
     name=f"Default Node version: {version}",
     commands=load + f"nvm alias default {version}",
     _shell_executable="bash",
-    _if=missing(load + f'[ "$(nvm version default)" = "v{version}" ]'),
+    _if=lambda: not default_alias_matches(home, version),
 )
 files.block(
     name="Load nvm and user tools in Bash",
