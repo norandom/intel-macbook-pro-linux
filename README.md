@@ -45,7 +45,7 @@ The Intel iGPU drives the built-in display. The AMD GPU stays available because 
 display ports are wired to it, and it's held at its lowest power level. Right now apps still
 render on it even without an external monitor, which costs a few watts; moving that rendering
 onto the Intel GPU is the next battery item (see the GPU spec). Turbo boost is off by default,
-which keeps the machine cooler, quieter and longer on battery. Type `turbo on` in a shell when
+which keeps the machine cooler, quieter and longer on battery. Type `turbo-on` in a shell when
 you need the speed. Compressed RAM swap (zram) and an early out-of-memory guard keep things
 responsive when memory runs short, and clicking the battery icon lets you choose power saver,
 balanced or performance.
@@ -125,6 +125,53 @@ crash_upload = false           # no crash reports to Ubuntu
 ```
 
 A one-off `--data key=value` on the command line overrides the file.
+
+## Handy commands
+
+These land in `~/.local/bin` or your shell. Most of the desktop ones are also on a key or a
+bar button, so the command line is just the second way in.
+
+Power and battery:
+
+| Command | What it does |
+|---|---|
+| `turbo-on` / `turbo-off` / `turbo-status` | Intel turbo boost on or off (off after every boot) |
+| `hypr-power-profile balanced` | power-saver, balanced or performance; the battery icon has the same menu |
+| `hypr-brightness screen -5` | screen or keyboard light (`kbd`); one step below the minimum turns the panel off |
+
+Audio:
+
+| Command | What it does |
+|---|---|
+| `hypr-3d stage` | headphone preset: `plain`, `room`, `stage`, `plus` or `auditorium` |
+| `hypr-3d off` / `hypr-3d on` | headphone effects off for a straight A/B comparison, and back on |
+| `hypr-volume up` / `down` / `mute` / `micmute` | volume and mic keys with the on-screen popup |
+
+Desktop (Hyprland):
+
+| Command | What it does |
+|---|---|
+| `hypr-screenshot edit` | rectangle to `~/Screenshots`, then the Satty editor (SUPER+SHIFT+4) |
+| `hypr-layout next` | dynamic or golden-ratio tiling (SUPER+L) |
+| `hypr-nightmode next` | night filter: off, green or dark (the rabbit in the bar) |
+| `hypr-deco win311` / `mac` | title bar style; `hypr-shadow on` / `off` for shadows |
+| `hypr-kbd de` / `us` | keyboard layout (aliases `kbde`, `kbus`) |
+| `hypr-findcursor` | flashes a huge pointer so you can find it (SUPER+SHIFT+C) |
+
+Terminal and themes:
+
+| Command | What it does |
+|---|---|
+| `hypr-termtheme next` | next of the five terminal/editor themes (SUPER+Y); or name one, e.g. `navy` |
+| `k` | `kubectl` with completion |
+
+System:
+
+| Command | What it does |
+|---|---|
+| `t2-alerts` / `t2-alerts ack` / `t2-alerts log` | storage and service alerts, acknowledge them, NVMe health history |
+| `hypr-rdp-control status` | the RDP server inside the Hyprland session (`start`, `stop`, `validate`) |
+| `dev-disk-reclaim` | shows what caches and builds could be cleaned; `--apply` cleans them |
 
 ## Is it for you?
 
