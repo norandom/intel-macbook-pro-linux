@@ -52,7 +52,7 @@ def put(content, dest, mode="644", name=None):
 
 
 # --- Presets, IR, Bypass autoloads (always) ------------------------------------------------------
-ee_ops = [put(ae.dumps(ae.preset_3d(eq_file.read_text())), f"{data}/output/{ae.PRESET_3D}.json"),
+ee_ops = [put(ae.dumps(ae.preset_3d(eq_file.read_text(), float(setting("music_boost_db", 0)))), f"{data}/output/{ae.PRESET_3D}.json"),
           put(ae.dumps(ae.preset_bypass()), f"{data}/output/{ae.PRESET_BYPASS}.json")]
 files.put(name=f"EasyEffects IR: {ae.IR_NAME}.irs (MIT KEMAR, +-30 deg)", src=str(ir_file),
           dest=f"{data}/irs/{ae.IR_NAME}.irs", mode="644", create_remote_dir=True)

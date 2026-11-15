@@ -25,6 +25,7 @@
 # the default. Bluetooth MACs and/or device names (as in `bluetoothctl devices`), any case.
 # Unset: every paired Bose headset. Other headsets (e.g. AirPods for calls) stay default.
 # music_headphones = ["My QC35"]
+# music_boost_db = 0               # extra level for music headphones (+2 dB ≈ +20% louder); limiter caps peaks
 
 # --- RDP (tasks/rdp.py) -----------------------------------------------------------
 # rdp_bind = "0.0.0.0:3389"        # firewalled to tailscale0 + loopback
