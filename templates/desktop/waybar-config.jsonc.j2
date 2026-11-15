@@ -66,11 +66,10 @@
     "on-click": "$HOME/.local/bin/hypr-kbd toggle"
   },
   "custom/layout": {
-    "exec": "cat $HOME/.config/hypr/layout-mode 2>/dev/null || echo dynamic",
+    "exec": "$HOME/.local/bin/hypr-layout waybar",
+    "return-type": "json",
     "interval": "once",
     "signal": 8,
-    "format": "▦ {}",
-    "tooltip-format": "Layout mode (click or SUPER+L: next)",
     "on-click": "$HOME/.local/bin/hypr-layout next"
   },
   // Window list: click = bring to front (also un-minimizes), middle-click = close.

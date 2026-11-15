@@ -36,7 +36,7 @@ tooltip label { color: #fff8f0; font-family: "JetBrainsMono Nerd Font", monospac
 #custom-term { background-image: url("/usr/share/icons/hicolor/32x32/apps/terminator.png"); }
 #custom-web { margin-right: 4px; background-image: url("/usr/share/icons/hicolor/32x32/apps/vivaldi.png"); }
 #custom-files:hover, #custom-term:hover, #custom-web:hover { background-color: #f5ede0; }
-#custom-layout { padding: 0 8px; color: #2b4570; }
+#custom-layout { padding: 0 4px; color: #2b4570; }
 #custom-kbd { padding: 0 8px; color: #2b4570; }
 /* Clipboard history: dim when empty */
 #custom-cliphist { padding: 0 8px; font-size: 14px; color: #2b4570; }

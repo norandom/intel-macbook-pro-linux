@@ -1,6 +1,6 @@
 #!/bin/bash
 # Managed by t2-mac-kde (desktop). Layout mode:
-#   hypr-layout dynamic|golden-h|golden-v|golden-spiral|next   (no argument: print the mode)
+#   hypr-layout dynamic|golden-h|golden-v|golden-spiral|next   (no argument: print the mode; waybar: bar JSON)
 export LC_NUMERIC=C  # awk/printf parse "0.60" as 0 under a comma-decimal locale (de_DE)
 set -u
 f="$HOME/.config/hypr/layout-mode"
@@ -9,6 +9,10 @@ cur=$(cat "$f" 2>/dev/null || echo dynamic)
 
 case "${1:-}" in
   "") echo "$cur"; exit 0 ;;
+  waybar)  # compact bar label; full name in the tooltip
+    case "$cur" in golden-h) t="φ⇆" ;; golden-v) t="φ⇅" ;; golden-spiral) t="φ↻" ;; *) t="▦" ;; esac
+    printf '{"text":"%s","tooltip":"Layout: %s (click or SUPER+L: next)","class":"%s"}\n' "$t" "$cur" "$cur"
+    exit 0 ;;
   next)
     new=${modes[0]}
     for i in "${!modes[@]}"; do [ "${modes[$i]}" = "$cur" ] && new=${modes[$(( (i + 1) % ${#modes[@]} ))]}; done ;;
