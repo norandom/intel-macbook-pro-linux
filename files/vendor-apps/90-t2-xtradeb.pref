@@ -1,0 +1,8 @@
+# Managed by t2-mac-kde: the XtraDeb PPA may only supply Chromium.
+Package: *
+Pin: release o=LP-PPA-xtradeb-apps
+Pin-Priority: -1
+
+Package: chromium chromium-common chromium-driver chromium-sandbox chromium-l10n
+Pin: release o=LP-PPA-xtradeb-apps
+Pin-Priority: 500

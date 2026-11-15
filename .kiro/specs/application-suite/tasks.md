@@ -6,7 +6,7 @@ Entry point: `.venv/bin/pyinfra @local tasks/apps.py [--dry]`. Inventory: `manag
 ## Implemented
 - [x] Complete source inventory (apps.py lists, base.py tools, release_tools, artcraft_apps,
       client_debs, Obsidian/Bitwarden/Ghostty, terminator/xfe) with one disposition each:
-      native / release / delegated / excluded / blocked / backlog (test checks coverage).
+      native / release / vendor / delegated / excluded / blocked / backlog (test checks coverage).
 - [x] Native Ubuntu packages via `install_packages(PackageRequest(..., source="ubuntu"))`:
       aria2 atop c3270 x3270 gdu gh glow golang-go lazygit meld multitail nedit posting qpdfview
       ristretto rsync rust-coreutils trippy xpdf foot xfce4-terminal terminator ghostty.
@@ -23,14 +23,20 @@ Entry point: `.venv/bin/pyinfra @local tasks/apps.py [--dry]`. Inventory: `manag
 - [x] Seed-once `~/.config/htop/htoprc` (an existing file is never overwritten).
 - [x] Availability report `$XDG_STATE_HOME/t2-mac-kde/applications.json` (schema_version 1,
       re-probed executables; written only on a real run).
-- [x] No vendor repos, no .debs, no purges, no Snap/Flatpak; LibreOffice and Craft suite stay backlog.
+- [x] No purges, no Snap/Flatpak in tasks/apps.py.
+- [x] tasks/vendor_apps.py (owner-approved): sha-pinned keyring repos sublime-text, code (own repo entry
+      suppressed via debconf), typora, chromium + chromium-driver (XtraDeb PPA pinned to chromium only);
+      pinned .debs obsidian, bitwarden, quarto, positron, remotedesktopmanager (guarded helper);
+      user tarballs zed, zen, podman-desktop in ~/.local/opt (+ userns AppArmor profiles).
+- [x] tasks/office_apps.py: LibreOffice Writer+Calc (de/en-US, Carlito; guarded apt) + Tabbed UI layer
+      t2-mac-kde.xcd; ArtCraft suite (7) and OpenIDEA as pinned sha256 .debs via the package guard.
 
 ## Deferred / needs owner check
 - [x] xfe: tasks/xfe.py unpacks the sha256-verified Ubuntu xfe 2.1.1-1 archive into /usr/local
       (apt `Conflicts: im-config` would remove a KDE-base package); wrappers clear ibus variables.
-- [ ] chromium / chromium-driver: blocked, Ubuntu only has the Snap transition package.
-- [ ] sublime-text, typora, vivaldi-stable, obsidian, bitwarden desktop, quarto, positron, code:
-      blocked until a vendor-repo/.deb route is allowed (existing Vivaldi left untouched).
+- [ ] vivaldi-stable: still blocked (existing install left untouched).
+- [ ] vendor_apps.py not wired into deploy.py yet (after apps); live check of each vendor app, chromedriver.
 - [ ] Release archives' member layout (esp. `rc`, `upmd`) verified only on the first live run.
 - [ ] Terminator config/plugin, Sublime schemes, VS Code themes: owned by coordinated-themes.
+- [ ] office_apps.py not wired into deploy.py yet; live check of Writer/Calc ribbon, craft apps, OpenIDEA.
 - [ ] Live check: launch terminator/remotinator, x3270, nedit, ghostty after the owner-run deploy.

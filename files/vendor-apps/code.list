@@ -1,0 +1,3 @@
+# Visual Studio Code (Microsoft); managed by t2-mac-kde. The code package's own
+# vscode.sources is suppressed (debconf code/add-microsoft-repo=false).
+deb [arch=amd64 signed-by=/usr/share/keyrings/code-archive-keyring.gpg] https://packages.microsoft.com/repos/code stable main

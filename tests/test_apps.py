@@ -28,7 +28,7 @@ SOURCE_ENTRIES = {
     "systemd-zram-generator", "earlyoom", "qemu-guest-agent",
     "terminator", "xfe",
 }
-DISPOSITIONS = {"native", "release", "delegated", "excluded", "blocked", "backlog"}
+DISPOSITIONS = {"native", "release", "vendor", "delegated", "excluded", "blocked", "backlog"}
 
 
 class CatalogTests(unittest.TestCase):
@@ -84,7 +84,7 @@ class ReportTests(unittest.TestCase):
         self.assertFalse(helm["available"])
         self.assertTrue(helm["selected"])
         self.assertFalse(data["entries"]["libreoffice-calc"]["selected"])
-        self.assertEqual(data["entries"]["chromium"]["disposition"], "blocked")
+        self.assertEqual(data["entries"]["vivaldi-stable"]["disposition"], "blocked")
 
 
 class AssetTests(unittest.TestCase):

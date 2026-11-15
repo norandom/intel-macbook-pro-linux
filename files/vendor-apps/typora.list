@@ -1,0 +1,2 @@
+# Typora (flat repo ./; managed by t2-mac-kde)
+deb [arch=amd64 signed-by=/usr/share/keyrings/typora-archive-keyring.gpg] https://downloads.typora.io/linux ./

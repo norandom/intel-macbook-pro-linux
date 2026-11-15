@@ -1,0 +1,2 @@
+# Sublime Text stable channel (flat repo apt/stable/; managed by t2-mac-kde)
+deb [arch=amd64 signed-by=/usr/share/keyrings/sublime-text-archive-keyring.gpg] https://download.sublimetext.com/ apt/stable/

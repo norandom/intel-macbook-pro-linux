@@ -1,0 +1,14 @@
+# Managed by t2-mac-kde. This profile allows everything and only exists to give
+# the user-level Zen Browser tarball a name and user namespaces (Firefox sandbox),
+# like Ubuntu's own /etc/apparmor.d/firefox.
+
+abi <abi/5.0>,
+include <tunables/global>
+
+profile t2-zen /home/*/.local/opt/zen-*/zen/zen{,-bin} flags=(unconfined) {
+  userns,
+  @{exec_path} mr,
+
+  # Site-specific additions and overrides. See local/README for details.
+  include if exists <local/t2-zen>
+}

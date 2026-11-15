@@ -1,0 +1,3 @@
+# XtraDeb applications PPA for ubuntu resolute (managed by t2-mac-kde).
+# Pinned by /etc/apt/preferences.d/90-t2-xtradeb.pref: only chromium packages may come from it.
+deb [arch=amd64 signed-by=/usr/share/keyrings/xtradeb-archive-keyring.gpg] https://ppa.launchpadcontent.net/xtradeb/apps/ubuntu resolute main

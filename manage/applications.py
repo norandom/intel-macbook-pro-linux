@@ -8,6 +8,8 @@ Every source entry appears exactly once in CATALOG with a disposition:
   release   pinned upstream release binary into ~/.local/bin (sha256 verified)
   delegated installed by another spec (owner named)
   excluded  intentionally not ported on this laptop
+  vendor    official vendor apt repo, pinned vendor .deb or pinned user-level tarball
+            (tasks/vendor_apps.py; owner-approved routes)
   blocked   no permitted route yet (vendor apt repo / .deb / Snap-only)
   backlog   deferred by the owner (docs/backlog.md)
 """
@@ -73,10 +75,61 @@ RELEASE_TOOLS = {
                "349ac8fba6ff65d6247043f1750cdcb518ec5d500ef91463a10d37c0ccdf3702"),
 }
 
+# --- Vendor routes (tasks/vendor_apps.py) -----------------------------------------
+# Official apt repos: id -> (list/keyring name, apt packages, executable, key sha256).
+# Key fingerprints (gpg --show-keys):
+#   sublime-text 1EDDE2CDFC025D17F6DA9EC0ADAE6AD28A8F901A, 1B64279675A4299DCFC70858CA464A9A222D23D0,
+#                EBC733B78AAB352DC773BF857FE2FA12CF6E38F2 (current signer)
+#   code         BC528686B50D79E339D3721CEB3E94ADBE1229CF (Microsoft Release signing)
+#   typora       4AC441BE68B4ADAB7439FBF9BA300B7755AFCFAE (Typora linux packages)
+#   xtradeb      5301FA4FD93244FBC6F6149982BB6851C64F6880 (Launchpad PPA for xtradeb)
+VENDOR_REPOS = {
+    "sublime-text": ("sublime-text", ("sublime-text",), "subl",
+                     "0c1b881841c723766c142ca122f3778016dc62d16f0011ccc36b6f8e5a836b28"),
+    "code": ("code", ("code",), "code",
+             "098f10efd65c0d0a856a980144b5f37c05374eaa575a208d46913fd8f7eae951"),
+    "typora": ("typora", ("typora",), "typora",
+               "06bbbb3681896a3961dd8630594a92773e8f1aa750aa2e5398fe536e2529dd2e"),
+    "chromium": ("xtradeb", ("chromium", "chromium-driver"), "chromium",
+                 "cfce8900b216d10492cd1383ff43c8fcb3343a7fe9413fbae5121958b9a80a3e"),
+}
+# Pinned vendor .debs: id -> (dpkg package, dpkg Version, url, sha256, executable).
+VENDOR_DEBS = {
+    "obsidian": ("obsidian", "1.15.1",
+                 "https://github.com/obsidianmd/obsidian-releases/releases/download/v1.15.1/obsidian_1.15.1_amd64.deb",
+                 "f77b6dfc8c040214f2febad2b1b9b051b6a838a47b0f4fb90a31cfcb79b8fcec", "obsidian"),
+    "bitwarden": ("bitwarden", "2026.10.4",
+                  "https://github.com/bitwarden/clients/releases/download/desktop-v2026.10.4/Bitwarden-2026.10.4-amd64.deb",
+                  "a45a34a20a9d5becbb1c710851717583ad578597d10fbd2bd57fe597f7625f41", "bitwarden"),
+    "quarto": ("quarto", "1.11.9",
+               "https://github.com/quarto-dev/quarto-cli/releases/download/v1.11.9/quarto-1.11.9-linux-amd64.deb",
+               "64078d1623d9ab89da766591f3410a0756f3737a37efb0897c7e84b863bf092a", "quarto"),
+    "positron": ("positron", "2026.11.1+4-1794024154",
+                 "https://cdn.posit.co/positron/releases/deb/x86_64/Positron-2026.11.1-4-x64.deb",
+                 "3569815ed54083add81a7856f81b33a2d64b3c8e349e2b0cff8154d8fbf29106", "positron"),
+    "remotedesktopmanager": ("remotedesktopmanager", "2026.3.2.1",
+                             "https://cdn.devolutions.net/download/Linux/RDM/2026.3.2.1/RemoteDesktopManager_2026.3.2.1_amd64.deb",
+                             "852cec0cc96de28c404bba1d2a5beab46c91a91ca8b23f8ed1ab307988f549cf", "remotedesktopmanager"),
+}
+# Pinned user-level tarballs (~/.local/opt/<id>-<version>): id -> (version, url, sha256, executable).
+VENDOR_TARBALLS = {
+    "zed": ("1.28.1", "https://github.com/zed-industries/zed/releases/download/v1.28.1/zed-linux-x86_64.tar.gz",
+            "9c3fc4cbe533e72c8d0e864a62be2b88d69cc44b9f52cd25d4c21d054dda3742", "zed"),
+    "zen": ("1.24.2b", "https://github.com/zen-browser/desktop/releases/download/1.24.2b/zen.linux-x86_64.tar.xz",
+            "bcf7e43160ecfe5f29953ed2a984e7a8028a58f2ec0e3114d36bb904d5f5ce80", "zen"),
+    "podman-desktop": ("1.30.5",
+                       "https://github.com/podman-desktop/podman-desktop/releases/download/v1.30.5/podman-desktop-1.30.5-x64.tar.gz",
+                       "aa616a948a8b254132e903b751a95765eeae3454cbd5b7049146b5bdeb842d3d", "podman-desktop"),
+}
+_VENDOR_OWNER = "tasks/vendor_apps.py"
+
 _FOUNDATION = "local-system-foundation (tasks/tools.py)"
-_LIBREOFFICE = "LibreOffice deferred (docs/backlog.md)"
-_CRAFT = "Craft suite deferred (docs/backlog.md)"
+_OFFICE = "tasks/office_apps.py"
+_LIBREOFFICE = "Ubuntu archive via the package guard; Tabbed UI admin layer t2-mac-kde.xcd"
+_CRAFT = "pinned storytold GitHub .deb, sha256 + package guard"
 _VENDOR = "vendor apt repo / .deb route not permitted by the application-suite spec yet"
+_REPO = "official vendor apt repo, sha256-pinned signing key"
+_DEB = "pinned vendor .deb (sha256), guarded install"
 
 # id -> (disposition, owner, executable or None, reason)
 OTHER = {
@@ -98,22 +151,29 @@ OTHER = {
     "littlesnitch": ("excluded", "none", None, "source purge-only entry; not ported"),
     "xfe": ("delegated", "tasks/xfe.py", "xfe",
             "Ubuntu xfe 2.1.1-1 unpacked to /usr/local (its Conflicts: im-config would remove a KDE-base package)"),
-    "chromium": ("blocked", "application-suite", "chromium", "Ubuntu only ships a Snap transition package"),
-    "chromium-driver": ("blocked", "application-suite", "chromedriver", "Ubuntu only ships a Snap transition package"),
-    "sublime-text": ("blocked", "application-suite", "subl", _VENDOR),
-    "typora": ("blocked", "application-suite", "typora", _VENDOR),
+    "chromium": ("vendor", _VENDOR_OWNER, "chromium", "XtraDeb PPA, pinned to chromium packages only"),
+    "chromium-driver": ("vendor", _VENDOR_OWNER, "chromedriver", "XtraDeb PPA, installed with chromium"),
+    "sublime-text": ("vendor", _VENDOR_OWNER, "subl", _REPO + " (stable channel)"),
+    "typora": ("vendor", _VENDOR_OWNER, "typora", _REPO),
     "vivaldi-stable": ("blocked", "application-suite", "vivaldi", _VENDOR + "; an existing install is left untouched"),
-    "obsidian": ("blocked", "application-suite", "obsidian", _VENDOR),
-    "bitwarden": ("blocked", "application-suite", "bitwarden", _VENDOR),
-    "quarto": ("blocked", "application-suite", "quarto", _VENDOR + " (source client role)"),
-    "positron": ("blocked", "application-suite", "positron", _VENDOR + " (source client role)"),
-    "code": ("blocked", "application-suite", "code", _VENDOR + " (source client role)"),
-    **{p: ("backlog", "application-suite", None, _LIBREOFFICE) for p in (
-        "libreoffice-calc", "libreoffice-writer", "libreoffice-gtk3", "libreoffice-l10n-de",
+    "obsidian": ("vendor", _VENDOR_OWNER, "obsidian", _DEB),
+    "bitwarden": ("vendor", _VENDOR_OWNER, "bitwarden", _DEB + " (desktop-v release)"),
+    "quarto": ("vendor", _VENDOR_OWNER, "quarto", _DEB),
+    "positron": ("vendor", _VENDOR_OWNER, "positron", _DEB + " (Posit CDN)"),
+    "code": ("vendor", _VENDOR_OWNER, "code", _REPO + " (Microsoft; package's own repo entry suppressed)"),
+    "remotedesktopmanager": ("vendor", _VENDOR_OWNER, "remotedesktopmanager", _DEB + " (Devolutions CDN)"),
+    **{t: ("vendor", _VENDOR_OWNER, v[3], "pinned upstream tarball (sha256) in ~/.local/opt")
+       for t, v in VENDOR_TARBALLS.items()},
+    "libreoffice-calc": ("delegated", _OFFICE, "localc", _LIBREOFFICE),
+    "libreoffice-writer": ("delegated", _OFFICE, "lowriter", _LIBREOFFICE),
+    **{p: ("delegated", _OFFICE, None, _LIBREOFFICE) for p in (
+        "libreoffice-gtk3", "libreoffice-l10n-de",
         "fonts-crosextra-carlito", "hunspell-de-de", "hunspell-en-us", "hyphen-de", "hyphen-en-us",
         "mythes-de", "mythes-en-us")},
-    **{p: ("backlog", "application-suite", None, _CRAFT) for p in (
+    **{p: ("delegated", _OFFICE, p, _CRAFT) for p in (
         "pdfcraft", "designcraft", "gridcraft", "lightcraft", "wordcraft", "deckcraft", "cadcraft")},
+    "openidea": ("delegated", _OFFICE, "openidea", "pinned l0ng-ai/openidea GitHub .deb (package open-idea), "
+                 "sha256 + package guard"),
 }
 
 
@@ -154,9 +214,15 @@ def observe(home: str | None = None) -> list[dict]:
             version = _dpkg_version(NATIVE[app_id][0])
         elif disposition == "release":
             version = RELEASE_TOOLS[app_id][0] if resolved else None
+        elif app_id in VENDOR_DEBS:
+            version = _dpkg_version(VENDOR_DEBS[app_id][0])
+        elif app_id in VENDOR_TARBALLS:
+            version = VENDOR_TARBALLS[app_id][0] if resolved else None
+        elif disposition == "vendor":
+            version = _dpkg_version(VENDOR_REPOS[app_id][1][0] if app_id in VENDOR_REPOS else app_id)
         report.append({
             "id": app_id, "owner": owner, "disposition": disposition,
-            "selected": disposition in ("native", "release"),
+            "selected": disposition in ("native", "release", "vendor"),
             "installed_version": version, "executable": resolved or exe,
             "available": bool(resolved), "reason": reason,
         })
