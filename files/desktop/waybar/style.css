@@ -1,7 +1,7 @@
 /* Managed by t2-mac-kde (desktop). cream-blue-light. */
 * { font-family: "JetBrainsMono Nerd Font", monospace; font-size: 12px; border: none; border-radius: 0; min-height: 0; }
 window#waybar { background: #fff8f0; color: #2b4570; border-bottom: 1px solid #ebe3d6; }
-#custom-quota, #taskbar, #clock, #cpu, #memory, #network, #custom-cpu, #custom-mem, #custom-net, #pulseaudio, #tray, #backlight, #battery, #custom-power-profile { padding: 0 3px; }
+#custom-quota, #taskbar, #clock, #cpu, #memory, #network, #custom-netrate, #custom-cpu, #custom-mem, #custom-net, #pulseaudio, #tray, #backlight, #battery, #custom-power-profile { padding: 0 3px; }
 #custom-power-profile.performance { color: #c0605a; }
 #custom-power-profile.power-saver { color: #4a8a5a; }
 /* drop-down menus (power profile) in the bar's palette */

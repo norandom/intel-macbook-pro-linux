@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+# Managed by t2-mac-kde (desktop). Compact network rate for Waybar: "↓69K ↑20K" every 2 s
+# (default-route interface), JSON lines for a continuous custom module.
+export LC_NUMERIC=C
+human() { awk -v b="$1" 'BEGIN { if (b >= 1048576) printf "%.1fM", b/1048576; else if (b >= 1024) printf "%.0fK", b/1024; else printf "%dB", b }'; }
+iface() { awk '$2 == "00000000" { print $1; exit }' /proc/net/route; }
+bytes() { awk -v d="$1:" '$1 == d { print $2, $10 }' /proc/net/dev; }
+prev_dev=""; prx=0; ptx=0
+while :; do
+  dev=$(iface)
+  if [ -z "$dev" ]; then
+    printf '{"text":"offline","tooltip":"no default route","class":"offline"}\n'
+  else
+    read -r rx tx < <(bytes "$dev")
+    if [ "$dev" = "$prev_dev" ]; then
+      down=$(( (rx - prx) / 2 )); up=$(( (tx - ptx) / 2 ))
+      ip=$(ip -4 -o addr show "$dev" 2>/dev/null | awk '{print $4; exit}')
+      printf '{"text":"↓%s ↑%s","tooltip":"%s %s","class":"online"}\n' "$(human $down)" "$(human $up)" "$dev" "$ip"
+    fi
+    prev_dev=$dev; prx=$rx; ptx=$tx
+  fi
+  sleep 2
+done
