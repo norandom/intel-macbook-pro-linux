@@ -1,0 +1,31 @@
+#!/bin/sh
+# Managed by t2-mac-kde (audio_effects). Toggle the QC35 "3D" sound (EasyEffects global bypass).
+#   hypr-3d on | off | toggle | status
+# Speakers/T2 headphones always autoload the empty "Bypass" preset, so this only changes the QC35.
+set -eu
+unit=easyeffects.service
+state="${XDG_RUNTIME_DIR:-/tmp}/hypr-3d.state"
+running() { systemctl --user is-active -q "$unit"; }
+current() {
+    running || { echo off; return; }
+    cat "$state" 2>/dev/null || echo on
+}
+case "${1:-status}" in
+on)
+    if ! running; then
+        systemctl --user is-active -q hypr-desktop.target || { echo "hypr-3d: no Hyprland session" >&2; exit 1; }
+        systemctl --user start "$unit"; sleep 1
+    fi
+    easyeffects -b 2 >/dev/null && echo on > "$state" ;;
+off)
+    # without a running EasyEffects the audio path is already untouched
+    if running; then easyeffects -b 1 >/dev/null; fi
+    echo off > "$state" ;;
+toggle)
+    if [ "$(current)" = on ]; then exec "$0" off; else exec "$0" on; fi ;;
+status)
+    if running; then echo "3D: $(current) (EasyEffects running, preset: $(easyeffects -a output 2>/dev/null || echo '?'))"
+    else echo "3D: off (EasyEffects not running)"; fi ;;
+*)
+    echo "usage: hypr-3d on|off|toggle|status" >&2; exit 2 ;;
+esac

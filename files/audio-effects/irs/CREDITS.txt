@@ -1,0 +1,16 @@
+kemar_stereo_30deg.irs - true-stereo binaural impulse response (EasyEffects convolver)
+
+Derived from the MIT Media Lab KEMAR HRTF measurements, diffuse-field equalized set
+(https://sound.media.mit.edu/resources/KEMAR.html, file diffuse.zip, member elev0/H0e030a.wav,
+sha256 of diffuse.zip a48e73137390626ef1e45d1de6a4d98530c6aa570e71b40f7c4442241ed5fa22).
+
+    Bill Gardner and Keith Martin, "HRTF Measurements of a KEMAR Dummy-Head Microphone",
+    MIT Media Lab Perceptual Computing Technical Report #280, 1994.
+
+Licence (from the archive README): "This data is Copyright 1994 by the MIT Media Laboratory.
+It is provided free with no restrictions on use, provided the authors are cited when the data
+is used in any research or commercial application."
+
+Processing (tools/make_hrir.py): +-30 deg azimuth, 0 deg elevation, mirrored for the left
+speaker; 16 samples of leading silence; windowed-sinc resampling 44.1 -> 48 kHz; peak -1 dBFS;
+4-channel 16-bit PCM WAV, channels LL, LR, RL, RR.

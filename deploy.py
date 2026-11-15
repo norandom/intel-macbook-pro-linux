@@ -23,6 +23,7 @@ for task in (
     "shell",            # bash/grml, history, nvim-simple, npm/uv user tools
     "themes",           # five palettes + hypr-termtheme
     "desktop",          # Hyprland session, waybar, decorations, night filter
+    "audio_effects",    # EasyEffects: QC35 3D preset, speakers bypass, BT device roles
     "rdp",              # hypr-rdp inside the Hyprland session
 ):
     local.include(f"tasks/{task}.py")

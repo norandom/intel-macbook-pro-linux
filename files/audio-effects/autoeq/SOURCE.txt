@@ -1,0 +1,4 @@
+Bose QuietComfort 35 (wireless) ParametricEQ.txt - AutoEq result (MIT licence, see LICENSE).
+https://github.com/jaakkopasanen/AutoEq/blob/0fad4b2ce4b3ceb97f0086c3a0940b4c2473c1f3/results/Innerfidelity/over-ear/Bose%20QuietComfort%2035%20(wireless)/Bose%20QuietComfort%2035%20(wireless)%20ParametricEQ.txt
+Measurement: Innerfidelity (wireless mode). AutoEq has no oratory1990 or crinacle entry for the
+original QC35 (only for the QC35 II); Innerfidelity ranks above Rtings in AutoEq's source order.

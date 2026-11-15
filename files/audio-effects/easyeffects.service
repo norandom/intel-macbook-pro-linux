@@ -1,0 +1,17 @@
+# Managed by t2-mac-kde (audio_effects). EasyEffects in the Hyprland session only (never KDE).
+# It routes app streams through its own virtual sink; it never sets default.audio.sink, so when it
+# stops WirePlumber relinks the streams straight to the default device (speakers' split chain).
+[Unit]
+Description=EasyEffects audio effects (service mode, no window)
+PartOf=hypr-desktop.target graphical-session.target
+After=graphical-session.target pipewire.service wireplumber.service pipewire-pulse.service
+Requisite=graphical-session.target
+
+[Service]
+ExecStart=/usr/bin/easyeffects --service-mode --hide-window
+ExecStop=-/usr/bin/easyeffects --quit
+Restart=on-failure
+RestartSec=3
+
+[Install]
+WantedBy=hypr-desktop.target
