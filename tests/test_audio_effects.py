@@ -16,7 +16,7 @@ ROOT = Path(__file__).resolve().parents[1]
 SRC = ROOT / "files/audio-effects"
 EQ_TEXT = (SRC / "autoeq" / ae.AUTOEQ_FILE).read_text()
 TASK = (ROOT / "tasks/audio_effects.py").read_text()
-MAC = "60:AB:D2:44:09:2C"
+MAC = "60:AB:D2:00:00:01"
 
 
 def _tool():
@@ -121,17 +121,17 @@ class AutoloadTests(unittest.TestCase):
 
     def test_qc35_autoload_targets_the_visible_sink(self):
         name, entry = ae.autoload_entry(ae.bt_sink_node(MAC.lower()), "bla", ae.BT_ROUTE, ae.PRESET_3D)
-        self.assertEqual(name, "bluez_output.60:AB:D2:44:09:2C:Headphones.json")
-        self.assertEqual(entry, {"device": "bluez_output.60:AB:D2:44:09:2C", "device-description": "bla",
+        self.assertEqual(name, "bluez_output.60:AB:D2:00:00:01:Headphones.json")
+        self.assertEqual(entry, {"device": "bluez_output.60:AB:D2:00:00:01", "device-description": "bla",
                                  "device-profile": "Headphones", "preset-name": "QC35 3D"})
 
 
 class DetectionTests(unittest.TestCase):
-    INFO = ("Device 60:AB:D2:44:09:2C (public)\n\tAlias: bla\n\tPaired: yes\n\tTrusted: no\n"
+    INFO = ("Device 60:AB:D2:00:00:01 (public)\n\tAlias: bla\n\tPaired: yes\n\tTrusted: no\n"
             "\tUUID: Audio Sink                (0000110b-0000-1000-8000-00805f9b34fb)\n")
 
     def test_bose_oui_with_audio_sink(self):
-        devices = "Device 60:AB:D2:44:09:2C bla\nDevice AA:BB:CC:00:11:22 AirPods\n"
+        devices = "Device 60:AB:D2:00:00:01 bla\nDevice AA:BB:CC:00:11:22 AirPods\n"
         info = {MAC: self.INFO, "AA:BB:CC:00:11:22": self.INFO}
         self.assertEqual(ae.bose_macs(devices, info.get), [(MAC, "bla", False)])
         self.assertEqual(ae.bose_macs(devices, info.get, "aa:bb:cc:00:11:22"), [("AA:BB:CC:00:11:22", "bla", False)])
@@ -159,7 +159,7 @@ class KConfigTests(unittest.TestCase):
 class WirePlumberTests(unittest.TestCase):
     def test_rendered_conf(self):
         conf = ae.wireplumber_conf([MAC])
-        self.assertIn('device.name = "bluez_card.60_AB_D2_44_09_2C"', conf)
+        self.assertIn('device.name = "bluez_card.60_AB_D2_00_00_01"', conf)
         self.assertIn("bluez5.auto-connect = [ a2dp_sink ]", conf)
         self.assertIn("custom.t2-bose-mic-never-default = optional", conf)
         self.assertNotIn("alsa", conf)
@@ -172,13 +172,13 @@ class WirePlumberTests(unittest.TestCase):
                 f.flush()
                 parsed = json.loads(subprocess.run([dump, f.name], capture_output=True, text=True, check=True).stdout)
             rule = parsed["monitor.bluez.rules"][0]
-            self.assertEqual(rule["matches"], [{"device.name": "bluez_card.60_AB_D2_44_09_2C"}])
+            self.assertEqual(rule["matches"], [{"device.name": "bluez_card.60_AB_D2_00_00_01"}])
             self.assertEqual(rule["actions"]["update-props"]["bluez5.auto-connect"], ["a2dp_sink"])
             self.assertEqual(parsed["wireplumber.components"][0]["name"], ae.WP_SCRIPT)
 
     def test_rendered_hook(self):
         lua = ae.wireplumber_script([MAC])
-        self.assertIn('"bluez_input.60:AB:D2:44:09:2C", "bluez_input.60_AB_D2_44_09_2C"', lua)
+        self.assertIn('"bluez_input.60:AB:D2:00:00:01", "bluez_input.60_AB_D2_00_00_01"', lua)
         self.assertIn('Constraint { "default-node.type", "=", "audio.source" }', lua)
         self.assertEqual(lua.count("{"), lua.count("}"))
         self.assertEqual(lua.count("("), lua.count(")"))
