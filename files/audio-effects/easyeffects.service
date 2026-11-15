@@ -10,6 +10,9 @@ Requisite=graphical-session.target
 [Service]
 ExecStart=/usr/bin/easyeffects --service-mode --hide-window
 ExecStop=-/usr/bin/easyeffects --quit
+# --quit returns but service mode keeps running: don't wait 90 s on logout/restart. Its state
+# is the preset file (rewritten by the deploy), so a hard stop loses nothing.
+TimeoutStopSec=4
 Restart=on-failure
 RestartSec=3
 

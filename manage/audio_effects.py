@@ -79,10 +79,11 @@ def _db(ratio):
 
 
 def preset_3d(autoeq_text, boost_db=0.0):
-    """boost_db: extra level into the limiter (config music_boost_db); peaks stay at -1 dB."""
+    """boost_db (config music_boost_db): added to the equalizer's input gain (the AutoEq preamp),
+    the one gain EasyEffects 8 applies from a preset; the -1 dB limiter at the end still caps peaks."""
     preamp, filters = parse_parametric_eq(autoeq_text)
     out = {"blocklist": [], "plugins_order": list(PLUGINS_3D)}
-    out["equalizer#0"] = _equalizer(preamp, filters)
+    out["equalizer#0"] = _equalizer(round(preamp + float(boost_db), 2), filters)
     # Boom3D "bass boost": Calf harmonics below 100 Hz, moderate amount (+4 dB); a low-shelf would
     # add real LF energy the SBC link and the QC35 driver then compress.
     out["bass_enhancer#0"] = {"bypass": False, "input-gain": 0.0, "output-gain": 0.0, "amount": 4.0,
@@ -94,7 +95,7 @@ def preset_3d(autoeq_text, boost_db=0.0):
                           "ir-width": 100, "autogain": True, "dry": _db(1 - WET), "wet": _db(WET),
                           "sofa": {"azimuth": 0.0, "elevation": 0.0, "radius": 1.0}}
     out["limiter#0"] = {"mode": "Herm Thin", "oversampling": "None", "dithering": "None",
-                        "sidechain-type": "Internal", "bypass": False, "input-gain": float(boost_db), "output-gain": 0.0,
+                        "sidechain-type": "Internal", "bypass": False, "input-gain": 0.0, "output-gain": 0.0,
                         "lookahead": 5.0, "attack": 5.0, "release": 20.0, "threshold": -1.0,
                         "sidechain-preamp": 0.0, "stereo-link": 100.0, "alr-attack": 5.0, "alr-release": 50.0,
                         "alr-knee": 0.0, "alr-knee-smooth": -5.0, "alr": False,
