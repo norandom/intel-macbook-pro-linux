@@ -1,25 +1,23 @@
 #!/usr/bin/env bash
-# Managed by t2-mac-kde (desktop). Greenshot-style screenshots on Hyprland.
-#   hypr-screenshot edit     area -> Satty editor (arrows, boxes, text, blur, crop; save/copy there)
-#   hypr-screenshot screen   focused screen -> Satty editor
-#   hypr-screenshot quick    area -> ~/Pictures/Screenshots + clipboard, no editor
+# Managed by t2-mac-kde (desktop). Screenshots, Windows/macOS-style: every capture is saved
+# to ~/Screenshots right away (and copied); the edit modes then open Satty on that file,
+# and saving in Satty (Ctrl+S) overwrites it with the annotated version.
+#   hypr-screenshot edit     rectangle -> saved -> Satty      (SUPER+SHIFT+4, SUPER+SHIFT+S)
+#   hypr-screenshot screen   focused screen -> saved -> Satty (SUPER+SHIFT+CTRL+S)
+#   hypr-screenshot quick    rectangle -> saved, no editor    (SUPER+SHIFT+X)
 set -eu
-dir=${XDG_PICTURES_DIR:-$HOME/Pictures}/Screenshots; mkdir -p "$dir"
-file="$dir/$(date +%Y-%m-%d_%H-%M-%S).png"
+dir=${T2_SCREENSHOT_DIR:-$HOME/Screenshots}; mkdir -p "$dir"
+file="$dir/Screenshot_$(date +%Y-%m-%d_%H-%M-%S).png"
 satty=$HOME/.local/bin/satty
-edit() {  # read PNG on stdin
-  if [ -x "$satty" ]; then
-    "$satty" --filename - --output-filename "$file" --copy-command wl-copy \
-      --early-exit --initial-tool arrow
-  else
-    cat > "$file"; wl-copy < "$file"
-    notify-send -a Screenshot "Satty not installed: saved without editor" "$file" 2>/dev/null || true
-  fi
+saved() { wl-copy < "$file"; notify-send -a Screenshot -i "$file" "Screenshot saved" "$file" 2>/dev/null || true; }
+editor() {
+  [ -x "$satty" ] || exit 0
+  exec "$satty" --filename "$file" --output-filename "$file" --copy-command wl-copy \
+    --early-exit --initial-tool arrow
 }
 case "${1:-edit}" in
-  edit|area) geom=$(slurp) || exit 0; grim -g "$geom" - | edit ;;
-  screen) grim -o "$(hyprctl -j monitors | jq -r '.[] | select(.focused) | .name')" - | edit ;;
-  quick) geom=$(slurp) || exit 0; grim -g "$geom" "$file"; wl-copy < "$file"
-         notify-send -a Screenshot "Screenshot saved" "$file" 2>/dev/null || true ;;
+  edit|area) geom=$(slurp) || exit 0; grim -g "$geom" "$file"; saved; editor ;;
+  screen) grim -o "$(hyprctl -j monitors | jq -r '.[] | select(.focused) | .name')" "$file"; saved; editor ;;
+  quick) geom=$(slurp) || exit 0; grim -g "$geom" "$file"; saved ;;
   *) echo "usage: hypr-screenshot edit|screen|quick" >&2; exit 2 ;;
 esac
