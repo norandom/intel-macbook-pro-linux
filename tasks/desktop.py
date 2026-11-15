@@ -20,6 +20,7 @@ from pyinfra.operations import files, server
 from pyinfra.operations.util import any_changed
 
 from manage.desktop_hostcolor import color_for
+from manage.pixel_snap import conf as pixel_snap_conf
 from manage.packages import PackageRequest, install_packages
 from manage.preflight import validate_local_context
 from manage.userconfig import setting
@@ -105,6 +106,12 @@ hypr_ops.append(owned_put(
     StringIO(f"# {MARKER}: panel_scale = {panel_scale} (~/.config/t2-mac-kde/config.toml)\n"
              + ("" if panel_scale == "auto" else f"monitor = eDP-1, preferred, auto, {panel_scale}\n")),
     f"{hypr}/panel.conf"))
+
+# Whole-pixel border / title bar at a fractional panel scale (sourced last in hyprland.conf).
+hypr_ops.append(owned_put(
+    StringIO(f"# {MARKER}: panel_scale = {panel_scale}\n"
+             + pixel_snap_conf(panel_scale, 2, 22 if decorations_style == "win311" else 24)),
+    f"{hypr}/pixel-snap.conf"))
 
 # Pointer theme + size for Hyprland, Xwayland and GTK/portal apps (config cursor_theme/size).
 hypr_ops.append(owned_put(
