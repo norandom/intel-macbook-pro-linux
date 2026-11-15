@@ -11,9 +11,8 @@ export PATH="$HOME/.local/bin:$PATH"
 uv run --locked pyinfra @local tasks/node.py --dry
 uv run --locked pyinfra @local tasks/node.py
 
-# Existing CLI scaffold: preview only while the planned package/boot guards
-# are not yet implemented. System apply is pending foundation implementation.
-uv run pyinfra @local deploy.py --dry --use-sudo-password
+# Combined preview currently stops at unreviewed CLI packages (see below).
+uv run --locked pyinfra @local deploy.py --dry
 ```
 
 Node/npm are installed per-user with [nvm](https://github.com/nvm-sh/nvm),
@@ -49,10 +48,12 @@ missing, without a full system upgrade or added third-party repositories.
 
 ## Source port and specifications
 
-The current implemented baseline is uv/pyinfra, nvm-managed Node/npm and a small
-CLI package scaffold. Its new package/protected-system guards are specified but
-not implemented; full system application remains pending foundation work. The broader source feature port is being specified;
-completed spec documents are not installed features.
+The implemented baseline includes uv/pyinfra, nvm-managed Node/npm, local-only
+preflight, package-plan validation and effective Snap/Flatpak policy checks.
+CLI deployment uses the guarded API, but its production package review manifest
+is still pending: preview and apply stop with an explicit unreviewed-package
+error. CLI packages and the broader desktop port have not been installed yet.
+Completed spec documents are not installed features.
 
 The [source port plan](docs/source-port-plan.md) inventories the actual features
 of [hyperland-forky-worker-vm](https://github.com/norandom/hyperland-forky-worker-vm).
