@@ -72,8 +72,19 @@ optional zsh-like suggestions via ble.sh.
 
 ### Everyday apps
 
-LibreOffice (with the ribbon interface), Obsidian, Bitwarden, Slack, Discord, Zoom, Typora,
-Remote Desktop Manager, the Craft suite, and classic X apps like Xfe and NEdit.
+If you're coming from Microsoft Office and Photoshop, the Craft suite is the part to look at.
+WordCraft, GridCraft and DeckCraft cover documents, spreadsheets and slides, PdfCraft handles
+PDFs, LightCraft is a Lightroom-style photo editor, DesignCraft does page layout and CADCraft
+drawings. They follow the layout of the programs they replace, so Joe User doesn't have to
+relearn much. They're young projects, so expect rough edges. LibreOffice is there too, with the
+ribbon-style interface.
+
+If you live in real Excel macros or a full Photoshop workflow (Joe Excelguru, Joe Artist), the
+Craft apps won't cover everything. Run Windows in virt-manager for those; KVM makes it fast,
+and the virtual TPM covers Windows 11.
+
+The rest: Obsidian, Bitwarden, Slack, Discord, Zoom, Typora, Remote Desktop Manager, and
+classic X apps like Xfe and NEdit.
 
 ### Remote access
 
