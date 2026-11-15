@@ -10,7 +10,9 @@ import pwd
 
 from pyinfra import host
 from pyinfra.facts.server import Command
-from pyinfra.operations import server, systemd
+from io import StringIO
+
+from pyinfra.operations import files, server, systemd
 from manage.packages import PackageRequest, install_packages
 from manage.preflight import validate_local_context
 
@@ -38,3 +40,17 @@ server.shell(
               "virsh -c qemu:///system net-start default"],
     _sudo=True,
 )
+
+# Nested virtualization: kvm_intel nested=Y is already the kernel default (read-only at
+# runtime; nothing to change). Windows guests (especially nested Hyper-V/WSL2) can crash on
+# unknown MSR accesses: let KVM ignore them, without log spam. Runtime module parameters
+# set via tmpfiles.d (like no-turbo) - no modprobe.d, no initramfs, no module reload.
+kvm_msrs = files.put(
+    name="KVM: ignore unknown guest MSRs (Windows guests), don't log them",
+    src=StringIO("# Managed by t2-mac-kde (virtualization)\n"
+                 "w /sys/module/kvm/parameters/ignore_msrs - - - - Y\n"
+                 "w /sys/module/kvm/parameters/report_ignored_msrs - - - - N\n"),
+    dest="/etc/tmpfiles.d/t2-kvm-msrs.conf", mode="644", _sudo=True,
+)
+server.shell(name="Apply KVM MSR settings now", commands=["systemd-tmpfiles --create /etc/tmpfiles.d/t2-kvm-msrs.conf"],
+             _if=kvm_msrs.did_change, _sudo=True)

@@ -46,7 +46,8 @@ _PROTECTED_PATHS = (
     "/etc/cryptsetup", "/usr/lib/cryptsetup", "/etc/lvm/", "/etc/initramfs-tools/",
     "/usr/share/initramfs-tools/", "/etc/mkinitcpio", "/etc/dracut", "/usr/lib/dracut/",
     "/etc/default/grub", "/etc/grub.d/", "/usr/lib/grub/", "/etc/kernel/", "/usr/lib/kernel/",
-    "/etc/modprobe.d/", "/usr/lib/modprobe.d/", "/etc/modules", "/lib/firmware/", "/usr/lib/firmware/",
+    "/etc/modprobe.d/", "/usr/lib/modprobe.d/", "/etc/modules-load.d/", "/usr/lib/modules-load.d/",
+    "/lib/firmware/", "/usr/lib/firmware/",
     "/usr/lib/initramfs-tools/", "/usr/lib/initcpio/", "/usr/share/initcpio/", "/etc/initcpio/",
     "/usr/lib/mkinitcpio/", "/usr/share/mkinitcpio/", "/usr/share/grub/", "/usr/lib/shim/",
     "/usr/lib/systemd/boot/", "/usr/lib/systemd/ukify", "/usr/bin/bootctl", "/usr/bin/kernel-install",
@@ -140,12 +141,23 @@ def _deb_path(package: str, version: str) -> Path:
     return matches[0]
 
 
+# Exact protected files (prefix matching "/etc/modules" would also hit modules-load.d).
+_PROTECTED_FILES = ("/etc/modules",)
+# Reviewed boot-time module loads that touch no T2 driver, blacklist or initramfs:
+#   libvirt-common: "msr" (CPU MSR access for VM CPU feature detection; already loaded here).
+#   systemd-zram-generator: "zram" (compressed RAM swap, tasks/resource_policy.py).
+_ALLOWED_PATHS = ("/etc/modules-load.d/libvirt-msr.conf", "/usr/lib/modules-load.d/20-zram-generator.conf")
+
+
 def protected_path(path: str) -> bool:
     path = "/" + path.lstrip("./")
     path = re.sub(r"/+", "/", path)
     if path.startswith(("/lib/", "/lib64/", "/sbin/", "/bin/")):
         path = "/usr" + path
-    return any(path.startswith(p) for p in _PROTECTED_PATHS) or bool(_PROTECTED_LIBRARY.match(path))
+    if path in _ALLOWED_PATHS or path.rstrip("/") in ("/etc/modules-load.d", "/usr/lib/modules-load.d"):
+        return False  # a reviewed file, or just the directory entry itself
+    return (path in _PROTECTED_FILES or any(path.startswith(p) for p in _PROTECTED_PATHS)
+            or bool(_PROTECTED_LIBRARY.match(path)))
 
 
 def check_archive(deb: Path) -> None:

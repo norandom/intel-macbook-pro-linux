@@ -45,7 +45,12 @@ class ArchiveTests(unittest.TestCase):
                      "./etc/modprobe.d/blacklist.conf", "./usr/lib/firmware/x.bin"):
             with self.subTest(path=path):
                 self.assertTrue(guard.protected_path(path))
-        for path in ("./usr/bin/btop", "./usr/share/doc/btop/README", "./etc/btop.conf"):
+        for path in ("./etc/modules", "./etc/modules-load.d/other.conf", "./usr/lib/modules-load.d/x.conf"):
+            with self.subTest(path=path):
+                self.assertTrue(guard.protected_path(path))
+        for path in ("./usr/bin/btop", "./usr/share/doc/btop/README", "./etc/btop.conf",
+                     "./etc/modules-load.d/", "./etc/modules-load.d/libvirt-msr.conf",
+                     "./usr/lib/modules-load.d/20-zram-generator.conf"):
             with self.subTest(path=path):
                 self.assertFalse(guard.protected_path(path))
 
