@@ -110,7 +110,7 @@ HELPERS = (
     "hypr-desktop-state", "hypr-launch", "hypr-deco", "hypr-shadow", "hypr-layout", "hypr-pin",
     "hypr-glass", "hypr-kbd", "hypr-nightmode", "hypr-windows", "hypr-session", "hypr-appmenu",
     "hypr-sparkline", "hypr-agent-quota", "hypr-cliphist", "hypr-clip-bridge", "hypr-termtheme-status",
-    "hypr-brightness", "hypr-screenshot", "hypr-osd", "hypr-volume",
+    "hypr-brightness", "hypr-screenshot", "hypr-osd", "hypr-volume", "hypr-hibernate",
 )
 helper_ops = [owned_put(f"{SRC}/bin/{h}", f"{bin_dir}/{h}", mode="755") for h in HELPERS]
 

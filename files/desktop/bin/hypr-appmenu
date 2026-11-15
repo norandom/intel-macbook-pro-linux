@@ -3,7 +3,7 @@
 
     hypr-appmenu              recent apps, categories ▸ applications, Run…, Shut down… (top-left)
     hypr-appmenu --at X Y     same, opened at X/Y on the focused monitor (desktop right-click)
-    hypr-appmenu power        log out / reboot / shut down (fuzzel, SUPER+ESCAPE)
+    hypr-appmenu power        lock / suspend / hibernate / log out / reboot / shut down (fuzzel, SUPER+ESCAPE)
 
 Like Windows: hovering a category opens its submenu beside it, a click on an entry starts
 it, a click anywhere else (the Apps button too) or Escape closes the menu; arrow keys,
@@ -58,8 +58,9 @@ args = sys.argv[1:]
 if args[:1] == ["power"]:
     p = subprocess.run(["fuzzel", "--dmenu", "--anchor", "top-left", "--width", "32",
                         "--prompt", "Power > ", "--lines", "4"],
-                       input="Lock\nLog out\nReboot\nShut down\n", capture_output=True, text=True)
-    cmd = {"Lock": ["hyprlock"], "Log out": ["uwsm", "stop"], "Reboot": ["systemctl", "reboot"],
+                       input="Lock\nSuspend\nHibernate\nLog out\nReboot\nShut down\n", capture_output=True, text=True)
+    cmd = {"Lock": ["hyprlock"], "Suspend": ["systemctl", "suspend"],
+           "Hibernate": [os.path.expanduser("~/.local/bin/hypr-hibernate")], "Log out": ["uwsm", "stop"], "Reboot": ["systemctl", "reboot"],
            "Shut down": ["systemctl", "poweroff"]}.get(p.stdout.strip())
     if cmd:
         os.execvp(cmd[0], cmd)
@@ -153,6 +154,8 @@ class Menu:
                    for n, a in sorted(by_cat[cat], key=lambda t: t[0].lower())]
             out.append((cat, image(ICON_CAT.get(cat)), None, sub))
         power = [("Lock", image(ICON_CAT["logout"]), self.cmd(["hyprlock"]), None),
+                 ("Suspend", image(ICON_CAT["logout"]), self.cmd(["systemctl", "suspend"]), None),
+                 ("Hibernate", image(ICON_CAT["power"]), self.cmd([os.path.expanduser("~/.local/bin/hypr-hibernate")]), None),
                  ("Log out", image(ICON_CAT["logout"]), self.cmd(["uwsm", "stop"]), None),
                  ("Reboot", image(ICON_CAT["reboot"]), self.cmd(["systemctl", "reboot"]), None),
                  ("Shut down", image(ICON_CAT["power"]), self.cmd(["systemctl", "poweroff"]), None)]
