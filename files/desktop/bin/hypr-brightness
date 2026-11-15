@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 # Managed by t2-mac-kde (desktop). Brightness via logind (no root, no udev rule):
-#   hypr-brightness screen|kbd +5|-5|N%   (percent steps; never fully dark)
+#   hypr-brightness screen|kbd +5|-5|N%   (percent steps; backlight never fully dark)
+# Screen: one more step down at the minimum switches the internal panel off (DPMS);
+# the next step up switches it back on (at the minimum). Other input does not wake it.
 set -eu
 case "${1:-}" in
   screen) dev=$(basename "$(ls -d /sys/class/backlight/gmux_backlight /sys/class/backlight/* 2>/dev/null | grep -v appletb | head -1)"); sub=backlight; base=/sys/class/backlight/$dev; min=2 ;;
@@ -10,6 +12,19 @@ esac
 [ -n "$dev" ] && [ -r "$base/max_brightness" ] || { echo "hypr-brightness: no $1 device" >&2; exit 1; }
 max=$(cat "$base/max_brightness"); cur=$(cat "$base/brightness"); step=${2:-+5}
 pct=$(( (cur * 100 + max / 2) / max ))
+panel=eDP-1
+panel_on() { hyprctl -j monitors all 2>/dev/null | jq -e --arg p "$panel" '.[] | select(.name == $p) | .dpmsStatus' >/dev/null; }
+if [ "$1" = screen ] && [ "${HYPR_OSD:-1}" != 0 ]; then
+  if ! panel_on; then   # panel off (by this helper): only a step up wakes it, at the minimum
+    case "$step" in
+      +*) hyprctl dispatch dpms on "$panel" >/dev/null; ~/.local/bin/hypr-osd screen "$pct" "Brightness" ;;
+    esac
+    exit 0
+  fi
+  case "$step" in
+    -*) if [ "$pct" -le "$min" ]; then hyprctl dispatch dpms off "$panel" >/dev/null; exit 0; fi ;;
+  esac
+fi
 case "$step" in
   +*) pct=$(( pct + ${step#+} )) ;;
   -*) pct=$(( pct - ${step#-} )) ;;
