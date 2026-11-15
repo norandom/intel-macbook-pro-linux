@@ -36,7 +36,7 @@ Tests use fixtures and disposable targets; this plan does not schedule host depl
   - _Depends: 1.1_
   - _Requirements: 2.1, 2.4, 4.1, 4.3, 4.4, 4.5, 5.6_
 
-- [ ] 2.2 Maintain and validate effective negative apt pins
+- [x] 2.2 Maintain and validate effective negative apt pins
   - Add the owned snapd/Flatpak policy while preserving the user's existing snapd block byte-for-byte.
   - Back up an existing owned policy file before replacement and support restoration limited to that owned file; never remove or rewrite the user's snapd block.
   - Detect installed prohibited runtimes and effective-policy conflicts, reporting remediation pending without purging applications or user data.
@@ -123,7 +123,8 @@ Tests use fixtures and disposable targets; this plan does not schedule host depl
 
 ## Implementation Notes
 
-- Task1.1: Preflight implemented; independent review APPROVED; fresh unittest9/9 and compileall PASS. Entry-point wiring remains4.1. Git checkpoint pending author identity configuration.
+- Task1.1: Preflight implemented; independent review APPROVED; fresh unittest9/9 and compileall PASS. Entry-point wiring remains4.1. Checkpoint f34605a uses the connected GitHub no-reply identity.
 - Task1.2: Bootstrap independently APPROVED; fresh unittest23/23 and shell syntax PASS, including actual offline uv/stale-lock isolation checks.
 - Task2.1: PackageGuard independently APPROVED after2remediation rounds; fresh45/45tests+compileall PASS. Apt preference bytes excluded from script/hook baseline because2.2owns effective pins; other executable apt config and dpkg state remain bound. Production review registry stays empty until4.1.
 - Integration note for4.1: actual Ubuntu apt simulation for existing jq includes `jq set to manually installed.`; current fail-closed grammar intentionally rejects unrecognized lines. Review and add narrowly validated support when compiling the real CLI manifest, preserving no-op state behavior.
+- Task2.2: Independent review APPROVED;62tests and native read-only preference-overlay checks PASS; no host policy applied.

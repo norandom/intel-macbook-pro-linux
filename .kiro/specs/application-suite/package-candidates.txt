@@ -1,0 +1,376 @@
+aria2:
+  Installed: (none)
+  Candidate: 1.37.0+debian-4
+  Version table:
+     1.37.0+debian-4 500
+        500 http://de.archive.ubuntu.com/ubuntu resolute/universe amd64 Packages
+atop:
+  Installed: (none)
+  Candidate: 2.12.1-1
+  Version table:
+     2.12.1-1 500
+        500 http://de.archive.ubuntu.com/ubuntu resolute/universe amd64 Packages
+bat:
+  Installed: (none)
+  Candidate: 0.25.0-5ubuntu1
+  Version table:
+     0.25.0-5ubuntu1 500
+        500 http://de.archive.ubuntu.com/ubuntu resolute/universe amd64 Packages
+btop:
+  Installed: (none)
+  Candidate: 1.4.6-2
+  Version table:
+     1.4.6-2 500
+        500 http://de.archive.ubuntu.com/ubuntu resolute/universe amd64 Packages
+c3270:
+  Installed: (none)
+  Candidate: 4.3ga10-5build1
+  Version table:
+     4.3ga10-5build1 500
+        500 http://de.archive.ubuntu.com/ubuntu resolute/universe amd64 Packages
+ca-certificates:
+  Installed: 20260816ubuntu0.26.04.2
+  Candidate: 20260816ubuntu0.26.04.2
+  Version table:
+ *** 20260816ubuntu0.26.04.2 500
+        500 http://de.archive.ubuntu.com/ubuntu resolute-updates/main amd64 Packages
+        500 http://de.archive.ubuntu.com/ubuntu resolute-updates/main i386 Packages
+        500 http://security.ubuntu.com/ubuntu resolute-security/main amd64 Packages
+        500 http://security.ubuntu.com/ubuntu resolute-security/main i386 Packages
+        100 /var/lib/dpkg/status
+     20260223 500
+        500 http://de.archive.ubuntu.com/ubuntu resolute/main amd64 Packages
+        500 http://de.archive.ubuntu.com/ubuntu resolute/main i386 Packages
+chromium:
+  Installed: (none)
+  Candidate: (none)
+  Version table:
+chromium-driver:
+  Installed: (none)
+  Candidate: (none)
+  Version table:
+cliphist:
+  Installed: (none)
+  Candidate: 0.5.0-1build1
+  Version table:
+     0.5.0-1build1 500
+        500 http://de.archive.ubuntu.com/ubuntu resolute/universe amd64 Packages
+curl:
+  Installed: 8.18.0-1ubuntu2.8
+  Candidate: 8.18.0-1ubuntu2.8
+  Version table:
+ *** 8.18.0-1ubuntu2.8 500
+        500 http://de.archive.ubuntu.com/ubuntu resolute-updates/main amd64 Packages
+        500 http://security.ubuntu.com/ubuntu resolute-security/main amd64 Packages
+        100 /var/lib/dpkg/status
+     8.18.0-1ubuntu2 500
+        500 http://de.archive.ubuntu.com/ubuntu resolute/main amd64 Packages
+fd-find:
+  Installed: (none)
+  Candidate: 10.3.0-2ubuntu1
+  Version table:
+     10.3.0-2ubuntu1 500
+        500 http://de.archive.ubuntu.com/ubuntu resolute/universe amd64 Packages
+fonts-crosextra-carlito:
+  Installed: (none)
+  Candidate: 20230309-2
+  Version table:
+     20230309-2 500
+        500 http://de.archive.ubuntu.com/ubuntu resolute/universe amd64 Packages
+        500 http://de.archive.ubuntu.com/ubuntu resolute/universe i386 Packages
+foot:
+  Installed: (none)
+  Candidate: 1.25.0-1
+  Version table:
+     1.25.0-1 500
+        500 http://de.archive.ubuntu.com/ubuntu resolute/universe amd64 Packages
+fzf:
+  Installed: (none)
+  Candidate: 0.67.0-1
+  Version table:
+     0.67.0-1 500
+        500 http://de.archive.ubuntu.com/ubuntu resolute/universe amd64 Packages
+gcc:
+  Installed: (none)
+  Candidate: 4:15.2.0-5ubuntu1
+  Version table:
+     4:15.2.0-5ubuntu1 500
+        500 http://de.archive.ubuntu.com/ubuntu resolute/main amd64 Packages
+gdu:
+  Installed: (none)
+  Candidate: 5.25.0-1build1
+  Version table:
+     5.25.0-1build1 500
+        500 http://de.archive.ubuntu.com/ubuntu resolute/universe amd64 Packages
+gh:
+  Installed: (none)
+  Candidate: 2.46.0-4
+  Version table:
+     2.46.0-4 500
+        500 http://de.archive.ubuntu.com/ubuntu resolute/universe amd64 Packages
+git:
+  Installed: 1:2.53.0-1ubuntu1.1
+  Candidate: 1:2.53.0-1ubuntu1.1
+  Version table:
+ *** 1:2.53.0-1ubuntu1.1 500
+        500 http://de.archive.ubuntu.com/ubuntu resolute-updates/main amd64 Packages
+        500 http://security.ubuntu.com/ubuntu resolute-security/main amd64 Packages
+        100 /var/lib/dpkg/status
+     1:2.53.0-1ubuntu1 500
+        500 http://de.archive.ubuntu.com/ubuntu resolute/main amd64 Packages
+glow:
+  Installed: (none)
+  Candidate: 2.1.1-1
+  Version table:
+     2.1.1-1 500
+        500 http://de.archive.ubuntu.com/ubuntu resolute/universe amd64 Packages
+golang-go:
+  Installed: (none)
+  Candidate: 2:1.26~1
+  Version table:
+     2:1.26~1 500
+        500 http://de.archive.ubuntu.com/ubuntu resolute/main amd64 Packages
+htop:
+  Installed: 3.4.1-5build2
+  Candidate: 3.4.1-5build2
+  Version table:
+ *** 3.4.1-5build2 500
+        500 http://de.archive.ubuntu.com/ubuntu resolute/main amd64 Packages
+        100 /var/lib/dpkg/status
+hunspell-de-de:
+  Installed: (none)
+  Candidate: 20161207-16
+  Version table:
+     20161207-16 500
+        500 http://de.archive.ubuntu.com/ubuntu resolute/main amd64 Packages
+        500 http://de.archive.ubuntu.com/ubuntu resolute/main i386 Packages
+hunspell-en-us:
+  Installed: 1:2020.12.07-4build1
+  Candidate: 1:2020.12.07-4build1
+  Version table:
+ *** 1:2020.12.07-4build1 500
+        500 http://de.archive.ubuntu.com/ubuntu resolute/main amd64 Packages
+        500 http://de.archive.ubuntu.com/ubuntu resolute/main i386 Packages
+        100 /var/lib/dpkg/status
+hyphen-de:
+  Installed: (none)
+  Candidate: 1:25.2.3-1build1
+  Version table:
+     1:25.2.3-1build1 500
+        500 http://de.archive.ubuntu.com/ubuntu resolute/main amd64 Packages
+        500 http://de.archive.ubuntu.com/ubuntu resolute/main i386 Packages
+hyphen-en-us:
+  Installed: (none)
+  Candidate: 2.8.8-7build4
+  Version table:
+     2.8.8-7build4 500
+        500 http://de.archive.ubuntu.com/ubuntu resolute/main amd64 Packages
+        500 http://de.archive.ubuntu.com/ubuntu resolute/main i386 Packages
+jq:
+  Installed: 1.8.1-4ubuntu2
+  Candidate: 1.8.1-4ubuntu2
+  Version table:
+ *** 1.8.1-4ubuntu2 500
+        500 http://de.archive.ubuntu.com/ubuntu resolute-updates/main amd64 Packages
+        500 http://security.ubuntu.com/ubuntu resolute-security/main amd64 Packages
+        100 /var/lib/dpkg/status
+     1.8.1-4ubuntu1 500
+        500 http://de.archive.ubuntu.com/ubuntu resolute/main amd64 Packages
+lazygit:
+  Installed: (none)
+  Candidate: 0.57.0+ds1-1
+  Version table:
+     0.57.0+ds1-1 500
+        500 http://de.archive.ubuntu.com/ubuntu resolute/universe amd64 Packages
+libreoffice-calc:
+  Installed: (none)
+  Candidate: 4:26.2.6.3-0ubuntu0.26.04.2
+  Version table:
+     4:26.2.6.3-0ubuntu0.26.04.2 500
+        500 http://de.archive.ubuntu.com/ubuntu resolute-updates/main amd64 Packages
+        500 http://security.ubuntu.com/ubuntu resolute-security/main amd64 Packages
+     4:26.2.2.2-0ubuntu1 500
+        500 http://de.archive.ubuntu.com/ubuntu resolute/main amd64 Packages
+libreoffice-gtk3:
+  Installed: (none)
+  Candidate: 4:26.2.6.3-0ubuntu0.26.04.2
+  Version table:
+     4:26.2.6.3-0ubuntu0.26.04.2 500
+        500 http://de.archive.ubuntu.com/ubuntu resolute-updates/main amd64 Packages
+        500 http://security.ubuntu.com/ubuntu resolute-security/main amd64 Packages
+     4:26.2.2.2-0ubuntu1 500
+        500 http://de.archive.ubuntu.com/ubuntu resolute/main amd64 Packages
+libreoffice-l10n-de:
+  Installed: (none)
+  Candidate: 4:26.2.6.3-0ubuntu0.26.04.2
+  Version table:
+     4:26.2.6.3-0ubuntu0.26.04.2 500
+        500 http://de.archive.ubuntu.com/ubuntu resolute-updates/main amd64 Packages
+        500 http://de.archive.ubuntu.com/ubuntu resolute-updates/main i386 Packages
+        500 http://security.ubuntu.com/ubuntu resolute-security/main amd64 Packages
+        500 http://security.ubuntu.com/ubuntu resolute-security/main i386 Packages
+     4:26.2.2.2-0ubuntu1 500
+        500 http://de.archive.ubuntu.com/ubuntu resolute/main amd64 Packages
+        500 http://de.archive.ubuntu.com/ubuntu resolute/main i386 Packages
+libreoffice-writer:
+  Installed: (none)
+  Candidate: 4:26.2.6.3-0ubuntu0.26.04.2
+  Version table:
+     4:26.2.6.3-0ubuntu0.26.04.2 500
+        500 http://de.archive.ubuntu.com/ubuntu resolute-updates/main amd64 Packages
+        500 http://security.ubuntu.com/ubuntu resolute-security/main amd64 Packages
+     4:26.2.2.2-0ubuntu1 500
+        500 http://de.archive.ubuntu.com/ubuntu resolute/main amd64 Packages
+make:
+  Installed: (none)
+  Candidate: 4.4.1-3
+  Version table:
+     4.4.1-3 500
+        500 http://de.archive.ubuntu.com/ubuntu resolute/main amd64 Packages
+meld:
+  Installed: (none)
+  Candidate: 3.22.3-2
+  Version table:
+     3.22.3-2 500
+        500 http://de.archive.ubuntu.com/ubuntu resolute/universe amd64 Packages
+        500 http://de.archive.ubuntu.com/ubuntu resolute/universe i386 Packages
+multitail:
+  Installed: (none)
+  Candidate: 7.1.5-2build1
+  Version table:
+     7.1.5-2build1 500
+        500 http://de.archive.ubuntu.com/ubuntu resolute/universe amd64 Packages
+mythes-de:
+  Installed: (none)
+  Candidate: 20160424-4build1
+  Version table:
+     20160424-4build1 500
+        500 http://de.archive.ubuntu.com/ubuntu resolute/main amd64 Packages
+        500 http://de.archive.ubuntu.com/ubuntu resolute/main i386 Packages
+mythes-en-us:
+  Installed: (none)
+  Candidate: 1:25.2.3-1build1
+  Version table:
+     1:25.2.3-1build1 500
+        500 http://de.archive.ubuntu.com/ubuntu resolute/main amd64 Packages
+        500 http://de.archive.ubuntu.com/ubuntu resolute/main i386 Packages
+nedit:
+  Installed: (none)
+  Candidate: 1:5.7-7
+  Version table:
+     1:5.7-7 500
+        500 http://de.archive.ubuntu.com/ubuntu resolute/universe amd64 Packages
+neovim:
+  Installed: (none)
+  Candidate: 0.11.6-1
+  Version table:
+     0.11.6-1 500
+        500 http://de.archive.ubuntu.com/ubuntu resolute/universe amd64 Packages
+nodejs:
+  Installed: (none)
+  Candidate: 22.22.1+dfsg+~cs22.19.15-1ubuntu1
+  Version table:
+     22.22.1+dfsg+~cs22.19.15-1ubuntu1 500
+        500 http://de.archive.ubuntu.com/ubuntu resolute/universe amd64 Packages
+npm:
+  Installed: (none)
+  Candidate: 9.2.0~ds3-1
+  Version table:
+     9.2.0~ds3-1 500
+        500 http://de.archive.ubuntu.com/ubuntu resolute/universe amd64 Packages
+        500 http://de.archive.ubuntu.com/ubuntu resolute/universe i386 Packages
+posting:
+  Installed: (none)
+  Candidate: 2.9.2-1
+  Version table:
+     2.9.2-1 500
+        500 http://de.archive.ubuntu.com/ubuntu resolute/universe amd64 Packages
+        500 http://de.archive.ubuntu.com/ubuntu resolute/universe i386 Packages
+qpdfview:
+  Installed: (none)
+  Candidate: 0.5.0+ds-5build2
+  Version table:
+     0.5.0+ds-5build2 500
+        500 http://de.archive.ubuntu.com/ubuntu resolute/universe amd64 Packages
+ripgrep:
+  Installed: (none)
+  Candidate: 15.1.0-1ubuntu1
+  Version table:
+     15.1.0-1ubuntu1 500
+        500 http://de.archive.ubuntu.com/ubuntu resolute/universe amd64 Packages
+ristretto:
+  Installed: (none)
+  Candidate: 0.13.4-1
+  Version table:
+     0.13.4-1 500
+        500 http://de.archive.ubuntu.com/ubuntu resolute/universe amd64 Packages
+rsync:
+  Installed: 3.4.1+ds1-7ubuntu0.3
+  Candidate: 3.4.1+ds1-7ubuntu0.3
+  Version table:
+ *** 3.4.1+ds1-7ubuntu0.3 500
+        500 http://de.archive.ubuntu.com/ubuntu resolute-updates/main amd64 Packages
+        500 http://security.ubuntu.com/ubuntu resolute-security/main amd64 Packages
+        100 /var/lib/dpkg/status
+     3.4.1+ds1-7 500
+        500 http://de.archive.ubuntu.com/ubuntu resolute/main amd64 Packages
+rust-coreutils:
+  Installed: 0.10.0-1ubuntu2~26.04.1
+  Candidate: 0.10.0-1ubuntu2~26.04.1
+  Version table:
+ *** 0.10.0-1ubuntu2~26.04.1 500
+        500 http://de.archive.ubuntu.com/ubuntu resolute-updates/main amd64 Packages
+        500 http://security.ubuntu.com/ubuntu resolute-security/main amd64 Packages
+        100 /var/lib/dpkg/status
+     0.8.0-0ubuntu3 500
+        500 http://de.archive.ubuntu.com/ubuntu resolute/main amd64 Packages
+tree:
+  Installed: (none)
+  Candidate: 2.3.1-1
+  Version table:
+     2.3.1-1 500
+        500 http://de.archive.ubuntu.com/ubuntu resolute/universe amd64 Packages
+trippy:
+  Installed: (none)
+  Candidate: 0.13.0+dfsg-1.4
+  Version table:
+     0.13.0+dfsg-1.4 500
+        500 http://de.archive.ubuntu.com/ubuntu resolute/universe amd64 Packages
+unzip:
+  Installed: 6.0-29ubuntu1
+  Candidate: 6.0-29ubuntu1
+  Version table:
+ *** 6.0-29ubuntu1 500
+        500 http://de.archive.ubuntu.com/ubuntu resolute/main amd64 Packages
+        100 /var/lib/dpkg/status
+vivaldi-stable:
+  Installed: 8.3.4191.44-1
+  Candidate: 8.3.4191.44-1
+  Version table:
+ *** 8.3.4191.44-1 100
+        100 /var/lib/dpkg/status
+x11-xserver-utils:
+  Installed: 7.7+11build1
+  Candidate: 7.7+11build1
+  Version table:
+ *** 7.7+11build1 500
+        500 http://de.archive.ubuntu.com/ubuntu resolute/main amd64 Packages
+        100 /var/lib/dpkg/status
+x3270:
+  Installed: (none)
+  Candidate: 4.3ga10-5build1
+  Version table:
+     4.3ga10-5build1 500
+        500 http://de.archive.ubuntu.com/ubuntu resolute/universe amd64 Packages
+xfce4-terminal:
+  Installed: (none)
+  Candidate: 1.1.5-1
+  Version table:
+     1.1.5-1 500
+        500 http://de.archive.ubuntu.com/ubuntu resolute/universe amd64 Packages
+xpdf:
+  Installed: (none)
+  Candidate: 3.04+git20260220-1
+  Version table:
+     3.04+git20260220-1 500
+        500 http://de.archive.ubuntu.com/ubuntu resolute/universe amd64 Packages

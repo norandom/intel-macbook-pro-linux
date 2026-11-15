@@ -1,0 +1,714 @@
+{
+  "repository": "norandom/hyperland-forky-worker-vm",
+  "revision": "a1c09ec3f02a98b7c6a4641f907108a2ad080993",
+  "tree_complete": true,
+  "files": [
+    {
+      "path": ".dagger/.gitattributes",
+      "sha": "827418463fc2fed2c4e4168162547229d41d5894"
+    },
+    {
+      "path": ".dagger/.gitignore",
+      "sha": "2343dfc87c56491871980e8f30b5b54a8bc8a296"
+    },
+    {
+      "path": ".dagger/pyproject.toml",
+      "sha": "1ee18b2664d78ab06c020a33c13224d593dc8a8b"
+    },
+    {
+      "path": ".dagger/src/hypr_rdp_deb/__init__.py",
+      "sha": "d1a4da326c6307208c4c3a47b43841ebf6037feb"
+    },
+    {
+      "path": ".dagger/src/hypr_rdp_deb/main.py",
+      "sha": "7a941b5ad80d4a4753d1e88eae5db4c960ecf929"
+    },
+    {
+      "path": ".dagger/uv.lock",
+      "sha": "670a48a8dfab56f04cf0ed2305dbc04bdf11c5b4"
+    },
+    {
+      "path": ".github/workflows/hypr-rdp-deb.yml",
+      "sha": "283b6f9c4d7c3c6c8d1830223747776a602d9ae4"
+    },
+    {
+      "path": ".github/workflows/lint.yml",
+      "sha": "bae345877f37a807534707ff0a8aa2bfb36468a7"
+    },
+    {
+      "path": ".github/workflows/pins.yml",
+      "sha": "399c47c832045085eac2c096341fddfb6cc16b5c"
+    },
+    {
+      "path": ".gitignore",
+      "sha": "f00e367356225d2d9871ee6601142715a73b7d85"
+    },
+    {
+      "path": ".luacheckrc",
+      "sha": "4e32f9fc5fc2a657654cfb569b039cba9b0e82a2"
+    },
+    {
+      "path": "README.md",
+      "sha": "3507adec822d286965d4763afb824ae6de99341e"
+    },
+    {
+      "path": "dagger.json",
+      "sha": "ae61bfe404c58574c6e4aa9701778c45440135b6"
+    },
+    {
+      "path": "deploy.py",
+      "sha": "a0de4d6239a70c0e40dc1669a17f229889685ff2"
+    },
+    {
+      "path": "docs/away-lock.md",
+      "sha": "cd1aa338765ca12ef0abe535ae9256a4f73cdb44"
+    },
+    {
+      "path": "docs/layout-golden.png",
+      "sha": "01aa7213a5c7e10e70a5c23f0b81146be8ae3b26"
+    },
+    {
+      "path": "docs/night-dark.png",
+      "sha": "a6edd48dd75c4f77b0c8b97e6820eaadbe916074"
+    },
+    {
+      "path": "docs/night-green.png",
+      "sha": "494b1e158859a42017659ec65c1325d4ab637322"
+    },
+    {
+      "path": "docs/screenshot.png",
+      "sha": "c08c5aa9e330bbf14f4d02e7f4ed46019ae60d5f"
+    },
+    {
+      "path": "docs/terminal-themes.png",
+      "sha": "350f3ca6f52dec492c05e0b9b63041cf416cdae3"
+    },
+    {
+      "path": "files/applications/foot-server.desktop",
+      "sha": "83f2201ca377348e9546822aff00afeef1a4f921"
+    },
+    {
+      "path": "files/applications/footclient.desktop",
+      "sha": "fc5d2cd9862ec02873ac3547eb387057e30490cd"
+    },
+    {
+      "path": "files/applications/hypr-licenses.desktop",
+      "sha": "61340075d3c7834b6af17734c61727650cbebf45"
+    },
+    {
+      "path": "files/applications/nedit.desktop",
+      "sha": "d781d00bd888e16eeeb883aa1122be2f02865f59"
+    },
+    {
+      "path": "files/applications/terminator.desktop",
+      "sha": "0a843b48df35a1b8da1addbe693fa771450e7012"
+    },
+    {
+      "path": "files/applications/x3270.desktop",
+      "sha": "d9b8994197cdf17f2be240fd5e6a74e41efd04cc"
+    },
+    {
+      "path": "files/bash/grml.bash",
+      "sha": "5163aba4a8490d05fac1f95379a2085a73caf6c4"
+    },
+    {
+      "path": "files/bin/dev-disk-reclaim",
+      "sha": "f185bce7f01ceb31ffd3c30317a36d14c3d96398"
+    },
+    {
+      "path": "files/bin/hypr-agent-quota",
+      "sha": "10e0bfaf1fb90871c52ee5c61e6f6c3483c24160"
+    },
+    {
+      "path": "files/bin/hypr-appmenu",
+      "sha": "d00b518677eaad7c97bc5848155d39d596b08c0c"
+    },
+    {
+      "path": "files/bin/hypr-clip-bridge",
+      "sha": "5d33300e5716b6cc2d7d45f876ff46da14d61ebc"
+    },
+    {
+      "path": "files/bin/hypr-cliphist",
+      "sha": "274f4070f12dfabda6d1e9ca742c9051f7770db7"
+    },
+    {
+      "path": "files/bin/hypr-deco",
+      "sha": "25d56076c2248b0f230dc28151d066e4fa51baca"
+    },
+    {
+      "path": "files/bin/hypr-glass",
+      "sha": "16182426bf3fb09066a08fff7c7665c29528cf1a"
+    },
+    {
+      "path": "files/bin/hypr-kbd",
+      "sha": "93bdbf7f2fa00655bb2d894fb471ae456ee0cdcb"
+    },
+    {
+      "path": "files/bin/hypr-launch",
+      "sha": "cd05b59eb1bb7bb56d30fb598d0b1b5989f387d3"
+    },
+    {
+      "path": "files/bin/hypr-layout",
+      "sha": "80d7d148cb72d69f9eb546064b02ebe4b0fa8d0d"
+    },
+    {
+      "path": "files/bin/hypr-licenses",
+      "sha": "a7d9933fe2bc7d5707b098a62faa7bdc0eb445a3"
+    },
+    {
+      "path": "files/bin/hypr-nightmode",
+      "sha": "4a8435d86d6e91b92619ed15d102720d2ba94ffb"
+    },
+    {
+      "path": "files/bin/hypr-pin",
+      "sha": "af3ed3609df7631d1cc405681c36b7f551bcbbe1"
+    },
+    {
+      "path": "files/bin/hypr-shadow",
+      "sha": "3b7d43435157790e4fa5650539c015c34a27a0c2"
+    },
+    {
+      "path": "files/bin/hypr-sparkline",
+      "sha": "217939d4aff39d08cddd31c89d8cc37159ec28ad"
+    },
+    {
+      "path": "files/bin/hypr-term",
+      "sha": "4c0c3c475549fb4998873712f33e44d4cb4990d0"
+    },
+    {
+      "path": "files/bin/hypr-termtheme",
+      "sha": "de52dc0a78e2bd16ab9265fe23fc3c114297d3f7"
+    },
+    {
+      "path": "files/bin/hypr-xfonts",
+      "sha": "b58b022f3ce782380c6c2131089edb0e61f2788a"
+    },
+    {
+      "path": "files/foot/foot.ini",
+      "sha": "f3c63f271ebf45ad021514452cc038d3c721b72e"
+    },
+    {
+      "path": "files/foot/themes/cobalt.ini",
+      "sha": "1b3efc8082593e3c49ca5d78afe7e0042139d22a"
+    },
+    {
+      "path": "files/foot/themes/cream.ini",
+      "sha": "9cfd8bce37de1637eed715a19ce4ac05fb46c41e"
+    },
+    {
+      "path": "files/foot/themes/fixedsys.ini",
+      "sha": "92f587013112cebce846185a1525eaef7e82509b"
+    },
+    {
+      "path": "files/foot/themes/navy.ini",
+      "sha": "731aeae2ab2942d640a58e8e2711353689c9b535"
+    },
+    {
+      "path": "files/foot/themes/petrol.ini",
+      "sha": "901799a64183cefb2097b744db95e695cc4601ef"
+    },
+    {
+      "path": "files/fuzzel/fuzzel.ini",
+      "sha": "bae61a05757fbb30361929ca54e2530c556cca39"
+    },
+    {
+      "path": "files/ghostty/config.ghostty",
+      "sha": "6a2870dff96838f3b8d2553bf17611bc35c10cb3"
+    },
+    {
+      "path": "files/ghostty/themes/cobalt",
+      "sha": "f180204af5b08a718ec8c69f28d253578f92a660"
+    },
+    {
+      "path": "files/ghostty/themes/cobalt.css",
+      "sha": "61ce385f05a89af8fed8cdfb5babac9faab0ea33"
+    },
+    {
+      "path": "files/ghostty/themes/cream",
+      "sha": "f499e6361d815860aff7d94e474897cb6d9e27ea"
+    },
+    {
+      "path": "files/ghostty/themes/cream.css",
+      "sha": "fd29535c570be40511ca20fabc7b7711884b7b19"
+    },
+    {
+      "path": "files/ghostty/themes/fixedsys",
+      "sha": "67317a0e03d3d79007bc3f1d9802e0a90ef1192d"
+    },
+    {
+      "path": "files/ghostty/themes/fixedsys.css",
+      "sha": "c96fa14b866c3e4c99c43c915ff563b8926f8235"
+    },
+    {
+      "path": "files/ghostty/themes/navy",
+      "sha": "d3f63323640a259ebfd857dfaae03c6f5c7fb7a2"
+    },
+    {
+      "path": "files/ghostty/themes/navy.css",
+      "sha": "1eb604a80798c03de6c10371b54235465580a259"
+    },
+    {
+      "path": "files/ghostty/themes/petrol",
+      "sha": "ada400f39d6d0fa15a3260c1846f759d6f0d23d7"
+    },
+    {
+      "path": "files/ghostty/themes/petrol.css",
+      "sha": "602c10e5d4225bc0417a0e88e63941433f2ac20e"
+    },
+    {
+      "path": "files/gtk-3.0/gtk.css",
+      "sha": "060a94f39f5e26bfa973be1b4b35131fc411be0f"
+    },
+    {
+      "path": "files/htop/htoprc",
+      "sha": "fa945763be87c63cfb4df7300892c27b77a2ab74"
+    },
+    {
+      "path": "files/hypr-rdp/build.sh",
+      "sha": "1cf6112f7b365f60a1291dfe5e3950b28a4ce36b"
+    },
+    {
+      "path": "files/hypr-rdp/capture-pacing.patch",
+      "sha": "383c1e5b374d0e088ec6e186527050c33cb6a768"
+    },
+    {
+      "path": "files/hypr-rdp/clearcodec.patch",
+      "sha": "b95ec815f8318be89175493eaa6eff650bddd54e"
+    },
+    {
+      "path": "files/hypr-rdp/clipboard-diagnostics-retry.patch",
+      "sha": "f83135cb64abbee16a82091d1810a9f7f0d99207"
+    },
+    {
+      "path": "files/hypr-rdp/clipboard-request-timeout.patch",
+      "sha": "26006394a202b07f6bbcb6101ed651343a7e01e6"
+    },
+    {
+      "path": "files/hypr-rdp/hypr-rdp-cursor",
+      "sha": "01d513a4338bcc87bec60608abecac74807e110c"
+    },
+    {
+      "path": "files/hypr-rdp/hypr-rdp-modecache",
+      "sha": "3d7d52031f24c5163e057f15b2454d9265c88975"
+    },
+    {
+      "path": "files/hypr-rdp/hypr-rdp-modecache.service",
+      "sha": "f5af1bf27201a678959f164ac723521a52a66206"
+    },
+    {
+      "path": "files/hypr-rdp/hypr-rdp-session",
+      "sha": "fd59fdd63039885f88ee8ca4d40e7de9a1663ccc"
+    },
+    {
+      "path": "files/hypr-rdp/hypr-rdp-sessionwatch",
+      "sha": "8e1a8707ad7a45018a5f468446ac07b09f7afe85"
+    },
+    {
+      "path": "files/hypr-rdp/hypr-rdp-sessionwatch.service",
+      "sha": "bfb6ec2de12ca72e211cd0dbcd6fb398fa516734"
+    },
+    {
+      "path": "files/hypr-rdp/hypr-rdp.service",
+      "sha": "9244c1f54b56ef27c80aad8a389e29d395a86b2d"
+    },
+    {
+      "path": "files/hypr-rdp/ironrdp-planar.patch",
+      "sha": "982f2732ded07035d9f98d04ec7201389ec5cf92"
+    },
+    {
+      "path": "files/hypr-rdp/planar.patch",
+      "sha": "c80179af3c666586688df67f04b6bfb50b74f830"
+    },
+    {
+      "path": "files/hypr/aerosnap.lua",
+      "sha": "8987a51d2df8cff2bf5c9b69cc784061e03d0607"
+    },
+    {
+      "path": "files/hypr/autostart.lua",
+      "sha": "2b7189c9d42ef6f660717d4c562adb1ed7e9acc1"
+    },
+    {
+      "path": "files/hypr/bindings.lua",
+      "sha": "d21f82a44865273530143cb6899581e1d9f45ddd"
+    },
+    {
+      "path": "files/hypr/cursorzone.lua",
+      "sha": "0ac00f014bfea60521fb6fa5dd4a2aa66e7f38b9"
+    },
+    {
+      "path": "files/hypr/decorations.lua",
+      "sha": "961afc403fb4bb10e8bc72a954d454eefa0de260"
+    },
+    {
+      "path": "files/hypr/hyprland.lua",
+      "sha": "9c172e8ca42b1b63e2bcf0b36de71ed7f851082d"
+    },
+    {
+      "path": "files/hypr/hyprlock.conf",
+      "sha": "014c414ac062c83d6d297fb74b653002308a74df"
+    },
+    {
+      "path": "files/hypr/layouts.lua",
+      "sha": "4979853a7734d939180652ac55a91ca2d7c6f3e2"
+    },
+    {
+      "path": "files/hypr/looknfeel.lua",
+      "sha": "2b44c62582da1b865ebd753446733c4fd0b49ed2"
+    },
+    {
+      "path": "files/hypr/shaders/night-dark.glsl",
+      "sha": "b42ca62ce9fdab5a0bc3fccebc857410d55b601c"
+    },
+    {
+      "path": "files/hypr/shaders/night-green.glsl",
+      "sha": "b201008007b74e85c1b2f4a487a41e526f507f98"
+    },
+    {
+      "path": "files/libreoffice/debian-hypr.xcd",
+      "sha": "7c4a984f3d5baee5b01d1e644fe9400cdde0b0f6"
+    },
+    {
+      "path": "files/mako/config",
+      "sha": "da9126a97a573770a634194c87a85a83b615bd3b"
+    },
+    {
+      "path": "files/nvim/plugin/debian-hypr-theme.lua",
+      "sha": "f85b768ce4e95fc32a850db82971ea93db71cd7e"
+    },
+    {
+      "path": "files/sbin/hypr-away",
+      "sha": "26d2f1bdd1364232f71f465edafbe38bea2e050a"
+    },
+    {
+      "path": "files/snitchd/rules.toml",
+      "sha": "edc2fe274c42ad881b0efd31766a662d0dfe8c72"
+    },
+    {
+      "path": "files/snitchd/snitchd-trial-boot.service",
+      "sha": "ab99c46ef569c724d1b2fd83bbd9541768a78cd7"
+    },
+    {
+      "path": "files/snitchd/snitchd.service",
+      "sha": "41f08a0de919b2a52a231b9966a02e62046bfb8d"
+    },
+    {
+      "path": "files/sublime/debian-hypr-cobalt.sublime-color-scheme",
+      "sha": "7308f802405e23f443e339f686fad0eab8fbeb0a"
+    },
+    {
+      "path": "files/sublime/debian-hypr-cream.sublime-color-scheme",
+      "sha": "f09ecc20aa5607323ec336273cdd77e1d90d3915"
+    },
+    {
+      "path": "files/sublime/debian-hypr-fixedsys.sublime-color-scheme",
+      "sha": "37e12586fadf158c85b27509cf7ab78b5700a165"
+    },
+    {
+      "path": "files/sublime/debian-hypr-navy.sublime-color-scheme",
+      "sha": "bb820fefb03ab36b42279b39462e31e6238fe744"
+    },
+    {
+      "path": "files/sublime/debian-hypr-petrol.sublime-color-scheme",
+      "sha": "c718406e721cde45dfb3336dfc27ebce5aff057a"
+    },
+    {
+      "path": "files/system/90-net.conf",
+      "sha": "a2312a14d65e222b4ce66c6b85c97df148831220"
+    },
+    {
+      "path": "files/system/99-memory.conf",
+      "sha": "78bde239245044bb7f4f170d201ee7db45532e6e"
+    },
+    {
+      "path": "files/system/coredump.conf",
+      "sha": "d95af0dfe7072a01fb50a688b4df32ced7bd0819"
+    },
+    {
+      "path": "files/system/earlyoom",
+      "sha": "96bbe05375eba6988f73fbc44ef3a104bb8237a8"
+    },
+    {
+      "path": "files/system/journald.conf",
+      "sha": "e177bec098f9cee1118d76956ed258232e864e5e"
+    },
+    {
+      "path": "files/terminator/config",
+      "sha": "1dbc14b98c1272a2e93a010a7e517426d3deb91e"
+    },
+    {
+      "path": "files/terminator/plugins/theme_menu.py",
+      "sha": "30882861cc1f29f46729e9ff642341d2dea7b1cb"
+    },
+    {
+      "path": "files/themes/btop-cobalt.theme",
+      "sha": "ba7955b999a58d02c73653cac9dc184ed48f0680"
+    },
+    {
+      "path": "files/themes/btop-cream.theme",
+      "sha": "9fece6ac0236c25e07ee414f89d6b26abdc1853a"
+    },
+    {
+      "path": "files/themes/btop-fixedsys.theme",
+      "sha": "8924fe8897a8c103103fa6bec8b3637677821694"
+    },
+    {
+      "path": "files/themes/btop-navy.theme",
+      "sha": "3964da6e498674873c2ded9b0816c866b8caa111"
+    },
+    {
+      "path": "files/themes/btop-petrol.theme",
+      "sha": "b9323ed051c9aa4dff69ffa7f2c1a1422ebcba95"
+    },
+    {
+      "path": "files/themes/chromium-policy.json",
+      "sha": "8a3e6babd3b7009eed56cb3d025003c7f4bbd177"
+    },
+    {
+      "path": "files/themes/claude-cobalt.json",
+      "sha": "efc3eaaa8e079120f84c0b9d5b6ad9b110504511"
+    },
+    {
+      "path": "files/themes/claude-cream.json",
+      "sha": "8298fef98aaafa438c675786b00dbd8580be5463"
+    },
+    {
+      "path": "files/themes/claude-fixedsys.json",
+      "sha": "3fd940b1703560deec2dcc7f2ee30d4a1cae2c30"
+    },
+    {
+      "path": "files/themes/claude-navy.json",
+      "sha": "2355bb161abaa4c352b3a4553612e64dd5a4c046"
+    },
+    {
+      "path": "files/themes/claude-petrol.json",
+      "sha": "dfea19477df6a3ad05beaeea721cdcc728a67df1"
+    },
+    {
+      "path": "files/vscode/debian-hypr-themes/package.json",
+      "sha": "e8e9f12ce6045a83ff6d034f2ff3f02ae538c6b9"
+    },
+    {
+      "path": "files/vscode/debian-hypr-themes/themes/cobalt-color-theme.json",
+      "sha": "0fb41dea71e58e1889bcda2866bb0d96e6067b73"
+    },
+    {
+      "path": "files/vscode/debian-hypr-themes/themes/cream-color-theme.json",
+      "sha": "49de33006ef87e286d02d60b2fb8bcfb73c18d3a"
+    },
+    {
+      "path": "files/vscode/debian-hypr-themes/themes/fixedsys-color-theme.json",
+      "sha": "02ece5321f8890c454e701a42eff94dd2b39cad3"
+    },
+    {
+      "path": "files/vscode/debian-hypr-themes/themes/navy-color-theme.json",
+      "sha": "dbf6cccd847e6b04bd8eb785243c12d7578000e6"
+    },
+    {
+      "path": "files/vscode/debian-hypr-themes/themes/petrol-color-theme.json",
+      "sha": "7bbe92636faddf7056e7ffb53a3ec1ede8ea04e1"
+    },
+    {
+      "path": "files/waybar/power.png",
+      "sha": "85c15738dd4125bc571cf60a7dd47d0415b192f4"
+    },
+    {
+      "path": "files/waybar/style.css",
+      "sha": "8d52383e490a1208a0b44869d94c84d711c5e8c3"
+    },
+    {
+      "path": "files/x11/Xdefaults",
+      "sha": "dc6c26bb3e46d15a820dfebd81d97480b512d216"
+    },
+    {
+      "path": "files/x11/x3270pro",
+      "sha": "a0f282e3c4b60b4f9bba26396140b341d8e7496c"
+    },
+    {
+      "path": "files/xdg-terminals.list",
+      "sha": "042372fdc57a7348ff871f290883bde8dfd035a6"
+    },
+    {
+      "path": "files/xfe/xferc",
+      "sha": "d0f99f00df43e57909a702623ebc46fb500c24f5"
+    },
+    {
+      "path": "group_data/all.py",
+      "sha": "1e032b25e99104655931f4199fb55974a65ae598"
+    },
+    {
+      "path": "inventory.py",
+      "sha": "77ad4c5b60cdbebe10743f178794b82e059d628d"
+    },
+    {
+      "path": "private.example/fonts/README.txt",
+      "sha": "e9043e365425a9015f6f7c2cc987b3979a4004d9"
+    },
+    {
+      "path": "private.example/licenses.toml",
+      "sha": "5f85b66c38a4a968e58d6ccc40ce5b21842a46da"
+    },
+    {
+      "path": "private.recipients",
+      "sha": "132a264ec1ea86c4ab0e38fcea5fc9a5e6462002"
+    },
+    {
+      "path": "private.tar.age",
+      "sha": "84f2a8bda5bccfd021b933471dae1fc0d3aa3dae"
+    },
+    {
+      "path": "privdata.py",
+      "sha": "28f23fc95ff3ca9311b9540383ffa88f531f1423"
+    },
+    {
+      "path": "pyproject.toml",
+      "sha": "7b0398ba35fd79a9a094e3801e6aa17bb5c99d47"
+    },
+    {
+      "path": "tasks/apps.py",
+      "sha": "c15f7fc20174bc255a34483d15c41fee70d9c2e8"
+    },
+    {
+      "path": "tasks/apt_forky.py",
+      "sha": "f3baeba1ef883aac2270e52584cb07649d081b1c"
+    },
+    {
+      "path": "tasks/autologin.py",
+      "sha": "7a4883033c143a4a7b88283e2b695d1ebb28a7ad"
+    },
+    {
+      "path": "tasks/away.py",
+      "sha": "78574a02de2885fd9fc821c069f7dff10291828b"
+    },
+    {
+      "path": "tasks/base.py",
+      "sha": "0abc3ec5feb071ebcafbcd7ad9d452875c650158"
+    },
+    {
+      "path": "tasks/containers.py",
+      "sha": "ed993e379e8534c08ee4f82ff0410364d0d2bb48"
+    },
+    {
+      "path": "tasks/desktop.py",
+      "sha": "f74fc7b12b6950de73abf60ccea3aab48712e042"
+    },
+    {
+      "path": "tasks/fonts.py",
+      "sha": "55893fa7efedc97f2d979fb4a1400eee70ae5c78"
+    },
+    {
+      "path": "tasks/hypr_rdp.py",
+      "sha": "1d6d0f6ddc68b145c6eeda72ffd817fb7ad0094c"
+    },
+    {
+      "path": "tasks/memory.py",
+      "sha": "f91e2f8a7ad35562de5076a41de31a24ac0119d7"
+    },
+    {
+      "path": "tasks/private.py",
+      "sha": "7a48b8dcd7a28d05898d9ec98c408c85d2c748d4"
+    },
+    {
+      "path": "tasks/services.py",
+      "sha": "5bca03ee8eec7bec0fe7acdba9d87e91673ff3ef"
+    },
+    {
+      "path": "tasks/shell.py",
+      "sha": "0b1332f99c0a928731de910de5ecb5dc8b16cd86"
+    },
+    {
+      "path": "tasks/snitchd.py",
+      "sha": "8a8c20b21e187b04e2159ea9c2fb8df9a5ada213"
+    },
+    {
+      "path": "tasks/themes.py",
+      "sha": "227b1c8e1144c8a5556e6c69a5561a6755d78024"
+    },
+    {
+      "path": "tasks/tuning.py",
+      "sha": "74e4433084cf039287eb7da0052231bdf1722589"
+    },
+    {
+      "path": "tasks/user_tools.py",
+      "sha": "f880044c4485f0e570544e2c118116ee0f39f5aa"
+    },
+    {
+      "path": "templates/fontconfig/fonts.conf.j2",
+      "sha": "b4b8c15e4853a173447ebca6150aea03d6198c8b"
+    },
+    {
+      "path": "templates/gtk-3.0/settings.ini.j2",
+      "sha": "9ccaa152c028003b411a0e3834edc2ec60c4f949"
+    },
+    {
+      "path": "templates/hypr-rdp/config.toml.j2",
+      "sha": "d9885ded45c6bf932973f10e6398f08182ecbd26"
+    },
+    {
+      "path": "templates/hypr-rdp/hypr-rdp.service.j2",
+      "sha": "a42225740b17e0a85a03269b0779c9b0ccdfebe6"
+    },
+    {
+      "path": "templates/hypr/input.lua.j2",
+      "sha": "4ea92e793696b03b6dc7c9a606180561d8838e2a"
+    },
+    {
+      "path": "templates/hypr/monitors.lua.j2",
+      "sha": "a346a3786c53ae29df2d36e194188fde89a707f4"
+    },
+    {
+      "path": "templates/waybar/config.jsonc.j2",
+      "sha": "86cfbbfa3b843c1d8a4c5c2573b275d3a91e1037"
+    },
+    {
+      "path": "tools/hostcolor.py",
+      "sha": "6316f7360ea8e6118c4b9dcfa80c418c6c4a3a55"
+    },
+    {
+      "path": "tools/pin-bump.py",
+      "sha": "05320967d8df965d786d09c543c5914994d4b60e"
+    },
+    {
+      "path": "tools/pin-check.py",
+      "sha": "98f05089f4075a14cbafa2d47288ff62aeb594cb"
+    },
+    {
+      "path": "tools/themegen.py",
+      "sha": "fbe97c52403b5a8053c75c8501a2fa4d24066175"
+    },
+    {
+      "path": "tools/vscodetheme.py",
+      "sha": "a8a9e72f25b1df02e4739ad8cdf112d1c40d12c3"
+    },
+    {
+      "path": "uv.lock",
+      "sha": "d46653d4033722cc0dea7ed6d27942b5b6908cb1"
+    }
+  ],
+  "inspected": [
+    "README.md",
+    "deploy.py",
+    "group_data/all.py",
+    "tasks/apps.py",
+    "tasks/apt_forky.py",
+    "tasks/autologin.py",
+    "tasks/away.py",
+    "tasks/base.py",
+    "tasks/containers.py",
+    "tasks/desktop.py",
+    "tasks/fonts.py",
+    "tasks/hypr_rdp.py",
+    "tasks/memory.py",
+    "tasks/private.py",
+    "tasks/services.py",
+    "tasks/shell.py",
+    "tasks/snitchd.py",
+    "tasks/themes.py",
+    "tasks/tuning.py",
+    "tasks/user_tools.py",
+    "files/hypr/hyprland.lua",
+    "files/hypr/decorations.lua",
+    "files/hypr/autostart.lua",
+    "templates/waybar/config.jsonc.j2",
+    "files/hypr-rdp/build.sh"
+  ]
+}

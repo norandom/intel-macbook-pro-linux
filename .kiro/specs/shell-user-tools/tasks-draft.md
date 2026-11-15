@@ -1,0 +1,166 @@
+# Implementation Plan
+
+All checkboxes describe future implementation. No deployment or physical-host acceptance is performed by this specification. Each executable unit targets 1–3 hours; exact third-party lock review may expose a blocked capability, which must be represented rather than bypassed. Sequential ordering is intentional because several components publish into the same user home/runtime; isolated fixture checks may run concurrently.
+
+- [ ] 1. Establish reviewed inputs and prerequisite gates
+- [ ] 1.1 Validate feature selection, source ownership and execution readiness
+  - Add the optional feature manifest and typed capability/status validation against exact foundation APIs and application report schema.
+  - Reject unknown IDs, conflicting ownership, stale executable assumptions, protected paths and unknown package scripts/triggers; do not add new foundation installer APIs.
+  - Provide disposable-home fixtures and snapshot assertions without host mutation.
+  - Completion is visible when preview lists all P10–P13 capability selections and rejects prohibited/native-hook conflicts without changing managed files.
+  - _Boundary: FeatureEntry_
+  - _Requirements: 3.4, 6.1, 6.2, 7.1, 7.2, 7.3_
+- [ ] 1.2 Capture user configuration and implement scoped recovery state
+  - Capture owned path metadata, unique backups, selected runtime/package identity and prior user unit state without credentials/history contents.
+  - Preserve foundation/resource/theme files, unmanaged skills/tools and all protected boot/storage state.
+  - Add restore conflict detection and repeat-apply checks; packages and irreversible cache deletions are not silently rolled back.
+  - Completion is visible when original shell/editor fixtures restore exactly, later edits block replacement, and no protected or unrelated path is written.
+  - _Boundary: FeatureEntry_
+  - _Requirements: 2.3, 6.1, 6.3, 6.4, 7.1, 7.2_
+- [ ] 1.3 Prepare immutable editor and plugin inputs
+  - Review the pinned nvim-simple tree and choose exact vim-plug/five-plugin commits/digests with tested Neovim prerequisites.
+  - Patch only bootstrap/plugin resolution needed to eliminate moving first-launch downloads; preserve source CUA/menu/Berg behavior.
+  - Capture immutable inputs and expected APIs in the editor lock; reject unavailable pins or incompatible installed editor before publication.
+  - Completion is visible when all editor input records validate and an offline staging fixture refuses any missing artifact.
+  - _Boundary: EditorTools_
+  - _Requirements: 2.1, 2.2, 2.4, 2.5_
+- [ ] 1.4 Prepare immutable npm, Python and agent skill inputs
+  - Resolve selected source tools to exact reviewed registry/dependency integrity records and review install scripts against protected-system policy.
+  - Validate foundation nvm prefix/runtime and existing uv; capture euporie/kernel versions and a pinned skills CLI plus immutable pretty-mermaid revision.
+  - Produce blocked results for missing integrity, unavailable versions or incompatible runtime without falling back to moving installs.
+  - Completion is visible when the selected package lock passes fixture validation and no source prefix rewrite or new uv installer is present.
+  - _Boundary: DeveloperTools_
+  - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5, 6.2_
+- [ ] 1.5 Prepare verified Safe Chain prerequisites
+  - Download only into isolated staging during implementation intake, verify the source-pinned release installer digest, exact binary version/digest and generated wrapper files against reviewed tag source.
+  - Validate noninteractive protected invocation and nvm/uv resolution; never run upstream setup/uninstall against the owner's profiles.
+  - Preserve conflicting wrapper functions and report unsupported or unverified coverage before installation.
+  - Completion is visible when exact protection records are ready or explicitly blocked; unknown release/wrapper behavior prevents selected application.
+  - _Boundary: DeveloperTools_
+  - _Requirements: 3.4, 4.1, 4.2, 6.1, 6.2_
+- [ ] 1.6 Prepare ax and isolated Go build prerequisites
+  - Review Go1.27.2 acquisition and ax v0.3.1 module/build inputs using app-owned Go and private caches.
+  - Validate declared minimum toolchain, selected module integrity and download destination without clearing shared Go caches.
+  - Reject unavailable or unreviewed toolchain inputs rather than change kernel/build support or silently fetch latest.
+  - Completion is visible when exact build records validate or selected ax is blocked with a specific prerequisite reason.
+  - _Boundary: DeveloperTools_
+  - _Requirements: 3.4, 4.5, 6.1, 6.2_
+
+- [ ] 2. Deliver source shell and editor behavior
+- [ ] 2.1 Port interactive Bash/readline/history fragments
+  - Preserve source prompt, aliases, helper functions, bounded directory stack and history/readline settings with repeated-source safety and scalar/array prompt-hook preservation.
+  - Keep prior command status, unrelated user configuration and PATH; isolate interactive behavior and conditionally source resource-owned turbo aliases without changing turbo state.
+  - Gate graphical keyboard aliases on current Hyprland/helper availability while preserving German Mac/Option+L/source Super behavior; KDE commands remain native.
+  - Completion is visible in disposable Bash/readline tests for history keys, prompt failure status, repeated source, missing turbo and quiet noninteractive execution.
+  - _Boundary: ShellExperience_
+  - _Depends: 1.1, 1.2_
+  - _Requirements: 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 6.1, 6.3_
+- [ ] 2.2 Publish tested simple-editor base without disturbing theme ownership
+  - Stage selected source configuration and all locked plugins in an isolated XDG home and run bounded headless initialization with error detection.
+  - Validate CUA/F10/F2/F3/F4/tab/menu/Berg APIs and ensure no first-launch network fetch.
+  - Publish per-file with unique backups and explicit theme-plugin exclusion; retain unrelated Lazy/Mason/data and refuse unsafe inseparable conflicts.
+  - Completion is visible when successful staging publishes a working base, failed/timeout/offline fixtures preserve the prior config, and theme-owned plugin bytes survive update/restore.
+  - _Boundary: EditorTools_
+  - _Depends: 1.2, 1.3_
+  - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5, 6.3, 6.4_
+
+- [ ] 3. Deliver selected developer tools and completions
+- [ ] 3.1 Activate reviewed package-manager protection
+  - Install only verified staged Safe Chain-owned binary/wrapper files and expose controlled Bash integration without upstream live profile edits.
+  - Preserve conflicting wrappers and nvm runtime choice; validate supported manager verify commands plus explicit noninteractive protected paths.
+  - Report selected protection failure without executing the affected install unprotected; do not imply all absolute subprocesses are protected.
+  - Completion is visible when wrapper/runtime/conflict fixtures pass and a failed verification blocks protected package installation.
+  - _Boundary: DeveloperTools_
+  - _Depends: 1.4, 1.5, 2.1_
+  - _Requirements: 4.1, 4.2, 6.1, 6.3, 7.2_
+- [ ] 3.2 Install selected nvm user CLI packages
+  - Provision pnpm, Copilot, Codex and ccusage at reviewed exact versions through the selected Node runtime and verified protection when requested.
+  - Verify package versions and executable resolution within nvm's prefix; avoid sudo, `.npmrc` writes and other Node package sets.
+  - Leave authentication to native manual login; remove the source gh-token startup behavior from the port.
+  - Completion is visible when disposable-runtime tests resolve every selected executable correctly and prefix or protection conflicts fail before installation.
+  - _Boundary: DeveloperTools_
+  - _Depends: 1.4_
+  - _Requirements: 3.1, 3.4, 3.5, 4.2, 6.3_
+- [ ] 3.3 Install the isolated notebook and kernel environment
+  - Create the selected uv euporie/ipykernel tool environment without modifying system Python or the repository environment.
+  - Verify the executable kernel inside euporie's environment and preserve old environments on dependency failure.
+  - Keep authentication manual and record only non-sensitive status/evidence.
+  - Completion is visible when a minimal notebook executes in euporie's kernel and failure fixtures preserve unrelated state.
+  - _Boundary: DeveloperTools_
+  - _Depends: 1.2, 1.4_
+  - _Requirements: 3.2, 3.4, 3.5, 6.3, 6.4_
+- [ ] 3.4 Install the reviewed agent skill without changing other agent state
+  - Stage pretty-mermaid with the locked installer and immutable skill revision.
+  - Validate skill contents and publish only the owned skill directory, preserving all other skills/configuration.
+  - Report conflicts or failed installer behavior without claiming a successful skill install.
+  - Completion is visible when skill-conflict/dependency-failure fixtures retain unrelated state and successful staging publishes validated SKILL.md.
+  - _Boundary: DeveloperTools_
+  - _Depends: 1.2, 1.4_
+  - _Requirements: 3.3, 3.4, 3.5, 6.3, 6.4_
+- [ ] 3.5 Build and publish selected ax without shared cache deletion
+  - Use reviewed app-owned Go/toolchain inputs, source module pin, staging destination and private module/build caches.
+  - Validate build metadata/version and advertised completion API before replacing only the owned user executable.
+  - Reject unreviewed toolchain downloads and retain preexisting binaries on build failure.
+  - Completion is visible when ax build/version/completion checks pass and shared Go-cache fixtures remain unchanged.
+  - _Boundary: DeveloperTools_
+  - _Depends: 1.2, 1.6_
+  - _Requirements: 3.4, 4.5, 6.3, 6.4_
+- [ ] 3.6 Generate completions from the actual available providers
+  - Resolve app-owned kubectl/helm/gh/rc and selected ax, invoke each verified completion command, syntax-check staged output and publish only owned files.
+  - Bind kubectl alias k only with the matching provider function; preserve unrelated completion files and disable stale owned output after provider failure.
+  - Keep unverified uutils PATH profile explicitly disabled rather than assume the Debian path exists.
+  - Completion is visible when success, missing binary, malformed output and failing provider fixtures produce accurate results without partial files.
+  - _Boundary: ShellExperience_
+  - _Depends: 3.2, 3.5_
+  - _Requirements: 1.3, 4.3, 4.4, 6.3, 7.2_
+
+- [ ] 4. Deliver explicit optional profiles
+- [ ] 4.1 Add safe owner-configured cloud mount units
+  - Validate selected remote IDs, safe empty non-symlink home mountpoints, application rclone path, FUSE3 and user-manager prerequisites without reading credentials into reports.
+  - Render escaped user units with explicit cache/config paths, source VFS bounds and bounded pending/failure behavior.
+  - Activate only eligible selected units and verify actual mounted state; preserve mount data and prior units during recovery.
+  - Completion is visible when user-unit verification and malformed-path/missing-remote/FUSE/bus/nonempty-target fixtures pass without invalid restart loops.
+  - _Boundary: OptionalTools_
+  - _Depends: 1.1, 1.2_
+  - _Requirements: 5.1, 5.2, 6.1, 6.3, 6.4, 7.2_
+- [ ] 4.2 Port report-only cache helper and opt-in reporting timer
+  - Replace actual source delete defaults with dry-run behavior, bounded validated user apply actions and a private apply-only lock.
+  - Exclude all privileged/autoremove, container data, general tmp, browser, project, agent, mount and protected boot/storage deletion branches.
+  - Provide the source schedule only as an explicitly selected report timer; avoid any scheduled destructive command.
+  - Completion is visible when default and timer fixtures change no filesystem state, allowed apply actions stay within canonical cache bounds, and unsafe flags/paths fail.
+  - _Boundary: OptionalTools_
+  - _Depends: 1.2_
+  - _Requirements: 5.3, 5.4, 6.1, 6.4, 7.1, 7.2_
+- [ ] 4.3 Stage and validate selected Quarto Python environment
+  - Require application-owned Quarto and explicit selection, validate source Python pins against interpreter/full dependency lock and stage before publishing.
+  - Export Python selection only for a validated environment and preserve a working environment on render/kernel failure.
+  - Keep hostname roles and global/system Python outside this profile.
+  - Completion is visible when a minimal render/kernel check succeeds and dependency/render failure fixtures preserve old state.
+  - _Boundary: OptionalTools_
+  - _Depends: 1.2_
+  - _Requirements: 3.4, 5.5, 6.1, 6.3, 6.4_
+- [ ] 4.4 Gate optional TinyTeX on reviewed immutable inputs
+  - Require application-owned Quarto and explicitly selected TinyTeX separately from the Python profile.
+  - Validate the selected installer's immutable distribution/dependencies and destinations before any download; preserve an existing installation with conflict reporting.
+  - Block unreviewed TeX distribution downloads instead of substituting a moving install route.
+  - Completion is visible when immutable inputs either pass staged install/render validation or return blocked with a precise reason; existing TinyTeX remains unchanged on failure.
+  - _Boundary: OptionalTools_
+  - _Depends: 1.2_
+  - _Requirements: 3.4, 5.5, 6.1, 6.3, 6.4_
+
+- [ ] 5. Integrate and validate optional feature execution
+- [ ] 5.1 Integrate feature ordering, shell publication and recovery
+  - Wire reviewed operations through the optional entry point with shell loader publication last, exact upstream APIs and no root orchestration edits.
+  - Verify foundation marker/order and theme/turbo ownership contracts across success, partial apply and restore.
+  - Report installed/configured/authenticated/running states separately; represent pending prerequisites as blocked plus reason/evidence and return nonzero for failed required selections.
+  - Completion is visible when full disposable-home preview/apply/reapply/restore exercises all components, unchanged second apply has no writes and partial failures remain failures.
+  - _Boundary: FeatureEntry, ShellExperience, EditorTools, DeveloperTools, OptionalTools integration_
+  - _Depends: 2.1, 2.2, 3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 4.1, 4.2, 4.3, 4.4_
+  - _Requirements: 1.3, 2.3, 4.2, 6.1, 6.2, 6.3, 6.4, 7.1, 7.2, 7.3_
+- [ ] 5.2 Implement repeatable session and preservation acceptance checks
+  - Add integration checks for fresh-shell nvm/tools/protection/completions, editor keymaps/clipboard capability and notebook kernel while preserving all managed/unrelated baseline hashes.
+  - Add explicit pending gates for live KDE/Hyprland keys/clipboard, optional mounts, T2 mic/audio/camera/touch-bar/input and suspend; unavailable session access cannot produce a passing runtime claim.
+  - Assert rejection of prohibited packages, protected installs/upgrades/replacements/hooks, source autoremove and all forbidden boot/storage writes in plan fixtures.
+  - Completion is visible when automated checks distinguish fixture/static evidence from pending physical verification and forbidden-effect fixtures fail before mutation.
+  - _Boundary: FeatureEntry integration validation_
+  - _Requirements: 1.6, 2.2, 2.5, 3.2, 4.1, 4.3, 5.2, 5.4, 5.5, 6.1, 6.2, 7.3_

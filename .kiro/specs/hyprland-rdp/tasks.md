@@ -1,0 +1,99 @@
+# Implementation Plan
+
+All tasks are unchecked implementation work. Batch fast-track approval concerns this plan only. Native0.53 compatibility remains pending; failed runtime gates must persist exact blockers rather than introduce builds or version changes. Sequential plan: shared session/config/evidence contracts make concurrent work unnecessary. Each executable task is intended as a bounded1–3 hour unit.
+
+- [ ] 1. Establish verified release and protected dependency planning
+- [ ] 1.1 Capture the maintainer artifact pin and safe archive verification
+  - Record upstream version/URL/size/digest and source dispositions; verify digest and safe members before isolated extraction.
+  - Corrupt archives, escaping links, unexpected payload and wrong architecture are rejected in fixtures before execution or installation.
+  - _Boundary: ReleaseArtifact_
+  - _Requirements: 1.1, 1.3_
+- [ ] 1.2 Inspect actual runtime ABI and guarded dependency closure
+  - Resolve executable interpreter, required libraries and symbol versions from verified ELF metadata against target facts without executing an untrusted binary.
+  - Use foundation package/transaction hooks protection; missing/unknown protected effects, T2 removal and forbidden routes produce blocked plans.
+  - Verification report distinguishes metadata, artifact checks and unresolved native compatibility; preview writes nothing.
+  - _Boundary: ReleaseArtifact_
+  - _Requirements: 1.1, 1.2, 1.3, 5.1_
+- [ ] 2. Prepare private configuration and recoverable feature state
+- [ ] 2.1 Validate authenticated configuration and supported options
+  - Require explicit exposure/TLS identity, configured username/private password file and secret-free diagnostics; no PAM/system-auth mutation.
+  - Render compositor keyboard policy, mirror/off audio and supported capture/codec/file directions; file transfer stays off until optional gates pass.
+  - Fixtures reject missing/invalid credentials, unsafe secret ownership, unsupported modes and redirect audio; prepared unit remains disabled.
+  - _Boundary: RdpConfiguration_
+  - _Requirements: 2.1, 2.2, 2.3, 4.2, 4.3, 4.4, 4.5_
+- [ ] 2.2 Preserve ownership receipts and restoration conflicts
+  - Record feature-local prior/installed digests, explicit adoption and backups, including root-owned additive release files without secrets.
+  - Restoration touches matching owned files only; edited files remain reported conflicts and no package/boot rollback occurs.
+  - Fixtures verify repeat apply and restore preserve unowned files, protected state and user changes.
+  - _Boundary: RdpProvision_
+  - _Requirements: 5.1, 5.2_
+- [ ] 3. Attach only to a selected live desktop
+- [ ] 3.1 Validate desktop identity and activation evidence
+  - Consume exact desktop status schema1, matching uid/signature/ready/socket liveness and only the selected environment.
+  - Expose validate/start/stop/status/diagnose with explicit instance selection, exits0/1/2 and structured success/pending/error reasons as designed.
+  - Define capability evidence keyed by artifact/dependency/desktop/config/client identity, with separate passed/failed/pending checks and invalidation.
+  - Fixtures prove stale/wrong-user/ambiguous/KDE contexts cannot start RDP and missing evidence cannot become runtime success.
+  - _Boundary: RdpStart, CompatibilityGate integration_
+  - _Requirements: 1.2, 3.1, 3.4, 6.2, 6.3_
+- [ ] 3.2 Bind service lifecycle to the selected desktop target
+  - Add RDP-only unit/control wrappers using desktop target PartOf/After/Requisite, explicit start and bounded revalidated restart.
+  - Terminate selected server activity on compositor stop/failure; configuration changes report reconnect-required without automatic disruption. Hook reconciliation is connected and asserted in task5 after hooks exist.
+  - Unit fixtures show no graphical-session enablement, Plasma activation, unrelated-session changes or secret environment publication.
+  - _Boundary: RdpStart_
+  - _Requirements: 2.1, 3.1, 3.3, 3.4, 5.3_
+- [ ] 4. Reconcile supported session hooks without VM policy
+- [ ] 4.1 Make authenticated hook handling bounded and idempotent
+  - Use current upstream start/end commands with fixed trusted helper paths, own deadlines, per-run tokens and serialized private state.
+  - Remove source journal watcher/mode polling assumptions; duplicate/reordered/replacement/timeout events are tested without stale-session actions.
+  - Hook tests show physical display/input/lock state remain unchanged; no unlock, cursor-global hiding, source away or journal-group changes are introduced.
+  - _Boundary: SessionHooks_
+  - _Requirements: 2.3, 3.2, 3.3, 4.1_
+- [ ] 4.2 Reconcile remote output and audio cleanup
+  - Track observed port-owned output state and preserve physical outputs; leave topology/removal window-placement recovery to desktop. Use bounded read-only selected-instance native0.53 `clients`/`monitors` observations before/after remote-output removal for diagnostic/assertion evidence, with a finite settling deadline. Missing worker/session, invalid/unavailable observations or lost identity leave affected acceptance pending; an observed recovery failure is reported as failed. Do not consume private worker state, invent a snapshot API, dispatch window moves/resizes or add a placement poller.
+  - Preserve local audio/microphone policy using mirror/off; restore only matching RDP-owned changes and respect concurrent user route changes.
+  - Failure/stop/reconnect fixtures show cleanup is scoped and repeatable without source Lua or VM hardware assumptions; read-only observation fixtures cover recovery, failed recovery and pending prerequisites without any window mutation.
+  - _Boundary: SessionHooks_
+  - _Requirements: 3.2, 3.3, 4.1, 4.2_
+- [ ] 5. Integrate guarded optional provisioning
+  - Connect artifact verification, reviewed dependency plan, private config/receipt generation and units through the optional feature entry without shared root deploy edits.
+  - Apply installs only validated owned files and leaves listener disabled; preview performs no downloads, writes or service actions.
+  - Integration fixtures reject protected hooks/packages, unowned conflicts and active-client automatic restart, while repeat apply remains stable. Selected-target stop/server-failure tests assert integrated hook reconciliation now that hooks exist.
+  - _Boundary: RdpProvision integration_
+  - _Depends: 1.2, 2.1, 2.2, 3.2, 4.2_
+  - _Requirements: 1.1, 1.2, 1.3, 2.1, 2.3, 5.1, 5.2, 5.3_
+- [ ] 6. Establish opt-in native and client compatibility gates
+- [ ] 6.1 Add bounded native diagnostic execution and evidence generation
+  - Require validated selected session/auth/TLS and explicit diagnosis; run loopback only and always stop/reconcile while normal activation stays gated.
+  - Collect protocol/registry/dependency/config/client facts into identity-keyed capability evidence, preserving failed/pending reasons.
+  - Missing runtime/client/GPU-unit facts produce explicit pending acceptance; stale evidence cannot enable normal exposure.
+  - _Boundary: CompatibilityGate integration_
+  - _Depends: 1.2, 3.1, 3.2, 4.2, 5_
+  - _Requirements: 1.2, 1.3, 2.1, 3.1, 6.2, 6.3_
+- [ ] 6.2 Exercise authenticated capture, encoding and connection lifecycle
+  - Add opt-in loopback/client checks for actual capture/input/headless-output/mode/codec capabilities and valid/invalid authentication.
+  - Exercise resize, replacement/reconnect, lock/local-output preservation and selected-target exit using diagnostic execution from6.1.
+  - Emit exact native0.53 evidence or blocker;0.54 documentation discrepancy remains visible and no version/build fallback exists.
+  - _Boundary: CompatibilityGate integration_
+  - _Depends: 6.1_
+  - _Requirements: 1.2, 1.3, 2.2, 3.1, 3.2, 3.3, 4.1, 4.5, 6.2, 6.3_
+- [ ] 6.3 Exercise remote keyboard, clipboard and optional file transfer
+  - Add opt-in client checks for German Mac Option+L, source Super/de-us switching, text/image clipboard and selected file directions without deleting source files.
+  - Treat absent FUSE/client capability as pending and never load/rebuild kernel modules; independently gate optional file settings.
+  - Report passed/failed/pending per input/clipboard/file direction against the exact diagnostic identity and selected compositor keymap.
+  - _Boundary: CompatibilityGate integration_
+  - _Depends: 6.1, 6.2_
+  - _Requirements: 4.3, 4.4, 6.2, 6.3_
+- [ ] 6.4 Exercise local T2 audio preservation through remote lifecycle
+  - Add opt-in mirror/off checks of route/speaker/microphone preservation during connect, disconnect and server failure, with no redirect or audio-stack changes.
+  - Verify user-initiated route changes survive cleanup; actual live buses/hardware/client observations remain distinct from fixture evidence.
+  - Report unavailable live hardware/client/GPU-unit evidence pending rather than claiming local T2 acceptance.
+  - _Boundary: CompatibilityGate integration_
+  - _Depends: 4.2, 6.1, 6.2_
+  - _Requirements: 4.1, 4.2, 6.2, 6.3_
+- [ ] 7. Assemble final port validation without absorbing producer work
+  - Implement P23 checklist ingestion of explicit producer evidence for desktop/decorations/widgets, themes/terminal, apps/fonts/tools/resource controls, containers and RDP.
+  - Normalize status/provenance/check/prerequisite references; include protected-state and live T2/GPU/display/lock/audio/network/suspend acceptance classes.
+  - Fixtures show missing/stale producer facts, unavailable live buses/client and missing GPU unit remain pending; final report separates static/artifact/session/hardware results and exact blockers.
+  - _Boundary: AssembledValidation_
+  - _Depends: 5, 6.2, 6.3, 6.4_
+  - _Requirements: 5.1, 6.1, 6.2, 6.3_

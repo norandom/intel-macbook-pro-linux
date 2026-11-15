@@ -1,0 +1,187 @@
+# Implementation Plan
+
+Each executable item is a bounded1–3hour work unit. Decorations are the first
+source behavior ported after guarded native setup. No newer compositor build,
+rootless builder or kernel/header change is part of this plan. Foundation's
+reviewed package/hooks guard and upstream fonts/apps/themes contracts are
+prerequisites; feature work does not modify shared root deployment.
+
+- [ ] 1. Establish the native desktop boundary
+- [ ] 1.1 Capture source dispositions and native compatibility facts
+  - Implement the complete pinned desktop source manifest, including delegated font/theme/app/RDP files and excluded VM behavior.
+  - Observe Ubuntu package origins/versions, shared ABI token and package-owned plugin path; reject a mismatched compositor/plugin pair.
+  - Done when fixtures account for every desktop asset/module and demonstrate accepted native baseline and rejected wrong ABI/foreign plugin cases.
+  - _Boundary: NativePackages_
+  - _Requirements: 1.1, 1.2, 1.3_
+- [ ] 1.2 Connect protected package preflight and preview
+  - Consume foundation's existing guard with explicit native desktop package requests and known scripts/triggers; fail closed on unknown protected effects.
+  - Add an optional feature entry point and non-mutating preview using the locked local pyinfra environment; report missing foundation contract as a prerequisite.
+  - Done when preview mutation spies remain empty and fixtures reject Snap/Flatpak, protected packages/hooks and source VM package branches before apply.
+  - _Boundary: DesktopDeploy_
+  - _Requirements: 1.3, 1.4, 1.5, 2.1, 2.2_
+- [ ] 1.3 Establish owned-file receipts and restoration
+  - Implement backup/adoption, digest receipts, no-op repeat detection and scoped restoration for user desktop files and the additive session entry.
+  - Reject unowned command/config conflicts; preserve user-edited files and shared packages during restore.
+  - Done when disposable roots verify unchanged second apply, original/absent file restoration, conflict retention and zero protected-path writes.
+  - _Boundary: DesktopState_
+  - _Requirements: 2.1, 7.5, 7.6_
+
+- [ ] 2. Backport original decorations first
+- [ ] 2.1 Translate the owned main/look-and-feel configuration and host colors
+  - Render source-derived native0.53 fragments under the isolated desktop config root, using discovered package-owned plugin path and exact hostcolor/gradient behavior.
+  - Add conf parse fixtures and supported-version failure diagnostics without overwriting existing user Hyprland configuration.
+  - Done when the native parser accepts the generated baseline and scalar/gradient fixtures match the source values and order.
+  - _Boundary: DesktopConfig_
+  - _Requirements: 1.2, 1.3, 4.4, 7.5_
+- [ ] 2.2 Preserve both titlebar styles and original buttons
+  - Render mac/win311 geometry, colors, typography, alignment, border precedence, double-click and ordered native hyprbars-button definitions.
+  - Preserve source close/maximize/minimize/glass/pin commands through documented0.53 equivalents and trusted helper paths.
+  - Done when both generated styles match source fields and reload fixtures contain exactly one copy of each expected button.
+  - _Boundary: DesktopConfig_
+  - _Requirements: 4.4, 4.6_
+- [ ] 2.3 Establish selected-instance native IPC
+  - Implement typed/bounded0.53 query/dispatch/keyword transport, validated address selectors, per-reply batch checks and redacted errors.
+  - Normalize source Lua object expectations into supported native JSON snapshots without guessing missing values.
+  - Done when transport fixtures reject stale/wrong-user sessions, bad JSON, invalid selectors and timeout without unintended native commands.
+  - _Boundary: HyprIPC_
+  - _Requirements: 1.2, 1.3, 4.1, 4.2, 4.3_
+- [ ] 2.4 Backport decoration and window effect controls
+  - Implement deco/glass/pin/shadow controls with explicit window identity, atomic mode updates, rollback on reload failure and accurate state queries.
+  - Integrate original titlebar commands with the established native IPC contract and avoid wrong-focus actions between commands.
+  - Done when fixtures show invalid inputs leave state unchanged and both decoration styles invoke the expected0.53 controls.
+  - _Boundary: DesktopControls_
+  - _Depends: 2.3_
+  - _Requirements: 4.4, 4.5, 4.6_
+
+- [ ] 3. Restore source keyboard and desktop actions
+- [ ] 3.1 Preserve Mac input, bindings and one-shot Super
+  - Render the exact source US/DE variants/options and legacy keyboard/mouse/focus/window/minimized bindings; persist active layout in owned desktop state.
+  - Mirror one-shot bindings with reset/catchall handling, bar submap feedback and context-menu hit testing.
+  - Done when fixtures cover source Super/Command/Option mapping, layout reload/new-session restoration, reset/cancel and empty-desktop versus titlebar/reserved-area clicks.
+  - _Boundary: DesktopConfig, DesktopControls_
+  - _Requirements: 4.6, 4.7, 5.3, 7.1, 7.2_
+- [ ] 3.2 Preserve native physical-monitor configuration
+  - Render preferred physical outputs and owner display choices without RDP/VM disabling, cursor hiding or software rendering.
+  - Preserve existing hardware/audio/GPU setup and reject protected driver/boot/global-input writes.
+  - Done when conf fixtures cover physical-only defaults, saved display choices and absence of VM output/input mutation.
+  - _Boundary: DesktopConfig_
+  - _Requirements: 2.3, 2.4, 2.6, 7.2_
+- [ ] 3.3 Preserve persistent source night filters
+  - Port both source shaders and off/green/dark controls through supported0.53 shader keywords with a single reapply path after reload.
+  - Preserve state/status feedback and reject invalid choices before mutation.
+  - Done when shader/control fixtures verify all three states, cycle order and new-session/reload restoration.
+  - _Boundary: DesktopControls_
+  - _Requirements: 6.5_
+- [ ] 3.4 Preserve explicit local lock behavior
+  - Adapt source Hyprlock visuals into the owned desktop config root and provide a trusted explicit lock action.
+  - Omit autologin/RDP-presence initial lock and preserve existing login authentication/default behavior.
+  - Done when config/action fixtures verify the local lock command without changing SDDM or any global auth/boot configuration.
+  - _Boundary: DesktopControls_
+  - _Requirements: 2.5, 3.5_
+
+- [ ] 4. Backport stateful window behavior
+- [ ] 4.1 Establish the single session event/timer worker
+  - Normalize0.53 client/monitor/cursor JSON; subscribe to selected socket2 events and resynchronize after reconnect/reload.
+  - Add one instance lock, bounded queries/batches and source-cadence timers without duplicate workers or callbacks.
+  - Done when transport fixtures prove timeout/invalid-JSON/window-gone recovery, idle query bounds and singleton startup.
+  - _Boundary: WindowWorker_
+  - _Requirements: 3.3, 4.1, 4.2, 4.3_
+- [ ] 4.2 Preserve all four layout transitions
+  - Translate dynamic/master-left/master-top/dwindle mode fragments and transition existing mapped windows with explicit native selectors.
+  - Keep layout choice/status and bar refresh compatible with source CLI; reject invalid state without losing last valid mode.
+  - Done when fixtures verify every pair of mode transitions floats/tiles the intended windows and preserves selected mode through reload.
+  - _Boundary: WindowWorker, DesktopControls_
+  - _Requirements: 4.1, 5.1_
+- [ ] 4.3 Preserve class geometry and physical display changes
+  - Implement class fractions, duplicate-class cascade, reserved-bar/titlebar clamping and atomic5second/close/stop memory updates.
+  - Exclude self-sized X3270 windows and handle malformed state, negative origins, scale/rotation, disconnected outputs and stale addresses.
+  - Done when source-derived geometry fixtures prove usable remembered placement and no mutation of excluded/disappeared windows.
+  - _Boundary: WindowWorker_
+  - _Requirements: 4.1, 4.3_
+- [ ] 4.4 Preserve magnetic and Aero snapping
+  - Retain native magnetic gaps and source edge/corner/timing/drag-away restoration behavior using actual decoration height and monitor reserved areas.
+  - Share worker snapshots instead of adding another poller; reject fullscreen/tiled/nonmoving targets.
+  - Done when deterministic cases cover halves, quarters, top maximize, drag-away, both styles and scaled monitors without repeated resnapping.
+  - _Boundary: WindowWorker_
+  - _Requirements: 4.2, 4.3, 4.4_
+
+- [ ] 5. Port independent desktop UI and utilities
+- [ ] 5.1 Preserve argv-safe independent application launching
+  - Adapt hypr-launch to native uwsm scopes while preserving executable/desktop-entry/action argument boundaries and inherited selected-session context.
+  - Remove redundant uwsm wrappers from source call sites through one documented launcher convention.
+  - Done when fixtures cover spaces/quotes/shell syntax and native launch-lifetime checks show an app remains independent of the bar process.
+  - _Boundary: DesktopUI_
+  - _Requirements: 5.5, 7.3_
+- [ ] 5.2 Preserve the complete source bar
+  - Port every module and numeric/graph branch, original CSS/power artwork, tray/taskbar, layout/submap/keyboard/night/theme/clipboard signals and audio drawer.
+  - Use actual application/theme availability and source unavailable states without silent browser substitution.
+  - Done when module coverage fixtures include the entire source template and launch call sites use the established independent-launch contract.
+  - _Boundary: DesktopUI_
+  - _Depends: 5.1_
+  - _Requirements: 5.1, 5.2, 5.4, 5.5, 5.6, 7.3_
+- [ ] 5.3 Preserve menu navigation and desktop-entry behavior
+  - Port GTK/layer-shell categories, recents, Run/search/power, actions, monitor placement, keyboard navigation and dismissal.
+  - Preserve optional Win31/app-icon fallback, source desktop-context entry and unavailable application feedback.
+  - Done when fixtures verify menu keyboard selection, app/action launch, dismissal, recents and missing-app status through the established launcher.
+  - _Boundary: DesktopUI_
+  - _Depends: 5.1_
+  - _Requirements: 5.3, 5.4, 5.5_
+- [ ] 5.4 Preserve initial desktop visual seeds
+  - Seed source Fuzzel/Mako/GTK/Xfe visuals and theme-owned terminal launch integration without overwriting later user preferences.
+  - Preserve rendering/font producer choices and source app-icon fallback when optional external icons are absent.
+  - Done when disposable-home fixtures verify initial source visuals and unchanged existing edited settings.
+  - _Boundary: DesktopUI_
+  - _Requirements: 5.8, 6.4, 7.3_
+- [ ] 5.5 Preserve quota and resource collectors
+  - Port source quota providers/stale cache and sparkline CPU/memory/network sampling with bounded timeouts and private cache permissions.
+  - Preserve missing credentials/CLI as unknown, provider distinctions and no tokens/response bodies in logs.
+  - Done when fixtures cover absent auth, provider timeout, stale reading, failed refresh and bounded source sample history.
+  - _Boundary: DesktopUI_
+  - _Requirements: 5.2, 5.4, 5.7_
+- [ ] 5.6 (P) Preserve runtime clipboard history and X11 conversion
+  - Port watch/pick/status/manual wipe with200entry bound, sensitive/Bitwarden exclusions and private selected-runtime storage.
+  - Convert STRING-only Latin-1 without replacing existing UTF-8/image offers or creating bridge loops; preserve cancellation.
+  - Done when fixtures verify privacy/eviction/encoding/no-loop cases and logout removes only owned history.
+  - _Boundary: DesktopUtilities_
+  - _Depends: 1.3, 2.3_
+  - _Requirements: 6.1, 6.2, 6.3_
+
+- [ ] 6. Integrate the independent native session
+- [ ] 6.1 Integrate uwsm startup, environment and session status
+  - Add selected-session wrapper/read-only status schema and readiness checks, explicit finalize environment and correct no-session/wrong-user/stale-instance failures.
+  - Add owned target/service definitions scoped to Hyprland; reject competing same-user graphical activation context.
+  - Done when disposable user-manager fixtures show one selected target, no leaked services/environment in KDE and accurate ready/stopping/absent results.
+  - _Boundary: SessionLifecycle, SessionStatus_
+  - _Requirements: 2.5, 3.1, 3.2, 3.3, 3.4, 7.4_
+- [ ] 6.2 Integrate utilities, fonts, portals and native audio
+  - Start worker/bar/Mako/clipboard only through the owned target; scope01:00/delayed wipe and stop cleanup to that session.
+  - Call fonts-owned registration after initial/replacement Xwayland readiness, select session portals, and use existing PipeWire routes without Plasma.
+  - Done when integration fixtures verify lifecycle ordering, bounded font failures/skips, notification conflict reporting, wipe catch-up and complete cleanup.
+  - _Boundary: SessionLifecycle, DesktopUtilities, DesktopUI_
+  - _Requirements: 2.3, 2.4, 3.1, 3.2, 3.3, 3.5, 3.6, 5.6, 6.1, 6.3, 6.4_
+- [ ] 6.3 Integrate optional feature apply and additive session selection
+  - Connect guarded packages, managed files, controls, worker/UI and target into the optional feature operation; publish only the separate SDDM session entry.
+  - Preserve existing login defaults/authentication, dormant KDE, audio/hardware configuration and scoped restore behavior.
+  - Done when preview/repeat/partial-failure/restore integration fixtures report truthful results with no protected or unrelated writes.
+  - _Boundary: DesktopDeploy, DesktopState, SessionLifecycle_
+  - _Requirements: 1.2, 1.3, 1.4, 1.5, 2.1, 2.2, 2.3, 2.4, 2.5, 7.5, 7.6_
+
+- [ ] 7. Verify source fidelity and real-session integration
+- [ ] 7.1 Verify the native decorations and window workflows
+  - Add explicit native0.53 integration checks for config parsing/plugin ABI, three reloads, both original decoration styles/buttons, one-shot keys and minimized restoration.
+  - Exercise dynamic/golden layouts, snapping, persistent geometry and actual monitor/scale changes; verify apps survive bar reload.
+  - Done when recorded results distinguish passed native interactions from any pending display-dependent acceptance.
+  - _Boundary: Session integration tests_
+  - _Requirements: 1.2, 3.3, 4.1, 4.2, 4.3, 4.4, 4.5, 4.6, 4.7, 5.5, 7.1, 7.2, 7.7_
+- [ ] 7.2 Verify the assembled desktop utilities and consumer contracts
+  - Add native session checks for full bar/menu branches, terminal/theme/app availability, source Mac Option+L and layout controls, native speaker/mic controls, clipboard bridge/history, notifications/shaders and portal selection.
+  - Verify font registration, session status, lock/logout and return to unchanged SDDM/KDE fallback, including failed-start cleanup.
+  - Done when executable checks identify missing external producers/runtime access as pending rather than falsely passed.
+  - _Boundary: Session integration tests_
+  - _Requirements: 3.1, 3.2, 3.4, 3.5, 3.6, 5.1, 5.2, 5.3, 5.4, 5.6, 5.7, 5.8, 6.1, 6.2, 6.3, 6.4, 6.5, 7.1, 7.3, 7.4, 7.7_
+- [ ] 7.3 Verify T2 preservation and restoration boundaries
+  - Add before/after protected-path/package/hook evidence checks and explicit T2 speaker/microphone, camera, touch-bar, keyboard/trackpad, Wi-Fi/Bluetooth and suspend/resume acceptance reporting.
+  - Verify no boot/storage writes in apply or restore; keep GPU reproduction/transition checks pending until its existing custom unit is captured.
+  - Done when reports separate static inventory, executable checks and inaccessible live hardware results with no blanket hardware-success claim.
+  - _Boundary: Session integration tests_
+  - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 7.5, 7.6, 7.7_

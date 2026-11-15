@@ -1,0 +1,202 @@
+{
+  "repository": "norandom/hyperland-forky-worker-vm",
+  "revision": "a1c09ec3f02a98b7c6a4641f907108a2ad080993",
+  "evidence": "Fetched via connected GitHub and Git blob hashes verified against source-repository-index.json during specification; not runtime validation",
+  "files": [
+    {
+      "path": "files/foot/foot.ini",
+      "sha": "f3c63f271ebf45ad021514452cc038d3c721b72e",
+      "sha256": "ed4a5b17867656667034b4d6ad3d4e322a6411b80037a0229532722279f8314e"
+    },
+    {
+      "path": "files/foot/themes/cobalt.ini",
+      "sha": "1b3efc8082593e3c49ca5d78afe7e0042139d22a",
+      "sha256": "9fd3c8f91d94aa2201ad0fe66ef370e05aa8bd97021e20497996464e25825eab"
+    },
+    {
+      "path": "files/foot/themes/cream.ini",
+      "sha": "9cfd8bce37de1637eed715a19ce4ac05fb46c41e",
+      "sha256": "c61ba0c4aa9d91ec9da15cd504291a83b7bd327de56d4f837bcc51d8df01054e"
+    },
+    {
+      "path": "files/foot/themes/fixedsys.ini",
+      "sha": "92f587013112cebce846185a1525eaef7e82509b",
+      "sha256": "6779f21fac87659f87238fff4db9d913f07fa293b3b5d85c63cf464cc6c49c02"
+    },
+    {
+      "path": "files/foot/themes/navy.ini",
+      "sha": "731aeae2ab2942d640a58e8e2711353689c9b535",
+      "sha256": "2b98b7eb072e342aa9d9ce5d1c7d49d7d5c3d7921d02fd70ed362b1d6e302ce4"
+    },
+    {
+      "path": "files/foot/themes/petrol.ini",
+      "sha": "901799a64183cefb2097b744db95e695cc4601ef",
+      "sha256": "9f72857c5a24bb50f45dd16ce1cda48e23d7e57c1b090ee180599e579a1ad3c3"
+    },
+    {
+      "path": "files/ghostty/config.ghostty",
+      "sha": "6a2870dff96838f3b8d2553bf17611bc35c10cb3",
+      "sha256": "41f97772e7afda254d59c3feeea5f1843a5d27b0c63b4337e6be24b700b82be2"
+    },
+    {
+      "path": "files/ghostty/themes/cobalt",
+      "sha": "f180204af5b08a718ec8c69f28d253578f92a660",
+      "sha256": "19a8a129b56de87af5043419fd37f7aadf433ebb96a25f5eb332d9568d1ab88c"
+    },
+    {
+      "path": "files/ghostty/themes/cobalt.css",
+      "sha": "61ce385f05a89af8fed8cdfb5babac9faab0ea33",
+      "sha256": "8e8fa6652dd0eb504f12c577025b11e8750945038a55b8539090d51a8f9ca2a2"
+    },
+    {
+      "path": "files/ghostty/themes/cream",
+      "sha": "f499e6361d815860aff7d94e474897cb6d9e27ea",
+      "sha256": "7b39172aae9193bd9c1028a4d0eb754b3c6fe554b85134252bc06a972b9a981a"
+    },
+    {
+      "path": "files/ghostty/themes/cream.css",
+      "sha": "fd29535c570be40511ca20fabc7b7711884b7b19",
+      "sha256": "98819e1752fd7fc9d0f1647aa1bf027a67d174aa0ec5e4c1657ad7414b30d7bb"
+    },
+    {
+      "path": "files/ghostty/themes/fixedsys",
+      "sha": "67317a0e03d3d79007bc3f1d9802e0a90ef1192d",
+      "sha256": "cf51bd63183287c4dbbc06af4947286ebef910dba54197721da5b7a66a3ede93"
+    },
+    {
+      "path": "files/ghostty/themes/fixedsys.css",
+      "sha": "c96fa14b866c3e4c99c43c915ff563b8926f8235",
+      "sha256": "4db68ec3f19acfb888039200ac8c65aa2d22022961a17d9cb386a8be078c8f4b"
+    },
+    {
+      "path": "files/ghostty/themes/navy",
+      "sha": "d3f63323640a259ebfd857dfaae03c6f5c7fb7a2",
+      "sha256": "c68f1d72c98d70ad541315d0aeda6c0a3d8e9ea33c94e1d99b34722a4d6fb70a"
+    },
+    {
+      "path": "files/ghostty/themes/navy.css",
+      "sha": "1eb604a80798c03de6c10371b54235465580a259",
+      "sha256": "7eea2f5f669d396070ee35af640ad4cd7e5e49cf755b8ffac8feef5ae9e8fc7f"
+    },
+    {
+      "path": "files/ghostty/themes/petrol",
+      "sha": "ada400f39d6d0fa15a3260c1846f759d6f0d23d7",
+      "sha256": "141427fcc1c9bd4322e5759aadebf387ed80081883a3976a1c81cba16c04d2d4"
+    },
+    {
+      "path": "files/ghostty/themes/petrol.css",
+      "sha": "602c10e5d4225bc0417a0e88e63941433f2ac20e",
+      "sha256": "a1220b546012a2f3566a2c2e1c3ddfde0c178653ad124fb670fc2b3071558cff"
+    },
+    {
+      "path": "files/sublime/debian-hypr-cobalt.sublime-color-scheme",
+      "sha": "7308f802405e23f443e339f686fad0eab8fbeb0a",
+      "sha256": "8f4b7c2c025a2af015d96715d13b8b3e04b6599557745739f3442381ee835727"
+    },
+    {
+      "path": "files/sublime/debian-hypr-cream.sublime-color-scheme",
+      "sha": "f09ecc20aa5607323ec336273cdd77e1d90d3915",
+      "sha256": "f551b46b2191996d2b7110aa805e6762331aa33a6637304c396638d2ef321f64"
+    },
+    {
+      "path": "files/sublime/debian-hypr-fixedsys.sublime-color-scheme",
+      "sha": "37e12586fadf158c85b27509cf7ab78b5700a165",
+      "sha256": "b7118ec61b92af064490075692ec68ba808552e733dbbc363c5f3494d1c801b3"
+    },
+    {
+      "path": "files/sublime/debian-hypr-navy.sublime-color-scheme",
+      "sha": "bb820fefb03ab36b42279b39462e31e6238fe744",
+      "sha256": "0eeed48dd12465c0e9049dbeeb1e3c9907bde06c5fb3071b3341552c4b009b1e"
+    },
+    {
+      "path": "files/sublime/debian-hypr-petrol.sublime-color-scheme",
+      "sha": "c718406e721cde45dfb3336dfc27ebce5aff057a",
+      "sha256": "53d37e32ede1a10381b3b499f032d542a3dea53a7bb2ffbc96d8fe363f05672e"
+    },
+    {
+      "path": "files/themes/btop-cobalt.theme",
+      "sha": "ba7955b999a58d02c73653cac9dc184ed48f0680",
+      "sha256": "8bfd7e0d99ff2e5b44e7211a637be2f61cd5bdffbb3330c04996737a2b49dc12"
+    },
+    {
+      "path": "files/themes/btop-cream.theme",
+      "sha": "9fece6ac0236c25e07ee414f89d6b26abdc1853a",
+      "sha256": "9d0ba70801effa07840f1d54b210fef666ffd53a0bbc08cde3846b1d55ca272a"
+    },
+    {
+      "path": "files/themes/btop-fixedsys.theme",
+      "sha": "8924fe8897a8c103103fa6bec8b3637677821694",
+      "sha256": "647b24d2ab3d795157a4d7c4c6758cb0b3f188020bd9ce384680eae92d96fcc7"
+    },
+    {
+      "path": "files/themes/btop-navy.theme",
+      "sha": "3964da6e498674873c2ded9b0816c866b8caa111",
+      "sha256": "342225b48df5bf8a66ec9a4dee09cecf4f576a1fb2dffac4cf2827e129a44fb4"
+    },
+    {
+      "path": "files/themes/btop-petrol.theme",
+      "sha": "b9323ed051c9aa4dff69ffa7f2c1a1422ebcba95",
+      "sha256": "0b750138532109ad772e605804287f8f1da034b881f17165419cdc80669d4fa9"
+    },
+    {
+      "path": "files/themes/chromium-policy.json",
+      "sha": "8a3e6babd3b7009eed56cb3d025003c7f4bbd177",
+      "sha256": "37a9bb5c25ef909caee00cdf927b406ea9d9dacefa69b642c1b0bf2ac73b7340"
+    },
+    {
+      "path": "files/themes/claude-cobalt.json",
+      "sha": "efc3eaaa8e079120f84c0b9d5b6ad9b110504511",
+      "sha256": "020b9fa6bdf8425d3d6d7de1858b1d65d80efcee3c763a6c578671220e6cb267"
+    },
+    {
+      "path": "files/themes/claude-cream.json",
+      "sha": "8298fef98aaafa438c675786b00dbd8580be5463",
+      "sha256": "825aaed9e1cb872d09e520e9ef4472760ea10eeaeefbe56e3d5d73b1db88eef3"
+    },
+    {
+      "path": "files/themes/claude-fixedsys.json",
+      "sha": "3fd940b1703560deec2dcc7f2ee30d4a1cae2c30",
+      "sha256": "99bb35eb9cc801c5a9d72473e335ec4b4c2147ed25bdebc77765cc669df29b1f"
+    },
+    {
+      "path": "files/themes/claude-navy.json",
+      "sha": "2355bb161abaa4c352b3a4553612e64dd5a4c046",
+      "sha256": "581945230715e581541438acd82c6743e60289db4de84a60ef4f1ab05f2f5f32"
+    },
+    {
+      "path": "files/themes/claude-petrol.json",
+      "sha": "dfea19477df6a3ad05beaeea721cdcc728a67df1",
+      "sha256": "0a2eafa78590b8a6e8049035fef737fa5692fcd7d34704292dbfd39126946f00"
+    },
+    {
+      "path": "files/vscode/debian-hypr-themes/package.json",
+      "sha": "e8e9f12ce6045a83ff6d034f2ff3f02ae538c6b9",
+      "sha256": "1886e30742bb31edf27456fb3fa4cd846058cd89f987b72febcf8d032a609825"
+    },
+    {
+      "path": "files/vscode/debian-hypr-themes/themes/cobalt-color-theme.json",
+      "sha": "0fb41dea71e58e1889bcda2866bb0d96e6067b73",
+      "sha256": "d4c04c44ede065c221a83cd3eac9e14f4c6e5270ca40c02b10443324e2e9c2d8"
+    },
+    {
+      "path": "files/vscode/debian-hypr-themes/themes/cream-color-theme.json",
+      "sha": "49de33006ef87e286d02d60b2fb8bcfb73c18d3a",
+      "sha256": "f4269d4a0007d73261afa1f5d4ca23af79ac4ca6dda110367193fec8828af41c"
+    },
+    {
+      "path": "files/vscode/debian-hypr-themes/themes/fixedsys-color-theme.json",
+      "sha": "02ece5321f8890c454e701a42eff94dd2b39cad3",
+      "sha256": "ef48ed69f2b1607e50979f04e7e4d3411515b42c3b5816f6a8686075624a7b83"
+    },
+    {
+      "path": "files/vscode/debian-hypr-themes/themes/navy-color-theme.json",
+      "sha": "dbf6cccd847e6b04bd8eb785243c12d7578000e6",
+      "sha256": "bd48c45677323ecafc948b4812f80696bacd7d20b1df6b2e9cf62e457ba6c370"
+    },
+    {
+      "path": "files/vscode/debian-hypr-themes/themes/petrol-color-theme.json",
+      "sha": "7bbe92636faddf7056e7ffb53a3ec1ede8ea04e1",
+      "sha256": "2d71fccc248a36ebe6ff146eb4b8c4deb9f56f7368a7a02856596d832da53b2f"
+    }
+  ]
+}

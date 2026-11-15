@@ -1,0 +1,64 @@
+# T2 Mac KDE local management
+
+uv-managed `.venv` with pinned pyinfra dependencies for this Ubuntu 26.04
+workstation. Run everything as your desktop user. Only apt operations use sudo.
+
+```sh
+sh bootstrap.sh
+export PATH="$HOME/.local/bin:$PATH"
+
+# Preview and install Node.js/npm first.
+uv run pyinfra @local tasks/node.py --dry
+uv run pyinfra @local tasks/node.py
+
+# Existing CLI scaffold: preview only while the planned package/boot guards
+# are not yet implemented. System apply is pending foundation implementation.
+uv run pyinfra @local deploy.py --dry --use-sudo-password
+```
+
+Node/npm are installed per-user with [nvm](https://github.com/nvm-sh/nvm),
+with the Node release pinned in `.nvmrc`. This step needs no sudo.
+New Bash terminals load nvm automatically. In an existing terminal run:
+
+```sh
+export NVM_DIR="$HOME/.nvm"
+. "$NVM_DIR/nvm.sh"
+nvm use
+node --version
+npm --version
+```
+
+npm globals belong to the active nvm Node version; use `npm install -g <package>`
+without sudo. Do not set npm's `prefix`: it conflicts with nvm.
+`npx` comes with Node/npm. CLI system packages still use apt; for those,
+`--use-sudo-password` prompts for authentication in your terminal.
+No spec workflow package has been selected yet.
+
+`uv sync --locked` creates `.venv`; activation is optional (`. .venv/bin/activate`).
+The bootstrap installs uv 0.13.8 if uv is missing; an existing uv is preserved.
+System packages follow the configured Ubuntu repositories and are installed if
+missing, without a full system upgrade or added third-party repositories.
+
+## Source port and specifications
+
+The current implemented baseline is uv/pyinfra, nvm-managed Node/npm and a small
+CLI package scaffold. Its new package/protected-system guards are specified but
+not implemented; full system application remains pending foundation work. The broader source feature port is being specified;
+completed spec documents are not installed features.
+
+The [source port plan](docs/source-port-plan.md) inventories the actual features
+of [hyperland-forky-worker-vm](https://github.com/norandom/hyperland-forky-worker-vm).
+The [Kiro roadmap](.kiro/steering/roadmap.md) maps them to resource policy,
+containers, fonts, applications, shell/user tools, coordinated themes, the
+Hyprland desktop backport and upstream-packaged RDP.
+
+Use Ubuntu's packaged Hyprland with backported configuration/decorations;
+use the upstream maintainer's GitHub release for hypr-rdp. KDE stays installed
+and dormant as a fallback, with the existing login manager/configuration.
+German Mac input preserves the source Super mapping and requires Option+L=@.
+
+Strict rules: no Snap/snapd or Flatpak; preserve the T2 hardware/audio stack.
+Do not alter cryptsetup/LUKS/LVM, fstab/swap/resume, kernels/modules/headers,
+bootloader or initramfs/mkinitcpio configuration/artifacts, including indirect
+package hooks. See [protected system policy](.kiro/steering/protected-system-boundary.md).
+These deploy files are intended for `@local` only.
