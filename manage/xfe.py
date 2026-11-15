@@ -16,6 +16,7 @@ import tempfile
 from manage.packages import check_archive
 
 VERSION = "2.1.1-1"
+LAYOUT = "2"  # bump when the unpacked layout changes, so installed() re-runs apply()
 SHA256 = "8c14d758ada1e5adbd75cfc8c578be254252a7afc54862bdfe7f3cc55ba2ae52"
 LIB = Path("/usr/local/lib/xfe")
 WRAPPER = '#!/bin/sh\n# t2-mac-kde: run Ubuntu xfe without ibus input-method hooks\n' \
@@ -25,7 +26,7 @@ ENV = {"PATH": "/usr/sbin:/usr/bin:/sbin:/bin", "LC_ALL": "C", "LANG": "C"}
 
 def installed() -> bool:
     try:
-        return (LIB / "VERSION").read_text().strip() == VERSION
+        return (LIB / "VERSION").read_text().strip() == f"{VERSION} layout {LAYOUT}"
     except OSError:
         return False
 
@@ -47,8 +48,9 @@ def apply() -> None:
             shutil.rmtree(LIB)
         shutil.copytree(root / "usr/bin", LIB / "bin", symlinks=True)
         share = Path("/usr/local/share")
-        (share / "xfe").mkdir(parents=True, exist_ok=True)
-        shutil.copy2(root / "etc/xfe/xferc", share / "xfe/xferc")
+        # Xfe reads its global xferc from /usr/share/xfe or <bindir>/../share/xfe only.
+        (LIB / "share/xfe").mkdir(parents=True, exist_ok=True)
+        shutil.copy2(root / "etc/xfe/xferc", LIB / "share/xfe/xferc")
         shutil.copytree(root / "usr/share/icons", share / "icons", dirs_exist_ok=True)
         (share / "applications").mkdir(parents=True, exist_ok=True)
         for desktop in (root / "usr/share/applications").glob("*.desktop"):
@@ -57,7 +59,7 @@ def apply() -> None:
             wrapper = Path("/usr/local/bin", name)
             wrapper.write_text(WRAPPER)
             wrapper.chmod(0o755)
-        (LIB / "VERSION").write_text(VERSION + "\n")
+        (LIB / "VERSION").write_text(f"{VERSION} layout {LAYOUT}\n")
 
 
 if __name__ == "__main__":

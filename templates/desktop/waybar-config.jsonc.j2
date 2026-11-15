@@ -1,9 +1,13 @@
 // Managed by t2-mac-kde (desktop) (template: bar_graphs = {{ bar_graphs }}). Source bar: clock + CPU/MEM/net, like the Omarchy setup.
-{
+// The internal T2 panel has a defective strip at its left edge (KDE used a 20 px panel):
+// on eDP-1 a black left_reserve px wide bar reserves it for windows (exclusive zone)
+// and the top bar starts after it. A Hyprland monitor rule cannot do this without
+// replacing the panel mode.
+{% set body %}
   "layer": "top",
   "position": "top",
   "height": 26,
-  "spacing": 14,
+  "spacing": 6,
   "modules-left": ["custom/menu", "custom/files", "custom/term", "custom/web", "custom/layout", "wlr/taskbar"],
   "modules-center": ["clock"],
   "modules-right": ["custom/quota", {% if bar_graphs %}"custom/cpu", "custom/mem", "custom/net"{% else %}"cpu", "memory", "network"{% endif %}, "group/audio", "backlight", "battery", "tray", "hyprland/submap", "custom/cliphist", "custom/nightmode", "custom/termtheme", "custom/kbd", "custom/power"],
@@ -71,7 +75,7 @@
   },
   // Window list: click = bring to front (also un-minimizes), middle-click = close.
   "wlr/taskbar": {
-    "format": "{icon} {title:.22}",
+    "format": "{icon} {title:.18}",
     "icon-size": 16,
     "icon-theme": "Adwaita",
     "tooltip-format": "{title}",
@@ -90,7 +94,7 @@
     "format": "{icon} {capacity}%", "format-charging": "⚡ {capacity}%", "format-plugged": "⚡ {capacity}%",
     "format-icons": ["", "", "", "", ""], "tooltip-format": "{timeTo} ({power} W)"
   },
-  "clock": { "format": "{:%A %H:%M}", "format-alt": "{:%d %B %Y  W%V}", "tooltip": false },
+  "clock": { "format": "{:%a %H:%M}", "format-alt": "{:%d %B %Y  W%V}", "tooltip": false },
 {% if bar_graphs %}
   // CPU / memory / network with a sparkline of the last 50 s (hypr-sparkline, every 5 s)
   "custom/cpu": { "exec": "$HOME/.local/bin/hypr-sparkline cpu", "return-type": "json",
@@ -99,13 +103,13 @@
   "custom/net": { "exec": "$HOME/.local/bin/hypr-sparkline net", "return-type": "json" },
 {% else %}
   // CPU / memory / network as numbers (bar_graphs = False)
-  "cpu": { "interval": 5, "format": "CPU {usage}%", "on-click": "$HOME/.local/bin/hypr-launch hypr-term -x btop" },
-  "memory": { "interval": 5, "format": "MEM {percentage}%", "tooltip-format": "{used:0.1f} / {total:0.1f} GiB used" },
+  "cpu": { "interval": 5, "format": "󰍛 {usage}%", "on-click": "$HOME/.local/bin/hypr-launch hypr-term -x btop" },
+  "memory": { "interval": 5, "format": "󰘚 {percentage}%", "tooltip-format": "{used:0.1f} / {total:0.1f} GiB used" },
   "network": {
     "interval": 5,
-    "format": "↓{bandwidthDownBytes} ↑{bandwidthUpBytes}",
+    "format": "⇅{bandwidthTotalBytes}",
     "format-disconnected": "offline",
-    "tooltip-format": "{ifname} {ipaddr}"
+    "tooltip-format": "{ifname} {ipaddr}\n↓{bandwidthDownBytes} ↑{bandwidthUpBytes}"
   },
 {% endif %}
   // AI agents: weekly quota left (Claude, Codex), every 5 min; click = refresh
@@ -133,4 +137,23 @@
   },
   "pulseaudio/slider": { "min": 0, "max": 100, "orientation": "horizontal" },
   "tray": { "spacing": 8 }
+{% endset %}
+{% if left_reserve %}
+[
+{ "output": "eDP-1", "margin-left": {{ left_reserve }},
+{{ body }}
+},
+{ "output": "!eDP-1",
+{{ body }}
+},
+{ "output": "eDP-1", "name": "leftstrip", "layer": "top", "position": "left",
+  "width": {{ left_reserve }}, "exclusive": true, "spacing": 0,
+  "modules-left": ["custom/strip"], "modules-center": [], "modules-right": [],
+  "custom/strip": { "format": " ", "tooltip": false }
 }
+]
+{% else %}
+{
+{{ body }}
+}
+{% endif %}

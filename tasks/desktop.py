@@ -38,6 +38,8 @@ bin_dir = f"{home}/.local/bin"
 decorations_style = host.data.get("decorations_style", "win311")
 window_shadows = host.data.get("window_shadows", "off")
 bar_graphs = bool(host.data.get("bar_graphs", False))
+# Defective strip at the left edge of this MacBook 16" panel (KDE used a 20 px panel there).
+left_reserve = int(host.data.get("desktop_left_reserve", 20))
 font_rendering = host.data.get("font_rendering", "rgb")
 
 # --- Native packages (no recommends: Snap/Flatpak-free, guarded by manage.packages) --------
@@ -126,7 +128,7 @@ server.shell(
 
 # --- Bar, notifications, launcher, lock, file manager, GTK ---------------------------------
 bar_ops = [
-    owned_put(f"{TPL}/waybar-config.jsonc.j2", f"{cfg}/waybar/config.jsonc", template=True, bar_graphs=bar_graphs),
+    owned_put(f"{TPL}/waybar-config.jsonc.j2", f"{cfg}/waybar/config.jsonc", template=True, bar_graphs=bar_graphs, left_reserve=left_reserve),
     owned_put(f"{SRC}/waybar/style.css", f"{cfg}/waybar/style.css"),
     files.put(name="Waybar: power button artwork", src=f"{SRC}/waybar/power.png",
               dest=f"{cfg}/waybar/power.png", mode="644", create_remote_dir=True),

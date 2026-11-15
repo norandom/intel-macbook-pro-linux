@@ -1,7 +1,7 @@
 /* Managed by t2-mac-kde (desktop). cream-blue-light. */
 * { font-family: "JetBrainsMono Nerd Font", monospace; font-size: 12px; border: none; border-radius: 0; min-height: 0; }
 window#waybar { background: #fff8f0; color: #2b4570; border-bottom: 1px solid #ebe3d6; }
-#custom-quota, #taskbar, #clock, #cpu, #memory, #network, #custom-cpu, #custom-mem, #custom-net, #pulseaudio, #tray, #backlight, #battery { padding: 0 6px; }
+#custom-quota, #taskbar, #clock, #cpu, #memory, #network, #custom-cpu, #custom-mem, #custom-net, #pulseaudio, #tray, #backlight, #battery { padding: 0 3px; }
 #battery.warning { color: #a87a2f; }
 #battery.critical:not(.charging) { color: #c0605a; font-weight: bold; }
 #cpu.warning, #memory.warning { color: #a87a2f; }
@@ -26,7 +26,7 @@ tooltip label { color: #fff8f0; font-family: "JetBrainsMono Nerd Font", monospac
   min-width: 22px; margin: 0 1px; padding: 0 2px;
   background-size: 18px 18px; background-repeat: no-repeat; background-position: center;
 }
-#custom-files { margin-left: 6px; background-image: url("/usr/share/icons/hicolor/scalable/apps/xfe.svg"); }
+#custom-files { margin-left: 6px; background-image: url("/usr/local/share/icons/hicolor/scalable/apps/xfe.svg"); }
 #custom-term { background-image: url("/usr/share/icons/hicolor/32x32/apps/terminator.png"); }
 #custom-web { margin-right: 4px; background-image: url("/usr/share/icons/hicolor/32x32/apps/vivaldi.png"); }
 #custom-files:hover, #custom-term:hover, #custom-web:hover { background-color: #f5ede0; }
@@ -64,3 +64,7 @@ tooltip label { color: #fff8f0; font-family: "JetBrainsMono Nerd Font", monospac
 #taskbar button { padding: 0 8px; color: #2b4570; border-bottom: 2px solid transparent; }
 #taskbar button:hover { background: #f5ede0; }
 #taskbar button.active { background: #d5dfeb; border-bottom: 2px solid #4a90d9; }
+
+/* Left reserve strip over the panel's defective edge (see waybar config). */
+window#waybar.leftstrip { background: #000000; border: none; }
+window#waybar.leftstrip * { min-width: 0; padding: 0; margin: 0; }
