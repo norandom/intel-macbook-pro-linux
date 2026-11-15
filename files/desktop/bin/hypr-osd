@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+# Managed by t2-mac-kde (desktop). hypr-osd KIND PERCENT [LABEL]
+# One replacing notification per KIND with a progress bar (mako shows the value).
+set -u
+kind=$1 pct=$2 label=${3:-$1}
+state=${XDG_RUNTIME_DIR:-/tmp}/hypr-osd-$kind
+id=$(cat "$state" 2>/dev/null || echo 0)
+new=$(notify-send -a OSD -u low -t 1200 -p -r "$id" -h "int:value:$pct" "$label" "$pct%" 2>/dev/null) && echo "$new" > "$state"
+exit 0

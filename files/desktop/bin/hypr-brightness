@@ -18,3 +18,4 @@ esac
 [ "$pct" -gt 100 ] && pct=100; [ "$pct" -lt "$min" ] && pct=$min
 busctl call org.freedesktop.login1 /org/freedesktop/login1/session/auto \
   org.freedesktop.login1.Session SetBrightness ssu "$sub" "$dev" $(( max * pct / 100 ))
+[ "${HYPR_OSD:-1}" = 0 ] || ~/.local/bin/hypr-osd "$1" "$pct" "$([ "$1" = kbd ] && echo Keyboard light || echo Brightness)"

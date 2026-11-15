@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+# Managed by t2-mac-kde (desktop). hypr-volume up|down|mute|micmute  (wpctl + OSD)
+set -u
+osd=~/.local/bin/hypr-osd
+case "${1:-}" in
+  up) wpctl set-volume -l 1.0 @DEFAULT_AUDIO_SINK@ 5%+ ;;
+  down) wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%- ;;
+  mute) wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle ;;
+  micmute) wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle
+           v=$(wpctl get-volume @DEFAULT_AUDIO_SOURCE@)
+           case "$v" in *MUTED*) $osd mic 0 "Microphone muted" ;; *) $osd mic 100 "Microphone on" ;; esac; exit 0 ;;
+  *) echo "usage: hypr-volume up|down|mute|micmute" >&2; exit 2 ;;
+esac
+v=$(wpctl get-volume @DEFAULT_AUDIO_SINK@)          # "Volume: 0.45 [MUTED]"
+pct=$(awk '{printf "%d", $2*100 + 0.5}' <<<"$v")
+case "$v" in *MUTED*) $osd volume "$pct" "Volume (muted)" ;; *) $osd volume "$pct" "Volume" ;; esac

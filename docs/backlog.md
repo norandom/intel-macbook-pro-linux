@@ -27,3 +27,9 @@ and configuration tasks, per explicit owner direction.
   GOTOOLCHAIN go1.27.2) failed in the first live deploy and stopped the run.
 - When reopened: prefer an upstream release binary (pinned + sha256) over a Go
   build; keep it optional so a failure never blocks the rest of the deploy.
+
+## Quiet pyinfra's files.block beta warning
+
+- pyinfra 3.10 prints "The `files.block` operation is currently in beta!" for
+  each managed ~/.bashrc block. Harmless; silence it with a logging filter in
+  manage/preflight.py when convenient (owner request 2026-11-15, low priority).
