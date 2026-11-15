@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # Managed by t2-mac-kde (desktop). Brightness via logind (no root, no udev rule):
 #   hypr-brightness screen|kbd +5|-5|N%   (percent steps; backlight never fully dark)
-# Screen: one more step down at the minimum switches the internal panel off (DPMS);
-# the next step up switches it back on (at the minimum). Other input does not wake it.
+# Screen: one more step down at the minimum turns the backlight off (dark panel);
+# the next step up turns it back on at the minimum. Other input does not wake it.
 set -eu
 case "${1:-}" in
   screen) dev=$(basename "$(ls -d /sys/class/backlight/gmux_backlight /sys/class/backlight/* 2>/dev/null | grep -v appletb | head -1)"); sub=backlight; base=/sys/class/backlight/$dev; min=2 ;;
@@ -12,25 +12,19 @@ esac
 [ -n "$dev" ] && [ -r "$base/max_brightness" ] || { echo "hypr-brightness: no $1 device" >&2; exit 1; }
 max=$(cat "$base/max_brightness"); cur=$(cat "$base/brightness"); step=${2:-+5}
 pct=$(( (cur * 100 + max / 2) / max ))
-panel=eDP-1
-panel_on() { hyprctl -j monitors all 2>/dev/null | jq -e --arg p "$panel" '.[] | select(.name == $p) | .dpmsStatus' >/dev/null; }
+# Screen "off" = backlight 0 (dark panel, backlight power off). No DPMS: waking a panel via
+# DPMS makes gmux restore 100 % for a moment; a backlight change has no such flash.
 if [ "$1" = screen ] && [ "${HYPR_OSD:-1}" != 0 ]; then
-  if ! panel_on; then   # panel off (by this helper): only a step up wakes it, at the minimum
+  set_raw() { busctl call org.freedesktop.login1 /org/freedesktop/login1/session/auto \
+                org.freedesktop.login1.Session SetBrightness ssu "$sub" "$dev" "$1"; }
+  if [ "$cur" -eq 0 ]; then   # dark: only a step up lights it again, at the minimum
     case "$step" in
-      +*) hyprctl dispatch dpms on "$panel" >/dev/null
-          # the panel wakes at full backlight (gmux resets it on modeset): set the minimum
-          # again once the modeset has settled, a second time to be sure it sticks
-          for wait in 0.3 0.7; do
-            sleep "$wait"
-            busctl call org.freedesktop.login1 /org/freedesktop/login1/session/auto \
-              org.freedesktop.login1.Session SetBrightness ssu "$sub" "$dev" $(( max * min / 100 ))
-          done
-          ~/.local/bin/hypr-osd screen "$min" "Brightness" ;;
+      +*) set_raw $(( max * min / 100 )); ~/.local/bin/hypr-osd screen "$min" "Brightness" ;;
     esac
     exit 0
   fi
   case "$step" in
-    -*) if [ "$pct" -le "$min" ]; then hyprctl dispatch dpms off "$panel" >/dev/null; exit 0; fi ;;
+    -*) if [ "$pct" -le "$min" ]; then set_raw 0; exit 0; fi ;;
   esac
 fi
 case "$step" in
