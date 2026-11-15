@@ -9,8 +9,8 @@
   "height": 26,
   "spacing": 6,
   "modules-left": ["custom/menu", "custom/files", "custom/term", "custom/web", "custom/layout", "wlr/taskbar"],
-  "modules-center": ["clock"],
-  "modules-right": ["custom/quota", {% if bar_graphs %}"custom/cpu", "custom/mem", "custom/net"{% else %}"cpu", "memory", "network"{% endif %}, "group/audio", "backlight", "power-profiles-daemon", "battery", "tray", "hyprland/submap", "custom/cliphist", "custom/nightmode", "custom/termtheme", "custom/kbd", "custom/power"],
+  "modules-center": [],
+  "modules-right": ["custom/quota", {% if bar_graphs %}"custom/cpu", "custom/mem", "custom/net"{% else %}"cpu", "memory", "network"{% endif %}, "group/audio", "backlight", "custom/power-profile", "battery", "tray", "hyprland/submap", "custom/cliphist", "custom/nightmode", "custom/termtheme", "custom/kbd", "clock", "custom/power"],
   "custom/menu": {
     "format": "☰ Apps",
     "tooltip-format": "Applications (right-click: search)",
@@ -85,22 +85,33 @@
   },
   // Laptop: screen brightness (scroll = +/-5%) and battery (macsmc-battery on T2).
   "backlight": {
-    "device": "gmux_backlight", "format": "☀ {percent}%", "tooltip": false,
+    "device": "gmux_backlight", "format": "󰃠 {percent}%", "tooltip": false,
     "on-scroll-up": "$HOME/.local/bin/hypr-brightness screen +5",
     "on-scroll-down": "$HOME/.local/bin/hypr-brightness screen -5"
   },
   "battery": {
     "states": { "warning": 25, "critical": 10 },
-    "format": "{icon} {capacity}%", "format-charging": "⚡ {capacity}%", "format-plugged": "⚡ {capacity}%",
-    "format-icons": ["", "", "", "", ""], "tooltip-format": "{timeTo} ({power} W)\nclick: next power profile",
-    "on-click": "$HOME/.local/bin/hypr-power-profile next"
+    "format": "{icon} {capacity}%", "format-charging": "󰂄 {capacity}%", "format-plugged": "󰚥 {capacity}%",
+    "format-icons": ["", "", "", "", ""], "tooltip-format": "{timeTo} ({power} W)\nclick: power profile",
+    "menu": "on-click",
+    "menu-file": "$HOME/.config/waybar/power-profile-menu.xml",
+    "menu-actions": {
+      "power-saver": "$HOME/.local/bin/hypr-power-profile power-saver",
+      "balanced": "$HOME/.local/bin/hypr-power-profile balanced",
+      "performance": "$HOME/.local/bin/hypr-power-profile performance"
+    }
   },
-  // power-profiles-daemon: current profile; click cycles power-saver -> balanced -> performance.
-  "power-profiles-daemon": {
-    "format": "{icon}",
-    "tooltip-format": "Power profile: {profile}\nDriver: {driver}",
-    "tooltip": true,
-    "format-icons": { "default": "", "performance": "", "balanced": "", "power-saver": "" }
+  // Power profile (power-profiles-daemon): icon shows the current one; click = drop-down.
+  "custom/power-profile": {
+    "exec": "$HOME/.local/bin/hypr-power-profile waybar",
+    "return-type": "json", "interval": 30, "signal": 12,
+    "menu": "on-click",
+    "menu-file": "$HOME/.config/waybar/power-profile-menu.xml",
+    "menu-actions": {
+      "power-saver": "$HOME/.local/bin/hypr-power-profile power-saver",
+      "balanced": "$HOME/.local/bin/hypr-power-profile balanced",
+      "performance": "$HOME/.local/bin/hypr-power-profile performance"
+    }
   },
   "clock": { "format": "{:%a %H:%M}", "format-alt": "{:%d %B %Y  W%V}", "tooltip": false },
 {% if bar_graphs %}

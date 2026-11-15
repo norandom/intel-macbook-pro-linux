@@ -5,6 +5,8 @@
 # --- Desktop (tasks/desktop.py) ---------------------------------------------------
 # panel_scale = "auto"            # internal panel (eDP-1) scale, e.g. 1.6 on a 16" Retina
 # desktop_left_reserve = 0         # px strip at the panel's left edge kept free (defective line)
+# cursor_theme = "breeze_cursors"  # "t2-highvis" = large white arrow, red outline (accessibility)
+# cursor_size = 24                 # e.g. 48 for a much bigger pointer; SUPER+SHIFT+C flashes it
 # bar_graphs = false               # CPU/MEM/net as sparklines instead of numbers
 # decorations_style = "win311"     # "win311" | "mac" title bars
 # window_shadows = "off"           # "off" | "mac" | "win311"
@@ -31,3 +33,7 @@
 
 # --- Remote access (tasks/remote_access.py) ---------------------------------------
 # tailscale_exit_node = ""         # informational; switch it in the Tailscale tray
+
+# --- Default applications (tasks/desktop.py) -----------------------------------------
+# [default_apps]                   # MIME type = desktop file (see /usr/share/applications)
+# "application/pdf" = "ai.storyteller.pdfcraft.desktop"

@@ -1,0 +1,4 @@
+[Icon Theme]
+Name=t2-highvis
+Comment=Large white arrow with a red outline (t2-mac-kde)
+Inherits=breeze_cursors

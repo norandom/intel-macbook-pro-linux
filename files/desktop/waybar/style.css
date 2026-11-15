@@ -1,9 +1,13 @@
 /* Managed by t2-mac-kde (desktop). cream-blue-light. */
 * { font-family: "JetBrainsMono Nerd Font", monospace; font-size: 12px; border: none; border-radius: 0; min-height: 0; }
 window#waybar { background: #fff8f0; color: #2b4570; border-bottom: 1px solid #ebe3d6; }
-#custom-quota, #taskbar, #clock, #cpu, #memory, #network, #custom-cpu, #custom-mem, #custom-net, #pulseaudio, #tray, #backlight, #battery, #power-profiles-daemon { padding: 0 3px; }
-#power-profiles-daemon.performance { color: #c0605a; }
-#power-profiles-daemon.power-saver { color: #4a8a5a; }
+#custom-quota, #taskbar, #clock, #cpu, #memory, #network, #custom-cpu, #custom-mem, #custom-net, #pulseaudio, #tray, #backlight, #battery, #custom-power-profile { padding: 0 3px; }
+#custom-power-profile.performance { color: #c0605a; }
+#custom-power-profile.power-saver { color: #4a8a5a; }
+/* drop-down menus (power profile) in the bar's palette */
+menu { background: #fff8f0; border: 1px solid #2b4570; }
+menu menuitem { color: #2b4570; padding: 4px 10px; font-family: "JetBrainsMono Nerd Font", monospace; }
+menu menuitem:hover { background: #2b4570; color: #fff8f0; }
 #battery.warning { color: #a87a2f; }
 #battery.critical:not(.charging) { color: #c0605a; font-weight: bold; }
 #cpu.warning, #memory.warning { color: #a87a2f; }

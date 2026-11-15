@@ -42,6 +42,9 @@ bar_graphs = bool(setting("bar_graphs", False))
 # Optional strip at the internal panel's left edge kept free (config desktop_left_reserve; 0 = off).
 left_reserve = int(setting("desktop_left_reserve", 0))
 panel_scale = str(setting("panel_scale", "auto"))
+# Pointer: "t2-highvis" = large white arrow with a red outline (tools/make_cursor.py).
+cursor_theme = str(setting("cursor_theme", "breeze_cursors"))
+cursor_size = int(setting("cursor_size", 24))
 font_rendering = setting("font_rendering", "rgb")
 
 # --- Native packages (no recommends: Snap/Flatpak-free, guarded by manage.packages) --------
@@ -103,6 +106,14 @@ hypr_ops.append(owned_put(
              + ("" if panel_scale == "auto" else f"monitor = eDP-1, preferred, auto, {panel_scale}\n")),
     f"{hypr}/panel.conf"))
 
+# Pointer theme + size for Hyprland, Xwayland and GTK/portal apps (config cursor_theme/size).
+hypr_ops.append(owned_put(
+    StringIO(f"# {MARKER}: cursor_theme = {cursor_theme}, cursor_size = {cursor_size}\n"
+             f"env = XCURSOR_THEME,{cursor_theme}\nenv = XCURSOR_SIZE,{cursor_size}\n"
+             f"env = HYPRCURSOR_SIZE,{cursor_size}\n"
+             f"exec-once = hyprctl setcursor {cursor_theme} {cursor_size}\n"),
+    f"{hypr}/cursor.conf"))
+
 # Host colour (source tools/hostcolor.py) from this machine's hostname: bars and borders.
 hostname = socket.gethostname()
 hc = color_for(hostname, setting("decor_colors", {}).get(hostname), setting("fleet_hosts", []))
@@ -123,7 +134,7 @@ HELPERS = (
     "hypr-desktop-state", "hypr-launch", "hypr-deco", "hypr-shadow", "hypr-layout", "hypr-pin",
     "hypr-glass", "hypr-kbd", "hypr-nightmode", "hypr-windows", "hypr-session", "hypr-appmenu",
     "hypr-sparkline", "hypr-agent-quota", "hypr-cliphist", "hypr-clip-bridge", "hypr-termtheme-status",
-    "hypr-brightness", "hypr-screenshot", "hypr-osd", "hypr-volume", "hypr-power-profile",
+    "hypr-brightness", "hypr-screenshot", "hypr-osd", "hypr-volume", "hypr-power-profile", "hypr-findcursor",
 )
 helper_ops = [owned_put(f"{SRC}/bin/{h}", f"{bin_dir}/{h}", mode="755") for h in HELPERS]
 
@@ -147,6 +158,26 @@ install -m 644 "$t/x/completions/satty.bash" {home}/.local/share/bash-completion
     _if=lambda: not os.path.exists(f"{satty_dir}/satty"),
 )
 
+# High-visibility cursor theme (user-level icon theme; selected via cursor_theme).
+icons = f"{home}/.local/share/icons/t2-highvis"
+files.put(name="Cursor theme t2-highvis: index", src=f"{SRC}/cursors/t2-highvis/index.theme",
+          dest=f"{icons}/index.theme", mode="644", create_remote_dir=True)
+files.put(name="Cursor theme t2-highvis: arrow", src=f"{SRC}/cursors/t2-highvis/cursors/left_ptr",
+          dest=f"{icons}/cursors/left_ptr", mode="644", create_remote_dir=True)
+for alias in ("default", "arrow", "top_left_arrow", "left_arrow", "pointer-default"):
+    files.link(name=f"Cursor theme t2-highvis: {alias}", path=f"{icons}/cursors/{alias}", target="left_ptr")
+server.shell(name=f"GTK/portal apps: cursor {cursor_theme} {cursor_size}", commands=[
+    f"[ \"$(gsettings get org.gnome.desktop.interface cursor-theme)\" = \"'{cursor_theme}'\" ] || "
+    f"gsettings set org.gnome.desktop.interface cursor-theme '{cursor_theme}'",
+    f"[ \"$(gsettings get org.gnome.desktop.interface cursor-size)\" = '{cursor_size}' ] || "
+    f"gsettings set org.gnome.desktop.interface cursor-size {cursor_size}"])
+
+# Default applications per MIME type from the user config, e.g. PDFs -> PdfCraft:
+#   [default_apps]  "application/pdf" = "ai.storyteller.pdfcraft.desktop"
+for mime, app in dict(setting("default_apps", {})).items():
+    server.shell(name=f"Default app for {mime}: {app}",
+                 commands=[f"[ \"$(xdg-mime query default {mime})\" = '{app}' ] || xdg-mime default '{app}' {mime}"])
+
 # state.conf: layout / title bar style / shadows + the package-owned hyprbars path (dpkg).
 server.shell(name="Hyprland: render state.conf (layout, title bars, shadows, hyprbars path)",
              commands=[f"{bin_dir}/hypr-desktop-state"])
@@ -164,6 +195,7 @@ server.shell(
 bar_ops = [
     owned_put(f"{TPL}/waybar-config.jsonc.j2", f"{cfg}/waybar/config.jsonc", template=True, bar_graphs=bar_graphs, left_reserve=left_reserve),
     owned_put(f"{SRC}/waybar/style.css", f"{cfg}/waybar/style.css"),
+    owned_put(f"{SRC}/waybar/power-profile-menu.xml", f"{cfg}/waybar/power-profile-menu.xml"),
     files.put(name="Waybar: power button artwork", src=f"{SRC}/waybar/power.png",
               dest=f"{cfg}/waybar/power.png", mode="644", create_remote_dir=True),
 ]
