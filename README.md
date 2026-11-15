@@ -11,8 +11,9 @@ export PATH="$HOME/.local/bin:$PATH"
 uv run --locked pyinfra @local tasks/node.py --dry
 uv run --locked pyinfra @local tasks/node.py
 
-# Combined preview currently stops at unreviewed CLI packages (see below).
+# Preview reviewed native CLI packages, then apply from your terminal.
 uv run --locked pyinfra @local deploy.py --dry
+uv run --locked pyinfra @local deploy.py --use-sudo-password
 ```
 
 Node/npm are installed per-user with [nvm](https://github.com/nvm-sh/nvm),
@@ -50,9 +51,13 @@ missing, without a full system upgrade or added third-party repositories.
 
 The implemented baseline includes uv/pyinfra, nvm-managed Node/npm, local-only
 preflight, package-plan validation and effective Snap/Flatpak policy checks.
-CLI deployment uses the guarded API, but its production package review manifest
-is still pending: preview and apply stop with an explicit unreviewed-package
-error. CLI packages and the broader desktop port have not been installed yet.
+CLI deployment uses the guarded API and an exact reviewed Ubuntu package
+manifest. The current plan adds 36 packages, including btop and Neovim, with
+zero upgrades or removals. Changed package versions or executable host state
+block installation until reviewed again. An already satisfied request remains
+a read-only no-op. See the [package review](docs/package-reviews/cli.md).
+CLI application requires terminal sudo authentication. The broader desktop port
+has not been installed yet.
 Completed spec documents are not installed features.
 
 The [source port plan](docs/source-port-plan.md) inventories the actual features

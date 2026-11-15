@@ -6,13 +6,15 @@ triggers and payload) to its SHA256 and the reviewed local dpkg/apt state. Revie
 must trace installed trigger consumers and effective apt hooks, including their
 external inputs in ``additional_state_paths``. A review asserts no Snap/Flatpak
 delegation and no protected-system effects. Index/package or local state changes
-require new review. There are deliberately no approved production entries yet:
-the current CLI manifest is reviewed in the integration task, not here.
+require new review before another package change. The committed CLI manifest
+contains the reviewed native archive identities and local executable baseline.
 """
 
 from dataclasses import dataclass
 import hashlib
+import json
 import os
+import posixpath
 from pathlib import Path, PurePosixPath
 import re
 import shlex
@@ -49,7 +51,32 @@ class _PackageReview:
     additional_state_paths: tuple[str, ...] = ()
 
 
-_REVIEWS: tuple[_PackageReview, ...] = ()
+def _load_reviews() -> tuple[_PackageReview, ...]:
+    path = Path(__file__).resolve().parents[1] / 'files/package-reviews/ubuntu-cli.json'
+    try:
+        entries = json.loads(path.read_text())
+        if not isinstance(entries, list) or len(entries) > 128:
+            raise ValueError('invalid review collection')
+        reviews = []
+        for entry in entries:
+            if not isinstance(entry, dict):
+                raise ValueError('invalid review record')
+            entry = dict(entry)
+            for key in ('paths', 'additional_state_paths'):
+                value = entry.get(key, [])
+                if not isinstance(value, list) or not all(isinstance(item, str) for item in value):
+                    raise ValueError('invalid review paths')
+                entry[key] = tuple(value)
+            if any(entry.get(flag) is not True for flag in (
+                    'native', 'scripts_reviewed', 'triggers_reviewed', 'apt_hooks_reviewed')):
+                raise ValueError('incomplete review')
+            reviews.append(_PackageReview(**entry))
+        return tuple(reviews)
+    except (OSError, ValueError, TypeError) as error:
+        raise RuntimeError('Cannot load the reviewed Ubuntu CLI package manifest.') from error
+
+
+_REVIEWS: tuple[_PackageReview, ...] = _load_reviews()
 _SELECTION = re.compile(r"([a-z0-9][a-z0-9+.-]+)(?::([a-z0-9][a-z0-9-]*))?(?:=([0-9][a-zA-Z0-9.+:~\-]*))?\Z")
 _FORBIDDEN = {"snap", "snapd", "flatpak"}
 _PROTECTED = re.compile(r"(?:linux(?:-|$)|grub|shim|efibootmgr|bootctl|ukify|kernel-install|initramfs|mkinit|dracut|cryptsetup|lvm|libcryptsetup|libdevmapper|liblvm|dmsetup|thin-provisioning|dkms|kmod|systemd(?!-zram-generator$)|udev|firmware|apple-|t2-|pipewire|wireplumber|alsa-)")
@@ -149,7 +176,7 @@ def validate_request(request: PackageRequest) -> None:
 def _baseline_digest(additional_paths: tuple[str, ...] = ()) -> str:
     """Bind review to installed scripts, trigger state, payload lists and apt config.
 
-    Never print file content or the digest. Symlinks, unreadable evidence and
+    Never print file content or the digest. Unreviewed symlinks, unreadable evidence and
     oversized inventories block admission. Apt preferences are excluded: these
     express resolution policy, not executable hooks, and PackagePolicy owns their
     effective verification. Adding its negative pins does not invalidate review.
@@ -172,15 +199,30 @@ def _baseline_digest(additional_paths: tuple[str, ...] = ()) -> str:
                     continue
                 info = path.lstat()
                 count += 1
-                if count > 100000 or stat.S_ISLNK(info.st_mode):
+                if count > 100000:
                     raise RuntimeError("Unrecognized or oversized review baseline.")
                 digest.update(str(path).encode() + b"\0" + str(info.st_mode).encode() + b"\0")
-                if stat.S_ISDIR(info.st_mode):
+                if stat.S_ISLNK(info.st_mode):
+                    # Reviewed command aliases must pin both the link itself
+                    # and its separately reviewed regular-file target.
+                    link = os.readlink(path)
+                    target = posixpath.normpath(posixpath.join(posixpath.dirname(root), link))
+                    if (root not in additional_paths or path != Path(root)
+                            or target not in additional_paths
+                            or not stat.S_ISREG(Path(target).lstat().st_mode)):
+                        raise RuntimeError('Unrecognized symlink in package baseline.')
+                    digest.update(b'symlink\0' + link.encode() + b'\0')
+                elif stat.S_ISDIR(info.st_mode):
                     children = sorted(path.iterdir(), reverse=True)
                     if path == Path("/var/lib/dpkg/updates") and children:
                         raise RuntimeError("Pending dpkg updates block package planning.")
                     paths.extend(children)
                 elif stat.S_ISREG(info.st_mode):
+                    # dpkg owns this root-only advisory lock. Its contents are
+                    # not scripts or trigger registrations; preview must not
+                    # need root merely to inspect package evidence.
+                    if path == Path('/var/lib/dpkg/triggers/Lock'):
+                        continue
                     total += info.st_size
                     if total > 512 * 1024 * 1024:
                         raise RuntimeError("Oversized review baseline.")
@@ -273,11 +315,13 @@ def _parse_simulation(output: str):
     return installs, satisfied
 
 
-def _metadata(package: str, version: str, architecture: str | None) -> _PackageReview:
+def _metadata(package: str, version: str, architecture: str | None, *, text: str | None = None) -> _PackageReview:
     name, qualifier, _ = _selection(package)
     _reviews(name, architecture or qualifier, version)
     selected = package if qualifier or architecture is None else f"{package}:{architecture}"
-    records = _run(("/usr/bin/apt-cache", "show", f"{selected}={version}")).strip().split("\n\n")
+    if text is None:
+        text = _run(("/usr/bin/apt-cache", "show", f"{selected}={version}"))
+    records = text.strip().split("\n\n")
     admitted = []
     for record in records:
         fields = {}
@@ -304,18 +348,39 @@ def _metadata(package: str, version: str, architecture: str | None) -> _PackageR
     return admitted[0]
 
 
+def _batch_metadata(observed) -> dict[str, str]:
+    selectors = []
+    for package, version, architecture in observed.values():
+        name, qualifier, _ = _selection(package)
+        _reviews(name, architecture or qualifier, version)
+        selected = package if qualifier or architecture is None else f'{package}:{architecture}'
+        selectors.append(f'{selected}={version}')
+    output = _run(('/usr/bin/apt-cache', 'show', *selectors))
+    records: dict[str, list[str]] = {}
+    for record in output.strip().split('\n\n'):
+        names = re.findall(r'^Package: (\S+)$', record, re.M)
+        if len(names) != 1 or names[0] not in observed:
+            raise RuntimeError('Unrequested or malformed batch package metadata.')
+        records.setdefault(names[0], []).append(record)
+    if set(records) != set(observed):
+        raise RuntimeError('Incomplete batch package metadata.')
+    return {name: '\n\n'.join(values) for name, values in records.items()}
+
+
 def inspect_plan(request: PackageRequest) -> PackagePlan:
     """Simulate the exact validated arguments, retaining only reviewed changes."""
     validate_request(request)
-    # Baseline must be reviewed before invoking apt as well as after its reads.
+    # Snapshot before read-only apt inspection, then reject races afterwards.
+    # Every real install requires the reviewed baseline. A satisfied request
+    # executes no package code, so observing it needs no new script admission.
     reviews = tuple(r for r in _REVIEWS)
     additional = tuple(sorted({p for r in reviews for p in r.additional_state_paths}))
     baseline = _baseline_digest(additional)
     requested_reviews = tuple(r for selection in request.packages for r in _reviews(*_selection(selection)))
-    if any(r.baseline_sha256 != baseline for r in requested_reviews):
-        raise RuntimeError("Package review baseline changed; scripts/triggers/hooks need review.")
     output = _run(("/usr/bin/apt-get", "--simulate", "--no-install-recommends", "--no-remove", "install", *request.packages))
     installs, satisfied = _parse_simulation(output)
+    if installs and any(r.baseline_sha256 != baseline for r in requested_reviews):
+        raise RuntimeError("Package review baseline changed; scripts/triggers/hooks need review.")
     observed = {**satisfied, **installs}
     for selection in request.packages:
         name, architecture, version = _selection(selection)
@@ -326,9 +391,10 @@ def inspect_plan(request: PackageRequest) -> PackagePlan:
             observed[name] = (package, resolved, architecture)
         if version is not None and version != resolved or architecture and resolved_arch and architecture != resolved_arch:
             raise RuntimeError("Resolved package selection differs from request.")
-    for package, version, architecture in observed.values():
-        review = _metadata(package, version, architecture)
-        if review.baseline_sha256 != baseline:
+    metadata = _batch_metadata(observed)
+    for name, (package, version, architecture) in observed.items():
+        review = _metadata(package, version, architecture, text=metadata[name])
+        if installs and review.baseline_sha256 != baseline:
             raise RuntimeError("Dependency review baseline changed; scripts/triggers/hooks need review.")
     if _baseline_digest(additional) != baseline:
         raise RuntimeError("Package baseline changed during inspection; retry after review.")

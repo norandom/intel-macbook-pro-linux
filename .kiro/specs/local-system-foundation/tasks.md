@@ -87,7 +87,7 @@ Tests use fixtures and disposable targets; this plan does not schedule host depl
   - _Requirements: 2.2, 2.5, 3.1, 3.2, 3.3, 3.4, 3.5, 3.6_
 
 - [ ] 4. Integrate the foundation workflow
-- [ ] 4.1 Route existing package consumers through the foundation contracts
+- [x] 4.1 Route existing package consumers through the foundation contracts
   - Review the existing CLI manifest and its resolved versions for native packaging and prohibited transition behavior; reject unresolved entries rather than fall back.
   - Replace direct system-package calls with guarded installation and order preflight/policy before package consumers.
   - Apply preflight to standalone entry points as well as the combined deploy; retain a Node-only path that needs no sudo.

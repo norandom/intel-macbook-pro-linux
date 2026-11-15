@@ -242,6 +242,17 @@ resolved packages, or proposed removals as blocking errors. Recheck after any
 index/policy change. Use native apt installation with negative pins and no
 options that bypass policy. No generic arbitrary-command installer API.
 
+The committed CLI review binds exact archive identities and the executable
+host baseline. Read metadata in one bounded `apt-cache show` batch while
+validating every record independently. A request already satisfied by those
+exact reviewed versions schedules no package operation; observing that no-op
+does not require admitting the post-install baseline for future changes.
+Still reject pending dpkg state and changes during inspection. Any actual
+installation requires the full reviewed baseline. The dpkg trigger lock's
+contents are excluded because they are synchronization state; its file type
+and mode remain bound. Explicit external executable symlinks bind both their
+literal link target and a separately reviewed regular target file.
+
 Service-start suppression is a separate opt-in contract for daemon packages.
 `install_packages(request, prevent_service_start=True)` owns a bounded deny-start
 transaction around the same guarded native installation. If `/usr/sbin/policy-rc.d`

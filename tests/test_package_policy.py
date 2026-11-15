@@ -136,6 +136,12 @@ class PackagePlanningTests(unittest.TestCase):
             self.plan("btop is already the newest version (99).\n"
                       "0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.\n")
 
+    def test_completed_install_can_be_observed_as_noop_after_baseline_changes(self):
+        self.assertEqual(self.plan(
+            "btop is already the newest version (1.4.6-2).\n"
+            "0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.\n",
+            baseline="c" * 64), guard.PackagePlan((), ()))
+
     def test_upgrade_retains_selected_version(self):
         self.assertEqual(self.plan("1 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.\n"
                                    "Inst btop [1.0-1] (1.4.6-2 Ubuntu:26.04/resolute [amd64])\n"
@@ -180,6 +186,22 @@ class PackagePlanningTests(unittest.TestCase):
             unincorp.write_text("")
             with patch.object(guard, "Path", side_effect=lambda path: root / str(path).lstrip("/")):
                 first = guard._baseline_digest()
+                lock = root / 'var/lib/dpkg/triggers/Lock'
+                lock.touch(mode=0o600)
+                with_lock = guard._baseline_digest()
+                lock.write_bytes(b'non-executable lock bookkeeping')
+                self.assertEqual(with_lock, guard._baseline_digest())
+                lock.unlink()
+                alias = root / 'hook-alias'
+                target = root / 'hook-target'
+                target.write_text('reviewed external hook')
+                alias.symlink_to('hook-target')
+                explicit = ('/hook-alias', '/hook-target')
+                aliased = guard._baseline_digest(explicit)
+                target.write_text('changed external hook')
+                self.assertNotEqual(aliased, guard._baseline_digest(explicit))
+                with self.assertRaisesRegex(RuntimeError, 'symlink|baseline'):
+                    guard._baseline_digest(('/hook-alias',))
                 preferences = root / "etc/apt/preferences.d"
                 preferences.mkdir()
                 (preferences / "90-t2-package-policy.pref").write_text("Package: snapd flatpak\nPin: version *\nPin-Priority: -1\n")
@@ -221,14 +243,18 @@ class PackagePlanningTests(unittest.TestCase):
         def run(argv, **kwargs):
             if argv[0].endswith("apt-get"):
                 return subprocess.CompletedProcess(argv, 0, output, "")
-            name, version = argv[-1].split("=")
-            name = name.split(":")[0]
-            metadata = f"Package: {name}\nVersion: {version}\nArchitecture: amd64\nOrigin: Ubuntu\nSHA256: " + "a" * 64 + "\n"
+            records = []
+            for selector in argv[2:]:
+                name, version = selector.split('=')
+                name = name.split(':')[0]
+                records.append(f"Package: {name}\nVersion: {version}\nArchitecture: amd64\nOrigin: Ubuntu\nSHA256: " + "a" * 64)
+            metadata = '\n\n'.join(records) + '\n'
             return subprocess.CompletedProcess(argv, 0, metadata, "")
         with patch.object(guard, "_REVIEWS", reviews), patch.object(guard, "_baseline_digest", return_value="b" * 64), \
-             patch.object(guard.subprocess, "run", side_effect=run):
+             patch.object(guard.subprocess, "run", side_effect=run) as runner:
             self.assertEqual(guard.inspect_plan(guard.PackageRequest(("btop",), "ubuntu")).installs,
                              (("libfixture", "2.0-1"), ("btop", "1.4.6-2")))
+            self.assertEqual(runner.call_count, 2, 'one simulation and one batch metadata read')
 
     def reviewed_fixture_plan(self, names, requested=None, reviews=None):
         """Every fixture resolution has complete review, isolating hard boundaries."""
@@ -239,9 +265,12 @@ class PackagePlanningTests(unittest.TestCase):
         def run(argv, **kwargs):
             if argv[0].endswith("apt-get"):
                 return subprocess.CompletedProcess(argv, 0, output, "")
-            name = argv[-1].split("=")[0].split(":")[0]
-            metadata = (f"Package: {name}\nVersion: 1.4.6-2\nArchitecture: amd64\nOrigin: Ubuntu\n"
-                        "SHA256: " + "a" * 64 + "\n")
+            records = []
+            for selector in argv[2:]:
+                name = selector.split('=')[0].split(':')[0]
+                records.append(f"Package: {name}\nVersion: 1.4.6-2\nArchitecture: amd64\nOrigin: Ubuntu\n"
+                               "SHA256: " + "a" * 64)
+            metadata = '\n\n'.join(records) + '\n'
             return subprocess.CompletedProcess(argv, 0, metadata, "")
         with patch.object(guard, "_REVIEWS", reviews), \
              patch.object(guard, "_baseline_digest", return_value="b" * 64), \
