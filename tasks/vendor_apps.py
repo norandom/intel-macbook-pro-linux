@@ -5,7 +5,7 @@ Run: .venv/bin/pyinfra @local tasks/vendor_apps.py [--dry] [--use-sudo-password]
 - Repos (Sublime Text, VS Code, Typora, XtraDeb Chromium): committed signing key, sha256
   checked here before anything; deb line with signed-by; first install refreshes only that
   source and goes through the guarded root helper (manage.packages). Updates via apt.
-- .debs (Obsidian, Bitwarden, Quarto, Positron, Remote Desktop Manager): pinned version, URL,
+- .debs (Obsidian, Bitwarden, Quarto, Positron, Remote Desktop Manager, Zoom, Slack, Discord): pinned version, URL,
   sha256; staged in /var/cache/t2-mac-kde/debs and installed by the guarded helper, which
   scans the archive. Re-run with new pins to update.
 - Tarballs (Zed, Zen, Podman Desktop): user-level in ~/.local/opt/<id>-<version>, no sudo
@@ -71,16 +71,44 @@ server.shell(
 )
 
 # --- Pinned vendor .debs -------------------------------------------------------------
+# Slack's /etc/cron.daily/slack would add packagecloud's repo + unscoped keys in
+# /etc/apt/trusted.gpg.d unless both flags are false; the pinned .deb is the update path.
+files.put(name="Slack: no cron-added apt repo", dest="/etc/default/slack", mode="0644", _sudo=True,
+          src=StringIO('# Managed by t2-mac-kde: updates come from the pinned .deb\n'
+                       'repo_add_once="false"\nrepo_reenable_on_distupgrade="false"\n'))
 for app_id, (package, version, url, sha, _exe) in VENDOR_DEBS.items():
     if _dpkg_version(package) == version:
         continue
-    deb = f"{LOCAL_DEBS}/{url.rsplit('/', 1)[1]}"
+    deb = f"{LOCAL_DEBS}/{package}_{version}.deb"
     server.shell(
         name=f"Install {package} {version} (pinned .deb, guarded)",
         commands=(f"mkdir -p {LOCAL_DEBS} && {CURL} -o {deb} {shlex.quote(url)} && "
                   f"echo '{sha}  {deb}' | sha256sum -c - && " + helper + deb),
         _sudo=True,
     )
+
+
+
+def _zoom_wayland_share():
+    """Zoom screen sharing through xdg-desktop-portal(-hyprland); only this key is touched.
+
+    Audio stays on Zoom's default "Same as System" devices (no device keys written).
+    """
+    path = Path(home, ".config/zoomus.conf")
+    lines = path.read_text().splitlines() if path.is_file() else []
+    if "enableWaylandShare=true" in lines:
+        return
+    lines = [l for l in lines if not l.startswith("enableWaylandShare=")]
+    if "[General]" not in lines:
+        lines[:0] = ["[General]"]
+    lines.insert(lines.index("[General]") + 1, "enableWaylandShare=true")
+    path.parent.mkdir(parents=True, exist_ok=True)
+    tmp = path.with_suffix(".conf.tmp")
+    tmp.write_text("\n".join(lines) + "\n")
+    os.replace(tmp, path)
+
+
+python.call(name="Zoom: Wayland screen sharing via the portal (~/.config/zoomus.conf)", function=_zoom_wayland_share)
 
 # --- Pinned user-level tarballs ----------------------------------------------------------
 
@@ -175,3 +203,12 @@ def _podman_desktop_no_self_update():
 
 python.call(name="Podman Desktop: no self-update (pin is the update path)", function=_podman_desktop_no_self_update)
 logger.info("vendor_apps: re-run tasks/themes.py so Sublime/VS Code/Positron get their themes.")
+
+# Zoom's .deb hard-depends on ibus. Pin this user's input method to "none" (im-config's
+# own per-user file) so installing ibus never activates it: German dead keys / Option+L
+# stay with XKB, and Xfe's ibus problem (its im-config conflict) cannot come back.
+files.put(
+    name="~/.xinputrc: input method none (keep ibus inactive)",
+    src=StringIO("# Managed by t2-mac-kde (vendor_apps): ibus is installed for Zoom but not used.\nrun_im none\n"),
+    dest=os.path.expanduser("~/.xinputrc"), mode="644",
+)

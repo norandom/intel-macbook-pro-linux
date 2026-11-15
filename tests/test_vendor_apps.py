@@ -12,7 +12,8 @@ ROOT = Path(__file__).resolve().parents[1]
 SRC = ROOT / "files/vendor-apps"
 TASK = (ROOT / "tasks/vendor_apps.py").read_text()
 DEB_HOSTS = {"obsidian": "github.com", "bitwarden": "github.com", "quarto": "github.com",
-             "positron": "cdn.posit.co", "remotedesktopmanager": "cdn.devolutions.net"}
+             "positron": "cdn.posit.co", "remotedesktopmanager": "cdn.devolutions.net",
+             "zoom": "cdn.zoom.us", "slack": "downloads.slack-edge.com", "discord": "dl.discordapp.net"}
 DEB_PATHS = {"obsidian": "/obsidianmd/obsidian-releases/", "bitwarden": "/bitwarden/clients/releases/download/desktop-v",
              "quarto": "/quarto-dev/quarto-cli/"}
 TARBALL_PATHS = {"zed": "/zed-industries/zed/", "zen": "/zen-browser/desktop/",
@@ -57,7 +58,7 @@ class PinnedDownloadTests(unittest.TestCase):
             self.assertTrue(parsed.path.startswith(DEB_PATHS.get(app_id, "/")), app_id)
             self.assertRegex(sha, r"\A[0-9a-f]{64}\Z", app_id)
             self.assertIn(version.split("+")[0], url, app_id)
-            self.assertTrue(_LOCAL_DEB.match(f"{LOCAL_DEBS}/{url.rsplit('/', 1)[1]}"), app_id)
+            self.assertTrue(_LOCAL_DEB.match(f"{LOCAL_DEBS}/{package}_{version}.deb"), app_id)
 
     def test_tarballs_are_pinned_github_releases(self):
         for app_id, (version, url, sha, _exe) in apps.VENDOR_TARBALLS.items():
@@ -70,6 +71,28 @@ class PinnedDownloadTests(unittest.TestCase):
     def test_downloads_are_sha256_checked_before_install(self):
         self.assertIn("sha256sum -c", TASK)
         self.assertNotRegex(TASK, r"dpkg -i|apt-get install|--no-sandbox|curl[^\n]*\| *(ba)?sh")
+
+
+class ConfigTests(unittest.TestCase):
+    def test_slack_cron_never_adds_its_repo(self):
+        self.assertIn('repo_add_once="false"\\nrepo_reenable_on_distupgrade="false"', TASK)
+        self.assertIn('dest="/etc/default/slack"', TASK)
+
+    def test_zoom_wayland_share_keeps_other_keys(self):
+        import tempfile
+        ns = {}
+        src = TASK[TASK.index("def _zoom_wayland_share"):TASK.index("python.call(name=\"Zoom")]
+        with tempfile.TemporaryDirectory() as home:
+            conf = Path(home, ".config/zoomus.conf")
+            conf.parent.mkdir()
+            conf.write_text("[General]\nenableWaylandShare=false\nxwayland=true\n[AS]\nx=1\n")
+            exec(src, {"Path": Path, "os": __import__("os"), "home": home}, ns)
+            ns["_zoom_wayland_share"]()
+            ns["_zoom_wayland_share"]()
+            self.assertEqual(conf.read_text(), "[General]\nenableWaylandShare=true\nxwayland=true\n[AS]\nx=1\n")
+            conf.unlink()
+            ns["_zoom_wayland_share"]()
+            self.assertEqual(conf.read_text(), "[General]\nenableWaylandShare=true\n")
 
 
 class AppArmorTests(unittest.TestCase):

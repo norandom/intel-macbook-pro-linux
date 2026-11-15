@@ -26,7 +26,7 @@ Entry point: `.venv/bin/pyinfra @local tasks/apps.py [--dry]`. Inventory: `manag
 - [x] No purges, no Snap/Flatpak in tasks/apps.py.
 - [x] tasks/vendor_apps.py (owner-approved): sha-pinned keyring repos sublime-text, code (own repo entry
       suppressed via debconf), typora, chromium + chromium-driver (XtraDeb PPA pinned to chromium only);
-      pinned .debs obsidian, bitwarden, quarto, positron, remotedesktopmanager (guarded helper);
+      pinned .debs obsidian, bitwarden, quarto, positron, remotedesktopmanager, zoom, slack, discord;
       user tarballs zed, zen, podman-desktop in ~/.local/opt (+ userns AppArmor profiles).
 - [x] tasks/office_apps.py: LibreOffice Writer+Calc (de/en-US, Carlito; guarded apt) + Tabbed UI layer
       t2-mac-kde.xcd; ArtCraft suite (7) and OpenIDEA as pinned sha256 .debs via the package guard.

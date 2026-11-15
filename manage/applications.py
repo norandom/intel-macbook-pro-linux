@@ -110,6 +110,13 @@ VENDOR_DEBS = {
     "remotedesktopmanager": ("remotedesktopmanager", "2026.3.2.1",
                              "https://cdn.devolutions.net/download/Linux/RDM/2026.3.2.1/RemoteDesktopManager_2026.3.2.1_amd64.deb",
                              "852cec0cc96de28c404bba1d2a5beab46c91a91ca8b23f8ed1ab307988f549cf", "remotedesktopmanager"),
+    "zoom": ("zoom", "7.2.5.6661", "https://cdn.zoom.us/prod/7.2.5.6661/zoom_amd64.deb",
+             "5cd7b9f1e6dc7226a44193df23d0664790496e8267f26152b0cbbd5888025444", "zoom"),
+    "slack": ("slack-desktop", "4.53.287",
+              "https://downloads.slack-edge.com/desktop-releases/linux/x64/4.53.287/slack-desktop-4.53.287-amd64.deb",
+              "c2057f221e41275b7eadc5b658edc00289466b6fb55c912c5894831f6900f969", "slack"),
+    "discord": ("discord", "1.0.169", "https://dl.discordapp.net/apps/linux/1.0.169/discord-1.0.169.deb",
+                "64d39ef66390149c09ec7d20759a2e4aa0b93efc071d073e3e72155eb86639df", "discord"),
 }
 # Pinned user-level tarballs (~/.local/opt/<id>-<version>): id -> (version, url, sha256, executable).
 VENDOR_TARBALLS = {
@@ -162,6 +169,9 @@ OTHER = {
     "positron": ("vendor", _VENDOR_OWNER, "positron", _DEB + " (Posit CDN)"),
     "code": ("vendor", _VENDOR_OWNER, "code", _REPO + " (Microsoft; package's own repo entry suppressed)"),
     "remotedesktopmanager": ("vendor", _VENDOR_OWNER, "remotedesktopmanager", _DEB + " (Devolutions CDN)"),
+    "zoom": ("vendor", _VENDOR_OWNER, "zoom", _DEB + " (Wayland portal sharing on)"),
+    "slack": ("vendor", _VENDOR_OWNER, "slack", _DEB + " (its cron repo-add disabled)"),
+    "discord": ("vendor", _VENDOR_OWNER, "discord", _DEB + " (host self-updates in ~/.config/discord)"),
     **{t: ("vendor", _VENDOR_OWNER, v[3], "pinned upstream tarball (sha256) in ~/.local/opt")
        for t, v in VENDOR_TARBALLS.items()},
     "libreoffice-calc": ("delegated", _OFFICE, "localc", _LIBREOFFICE),
