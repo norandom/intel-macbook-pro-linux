@@ -8,7 +8,7 @@ cur=$(powerprofilesctl get 2>/dev/null) || { echo "power-profiles-daemon not run
 case "${1:-next}" in
   status) echo "$cur"; exit 0 ;;
   waybar)
-    case "$cur" in power-saver) icon="󰌪" ;; performance) icon="" ;; *) icon="" ;; esac
+    case "$cur" in power-saver) icon="󰌪" ;; performance) icon="󰉁" ;; *) icon="󰗑" ;; esac
     printf '{"text":"%s","tooltip":"Power profile: %s (click to change)","class":"%s"}\n' "$icon" "$cur" "$cur"
     exit 0 ;;
   next) for i in 0 1 2; do [ "${order[$i]}" = "$cur" ] && want=${order[$(( (i + 1) % 3 ))]}; done; want=${want:-balanced} ;;

@@ -240,3 +240,19 @@ class Boundaries(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class BarIconTests(unittest.TestCase):
+    """Nerd Font glyphs must survive editing (empty icon strings rendered as blank gaps)."""
+
+    def test_battery_and_power_profile_icons_are_not_empty(self):
+        import jinja2, json as _json, re as _re, subprocess as _sp
+        root = Path(__file__).resolve().parents[1]
+        text = jinja2.Template((root / "templates/desktop/waybar-config.jsonc.j2").read_text()).render(
+            bar_graphs=False, left_reserve=0)
+        cfg = _json.loads("\n".join(l for l in text.splitlines() if not l.strip().startswith("//")))
+        self.assertTrue(all(cfg["battery"]["format-icons"]))
+        script = (root / "files/desktop/bin/hypr-power-profile").read_text()
+        self.assertNotIn('icon=""', script)
+        menu = (root / "files/desktop/waybar/power-profile-menu.xml").read_text()
+        self.assertEqual(len(_re.findall(r'label">\S+  ', menu)), 3)
