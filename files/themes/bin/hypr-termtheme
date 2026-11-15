@@ -216,7 +216,11 @@ def live_actions(profile):
             subprocess.run(argv, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=5, check=False)
         except (OSError, subprocess.TimeoutExpired):
             pass
-    if shutil.which("remotinator"):
+    # remotinator needs a session bus and a running Terminator; without them it raises a D-Bus
+    # error that Ubuntu's crash handler files in /var/crash (seen during a deploy).
+    if (shutil.which("remotinator") and os.environ.get("DBUS_SESSION_BUS_ADDRESS")
+            and subprocess.run(["pgrep", "-u", str(os.getuid()), "-f", "/usr/bin/terminator"],
+                               stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL).returncode == 0):
         run("remotinator", "switch_profile_all", "-p", profile)
     signal("waybar", "RTMIN+10")
     if os.environ.get("HYPRLAND_INSTANCE_SIGNATURE") and shutil.which("hyprctl"):
