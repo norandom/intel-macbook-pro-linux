@@ -1,11 +1,11 @@
-/* Managed by t2-mac-kde (desktop). cream-blue-light. */
+/* Managed by t2-mac-kde (desktop). grey-blue-light (was cream). */
 * { font-family: "JetBrainsMono Nerd Font", monospace; font-size: 12px; border: none; border-radius: 0; min-height: 0; }
-window#waybar { background: #fff8f0; color: #2b4570; border-bottom: 1px solid #ebe3d6; }
+window#waybar { background: #e3e1dd; color: #2b4570; border-bottom: 1px solid #c9c6c0; }  /* light warm grey */
 #custom-quota, #taskbar, #clock, #cpu, #memory, #network, #custom-netrate, #custom-cpu, #custom-mem, #custom-net, #pulseaudio, #tray, #backlight, #battery, #custom-power-profile { padding: 0 3px; }
 #custom-power-profile.performance { color: #c0605a; }
 #custom-power-profile.power-saver { color: #4a8a5a; }
 /* drop-down menus (power profile) in the bar's palette */
-menu { background: #fff8f0; border: 1px solid #2b4570; }
+menu { background: #e3e1dd; border: 1px solid #2b4570; }
 menu menuitem { color: #2b4570; padding: 4px 10px; font-family: "JetBrainsMono Nerd Font", monospace; }
 menu menuitem:hover { background: #2b4570; color: #fff8f0; }
 #battery.warning { color: #a87a2f; }
@@ -35,18 +35,18 @@ tooltip label { color: #fff8f0; font-family: "JetBrainsMono Nerd Font", monospac
 #custom-files { margin-left: 6px; background-image: url("/usr/local/share/icons/hicolor/scalable/apps/xfe.svg"); }
 #custom-term { background-image: url("/usr/share/icons/hicolor/32x32/apps/terminator.png"); }
 #custom-web { margin-right: 4px; background-image: url("/usr/share/icons/hicolor/32x32/apps/vivaldi.png"); }
-#custom-files:hover, #custom-term:hover, #custom-web:hover { background-color: #f5ede0; }
+#custom-files:hover, #custom-term:hover, #custom-web:hover { background-color: #d3d0cb; }
 #custom-layout { padding: 0 4px; color: #2b4570; }
 #custom-kbd { padding: 0 8px; color: #2b4570; }
 /* Clipboard history: dim when empty */
 #custom-cliphist { padding: 0 8px; font-size: 14px; color: #2b4570; }
 #custom-cliphist.empty { color: #9aa8bc; }
-#custom-cliphist:hover { background: #f5ede0; }
+#custom-cliphist:hover { background: #d3d0cb; }
 /* Night filter rabbit: black = off, mint = green filter, white (on navy) = dark */
 #custom-nightmode { padding: 0 8px; font-size: 15px; color: #1a2a3f; }
 #custom-nightmode.green { color: #3a8e6f; }
 #custom-nightmode.dark { color: #fff8f0; background: #1a2a3f; }
-#custom-nightmode:hover { background: #f5ede0; }
+#custom-nightmode:hover { background: #d3d0cb; }
 #custom-nightmode.dark:hover { background: #2b4570; }
 /* Terminator theme button: a dot in the theme's colour */
 #custom-termtheme { padding: 0 8px; font-size: 16px; color: #0049b2; }
@@ -54,21 +54,21 @@ tooltip label { color: #fff8f0; font-family: "JetBrainsMono Nerd Font", monospac
 #custom-termtheme.fixedsys { color: #ffa348; }
 #custom-termtheme.cream { color: #f5ede0; text-shadow: 0 0 1px #2b4570, 0 0 1px #2b4570; }
 #custom-termtheme.petrol { color: #002b36; }
-#custom-termtheme:hover { background: #f5ede0; }
-#custom-kbd:hover { background: #f5ede0; }
+#custom-termtheme:hover { background: #d3d0cb; }
+#custom-kbd:hover { background: #d3d0cb; }
 /* SUPER badge while one-shot Super is armed */
 #submap { padding: 0 8px; background: #2b4570; color: #fff8f0; font-weight: bold; }
-#custom-layout:hover { background: #f5ede0; }
+#custom-layout:hover { background: #d3d0cb; }
 /* Volume: speaker icon + slider (revealed on hover) */
 #pulseaudio { padding: 0 8px; font-size: 15px; }
-#pulseaudio:hover { background: #f5ede0; }
+#pulseaudio:hover { background: #d3d0cb; }
 #pulseaudio.muted { color: #c0605a; }
 #pulseaudio-slider { padding: 0 4px; }
 #pulseaudio-slider slider { min-height: 10px; min-width: 10px; background: #2b4570; border-radius: 5px; box-shadow: none; }
-#pulseaudio-slider trough { min-height: 4px; min-width: 90px; background: #ebe3d6; border-radius: 2px; }
+#pulseaudio-slider trough { min-height: 4px; min-width: 90px; background: #c9c6c0; border-radius: 2px; }
 #pulseaudio-slider highlight { background: #4a90d9; border-radius: 2px; }
 #taskbar button { padding: 0 8px; color: #2b4570; border-bottom: 2px solid transparent; }
-#taskbar button:hover { background: #f5ede0; }
+#taskbar button:hover { background: #d3d0cb; }
 #taskbar button.active { background: #d5dfeb; border-bottom: 2px solid #4a90d9; }
 
 /* Left reserve strip over the panel's defective edge (see waybar config). */
