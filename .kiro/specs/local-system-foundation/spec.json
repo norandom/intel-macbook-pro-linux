@@ -1,0 +1,22 @@
+{
+  "feature_name": "local-system-foundation",
+  "created_at": "2026-11-15T13:17:10+00:00",
+  "updated_at": "2026-11-15T14:31:34+00:00",
+  "language": "en",
+  "phase": "tasks-generated",
+  "approvals": {
+    "requirements": {
+      "generated": true,
+      "approved": true
+    },
+    "design": {
+      "generated": true,
+      "approved": true
+    },
+    "tasks": {
+      "generated": true,
+      "approved": true
+    }
+  },
+  "ready_for_implementation": false
+}
