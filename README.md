@@ -67,7 +67,8 @@ any of it.
 Node comes via nvm and Python tools via uv. You also get rootless Podman with Docker
 compatibility, and virt-manager on KVM with nested virtualization. Chromium ships with a
 matching `chromedriver`, for AI agents that drive a browser. VS Code, Zed, Sublime Text,
-Positron, Quarto, OpenIDEA and the usual CLI tools are included too. The terminals and editors
+Positron, Quarto, OpenIDEA and the usual CLI tools are included too; the CLI tools (kubectl,
+helm, k9s, zellij, btop, ripgrep, go, rustup, Nim, ...) come from one pinned Nix flake. The terminals and editors
 share five colour themes, and Bash gets a grml-style prompt, a large shared history and
 optional zsh-like suggestions via ble.sh.
 
@@ -186,6 +187,14 @@ System:
 | `hypr-rdp-control status` | the RDP server inside the Hyprland session (`start`, `stop`, `validate`) |
 | `dev-disk-reclaim` | shows what caches and builds could be cleaned; `--apply` cleans them |
 
+Nix tools (`docs/nix.md`):
+
+| Command | What it does |
+|---|---|
+| `t2-nix-update` | updates every Nix tool at once, copies the new `flake.lock` to the repo to commit |
+| `nix profile list` | what the profile holds (one entry, `t2-tools`) |
+| `nix profile rollback` | back to the previous tool set |
+
 ## Is it for you?
 
 Probably not yet if:
@@ -204,6 +213,7 @@ around anyway, because SSD, T2 and EFI firmware updates only arrive through macO
 - Specs and steering: `.kiro/specs/`, `.kiro/steering/`
 - Source port plan: `docs/source-port-plan.md`; backlog: `docs/backlog.md`
 - Hibernate (needs a bigger swap, owner-run): `docs/hibernate-swap.md`
+- Nix for user CLI tools (update, add, roll back): `docs/nix.md`
 
 ## Credits
 

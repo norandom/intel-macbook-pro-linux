@@ -49,6 +49,13 @@ class RepoTests(unittest.TestCase):
         self.assertEqual(apps.VENDOR_REPOS["chromium"][1], ("chromium", "chromium-driver"))
 
 
+    def test_oneapi_installs_compiler_only_without_env(self):
+        name, packages, exe, _sha = apps.VENDOR_REPOS["intel-oneapi"]
+        self.assertEqual(packages, ("intel-oneapi-compiler-dpcpp-cpp",))
+        self.assertEqual(exe, "/opt/intel/oneapi/compiler/latest/bin/icx")
+        self.assertNotRegex(TASK, r"setvars|\bCC=|\bCXX=|bashrc")
+
+
 class PinnedDownloadTests(unittest.TestCase):
     def test_debs_are_pinned_https_vendor_urls(self):
         for app_id, (package, version, url, sha, _exe) in apps.VENDOR_DEBS.items():

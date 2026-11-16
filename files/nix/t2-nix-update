@@ -1,0 +1,71 @@
+#!/usr/bin/env bash
+# Managed by t2-mac-kde (nix-user-tools).
+#   t2-nix-update          nix flake update + profile upgrade, copy flake.lock back to the repo,
+#                          print the changed versions
+#   t2-nix-update --apply  install or upgrade the "t2-tools" profile entry only (used by deploy)
+set -euo pipefail
+dir=${T2_NIX_DIR:-$HOME/.local/share/t2-mac-kde/nix}
+repo=@REPO@
+stamp=${XDG_STATE_HOME:-$HOME/.local/state}/t2-mac-kde/nix-tools.sha
+
+# The daemon socket is root:nix-users 0770. Right after `usermod -aG nix-users` the running
+# session does not have the group yet; sg picks it up from /etc/group without a password.
+if ! id -nG | tr ' ' '\n' | grep -qx nix-users; then
+  if id -nG "$(id -un)" | tr ' ' '\n' | grep -qx nix-users; then
+    exec sg nix-users -c "$(printf '%q ' "$0" "$@")"
+  fi
+  echo "t2-nix-update: $(id -un) is not in group nix-users (run the deploy)" >&2
+  exit 1
+fi
+
+nixf() { nix --extra-experimental-features 'nix-command flakes' "$@"; }
+ref="path:$dir#default"
+
+entry() {  # profile entry built from $dir: name (Nix >= 2.20) or index (older JSON)
+  nixf profile list --json 2>/dev/null | python3 -I -c '
+import json, sys
+d, want = sys.argv[1], ("path:" + sys.argv[1], sys.argv[1])
+try:
+    els = json.load(sys.stdin).get("elements", {})
+except ValueError:
+    els = {}
+items = els.items() if isinstance(els, dict) else enumerate(els)
+for key, e in items:
+    url = (e.get("originalUrl") or e.get("originalUri") or "").split("?")[0]
+    if url in want or key == "t2-tools":
+        print(key)
+        break
+' "$dir"
+}
+
+apply() {
+  local name
+  name=$(entry)
+  if [ -n "$name" ]; then nixf profile upgrade "$name"; else nixf profile install "$ref"; fi
+  mkdir -p "$(dirname "$stamp")"
+  cat "$dir/flake.nix" "$dir/flake.lock" "$dir/tools.json" 2>/dev/null | sha256sum | cut -d' ' -f1 >"$stamp"
+  if [ -d "$repo/nix" ] && [ -f "$dir/flake.lock" ] && ! cmp -s "$dir/flake.lock" "$repo/nix/flake.lock"; then
+    echo "t2-nix-update: $repo/nix/flake.lock differs from $dir/flake.lock;"
+    echo "  commit it: cp '$dir/flake.lock' '$repo/nix/' && git -C '$repo' add nix/flake.lock"
+  fi
+}
+
+case "${1-}" in
+  --apply) apply; exit 0 ;;
+  "") ;;
+  *) echo "usage: t2-nix-update [--apply]" >&2; exit 2 ;;
+esac
+
+old=$(readlink -f "$HOME/.nix-profile" 2>/dev/null || true)
+nixf flake update --flake "path:$dir"
+apply
+if [ -d "$repo/nix" ]; then
+  cp "$dir/flake.lock" "$repo/nix/flake.lock"
+  echo "copied flake.lock to $repo/nix/ (review: git -C '$repo' diff nix/flake.lock, then commit)"
+fi
+new=$(readlink -f "$HOME/.nix-profile")
+if [ -n "$old" ] && [ "$old" != "$new" ]; then
+  nixf store diff-closures "$old" "$new" | grep -v -e '^$' || true
+else
+  echo "no package changes"
+fi

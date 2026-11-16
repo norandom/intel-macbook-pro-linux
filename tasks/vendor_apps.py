@@ -2,7 +2,7 @@
 
 Run: .venv/bin/pyinfra @local tasks/vendor_apps.py [--dry] [--use-sudo-password]
 
-- Repos (Sublime Text, VS Code, Typora, XtraDeb Chromium): committed signing key, sha256
+- Repos (Sublime Text, VS Code, Typora, XtraDeb Chromium, Intel oneAPI icx/icpx): committed signing key, sha256
   checked here before anything; deb line with signed-by; first install refreshes only that
   source and goes through the guarded root helper (manage.packages). Updates via apt.
 - .debs (Obsidian, Bitwarden, Quarto, Positron, Remote Desktop Manager, Zoom, Slack, Discord): pinned version, URL,

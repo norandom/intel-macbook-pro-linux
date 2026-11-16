@@ -25,6 +25,7 @@ from manage import password_store
 from manage.packages import PackageRequest, install_packages
 from manage.preflight import validate_local_context
 from manage.userconfig import setting
+from manage.nix_tools import SESSION_PATH as nix_session_path
 
 validate_local_context()
 local.include("tasks/package_policy.py")
@@ -232,6 +233,7 @@ else:
 # uwsm session environment for Hyprland, sourced before Hyprland starts: cursor from the config,
 # and the GPU set from hypr-gpu's mode file (battery = Intel only; external = Intel + AMD outputs).
 # AQ_DRM_DEVICES is only set when the udev names exist, so a missing rule never blanks the session.
+# Nix profile first in PATH, so launchers see the Nix tools (tasks/nix_tools.py).
 gpu_mode = str(setting("gpu_mode", "battery"))
 gpu_state = f"{home}/.local/state/t2-mac-kde/gpu-mode"
 if not os.path.exists(gpu_state):
@@ -245,7 +247,8 @@ owned_put(StringIO(
     '    external) if [ -e /dev/dri/amd-dgpu ]; then export AQ_DRM_DEVICES=/dev/dri/intel-igpu:/dev/dri/amd-dgpu; fi ;;\n'
     '    *) export AQ_DRM_DEVICES=/dev/dri/intel-igpu ;;\n'
     '  esac\n'
-    'fi\n'), f"{cfg}/uwsm/env-hyprland")
+    'fi\n'
+    + nix_session_path), f"{cfg}/uwsm/env-hyprland")
 gpu_rule = files.put(name="udev: stable GPU names /dev/dri/intel-igpu, /dev/dri/amd-dgpu", src=f"{SRC}/udev/61-t2-gpu-names.rules",
                      dest="/etc/udev/rules.d/61-t2-gpu-names.rules", mode="644", _sudo=True)
 server.shell(name="udev: apply the GPU names now", _if=gpu_rule.did_change, _sudo=True,

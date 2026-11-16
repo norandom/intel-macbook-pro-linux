@@ -28,7 +28,7 @@ SOURCE_ENTRIES = {
     "systemd-zram-generator", "earlyoom", "qemu-guest-agent",
     "terminator", "xfe",
 }
-DISPOSITIONS = {"native", "release", "vendor", "delegated", "excluded", "blocked", "backlog"}
+DISPOSITIONS = {"native", "release", "nix", "vendor", "delegated", "excluded", "blocked", "backlog"}
 
 
 class CatalogTests(unittest.TestCase):
@@ -54,7 +54,7 @@ class CatalogTests(unittest.TestCase):
 
     def test_release_tools_are_pinned_https_sha256(self):
         self.assertNotIn("podman-tui", apps.RELEASE_TOOLS)
-        for name, (version, url, sha) in apps.RELEASE_TOOLS.items():
+        for name, (version, url, sha) in {**apps.RELEASE_TOOLS, **apps.RELEASE_FALLBACK}.items():
             self.assertTrue(url.startswith("https://"), name)
             self.assertIn(version, url, name)
             self.assertRegex(sha, r"\A[0-9a-f]{64}\Z", name)
@@ -68,21 +68,26 @@ class CatalogTests(unittest.TestCase):
 class ReportTests(unittest.TestCase):
     def test_report_distinguishes_available_and_missing(self):
         with tempfile.TemporaryDirectory() as home:
-            Path(home, ".local/bin").mkdir(parents=True)
-            tool = Path(home, ".local/bin/zellij")
-            tool.write_text("#!/bin/sh\n")
-            tool.chmod(0o755)
+            for rel in (".local/bin/upmd", ".nix-profile/bin/zellij"):
+                tool = Path(home, rel)
+                tool.parent.mkdir(parents=True, exist_ok=True)
+                tool.write_text("#!/bin/sh\n")
+                tool.chmod(0o755)
             env = {"PATH": "/nonexistent", "XDG_STATE_HOME": f"{home}/state"}
             with patch.dict(os.environ, env), patch.object(apps, "_dpkg_version", return_value=None):
                 path = apps.write_report(home)
             data = json.loads(path.read_text())
         self.assertEqual(path, Path(home, "state/t2-mac-kde/applications.json"))
         self.assertEqual(data["schema_version"], 1)
-        zellij, helm = data["entries"]["zellij"], data["entries"]["helm"]
-        self.assertTrue(zellij["available"])
-        self.assertEqual(zellij["installed_version"], "0.45.1")
+        upmd, zellij, helm = (data["entries"][i] for i in ("upmd", "zellij", "helm"))
+        self.assertTrue(upmd["available"])
+        self.assertEqual(upmd["installed_version"], "0.2.7")
+        self.assertTrue(zellij["available"])  # found in ~/.nix-profile/bin
+        self.assertEqual(zellij["disposition"], "nix")
         self.assertFalse(helm["available"])
         self.assertTrue(helm["selected"])
+        self.assertTrue(data["entries"]["btop"]["nix_preferred"])
+        self.assertFalse(data["entries"]["upmd"]["nix_preferred"])
         self.assertFalse(data["entries"]["libreoffice-calc"]["selected"])
         self.assertEqual(data["entries"]["vivaldi-stable"]["disposition"], "blocked")
 

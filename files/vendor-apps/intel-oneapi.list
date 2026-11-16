@@ -1,0 +1,2 @@
+# Intel oneAPI (suite "all", component main; managed by t2-mac-kde)
+deb [arch=amd64 signed-by=/usr/share/keyrings/intel-oneapi-archive-keyring.gpg] https://apt.repos.intel.com/oneapi all main

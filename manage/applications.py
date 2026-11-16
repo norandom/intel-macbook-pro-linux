@@ -6,6 +6,7 @@ Source: norandom/hyperland-forky-worker-vm @ a1c09ec3f02a98b7c6a4641f907108a2ad0
 Every source entry appears exactly once in CATALOG with a disposition:
   native    installed here from the Ubuntu archive (manage.packages guard)
   release   pinned upstream release binary into ~/.local/bin (sha256 verified)
+  nix       user Nix profile "t2-tools" (tasks/nix_tools.py; manage/nix_tools.MIGRATED)
   delegated installed by another spec (owner named)
   excluded  intentionally not ported on this laptop
   vendor    official vendor apt repo, pinned vendor .deb or pinned user-level tarball
@@ -21,6 +22,8 @@ import os
 import shutil
 import subprocess
 from pathlib import Path
+
+from manage.nix_tools import DEFAULT_TOOLS, MIGRATED, NIX_PREFERRED
 
 SOURCE_REVISION = "a1c09ec3f02a98b7c6a4641f907108a2ad080993"
 
@@ -54,11 +57,18 @@ NATIVE = {
 }
 
 # name -> (version, url, sha256), verbatim from source group_data/all.py release_tools.
+# Only tools nixpkgs lacks (upmd; rc = rustfs-cli, nixpkgs "rc" is the Plan 9 shell).
 RELEASE_TOOLS = {
-    "zellij": ("0.45.1", "https://github.com/zellij-org/zellij/releases/download/v0.45.1/zellij-x86_64-unknown-linux-musl.tar.gz",
-               "40bcc2e03f5d5ae8e054e39f676081fe12ab70871506996ba595834c3718eefc"),
     "upmd": ("0.2.7", "https://github.com/rezigned/upmd/releases/download/v0.2.7/upmd-x86_64-unknown-linux-gnu.tar.xz",
              "101336d7a8f4648a3bf894d5636875f1df3d219719d470096c562e0cf4d6b9aa"),
+    "rc": ("0.1.36", "https://github.com/rustfs/cli/releases/download/v0.1.36/rustfs-cli-linux-amd64-v0.1.36.tar.gz",
+           "4a8128911ccad4e7b481f26635a4cfd1ec064412210526e57ad2c748d356f3b7"),
+}
+# Pins of tools Nix provides now (manage/nix_tools.MIGRATED). tasks/apps.py installs one again
+# only when its attribute is taken out of config nix_tools (spec nix-user-tools req 4.2).
+RELEASE_FALLBACK = {
+    "zellij": ("0.45.1", "https://github.com/zellij-org/zellij/releases/download/v0.45.1/zellij-x86_64-unknown-linux-musl.tar.gz",
+               "40bcc2e03f5d5ae8e054e39f676081fe12ab70871506996ba595834c3718eefc"),
     "kubectl": ("1.37.1", "https://dl.k8s.io/release/v1.37.1/bin/linux/amd64/kubectl",
                 "65691ff77eb6fa44c908b77a1082c9f092c3b9733b5cefabec0d1104890e21a8"),
     "helm": ("4.3.0", "https://get.helm.sh/helm-v4.3.0-linux-amd64.tar.gz",
@@ -69,8 +79,6 @@ RELEASE_TOOLS = {
              "f8104e5d09bb764da014ba87e5f75c73f55a26b907e9699f43176848a33dbea6"),
     "bw": ("2026.9.1", "https://github.com/bitwarden/clients/releases/download/cli-v2026.9.1/bw-linux-2026.9.1.zip",
            "84289eaf59d691f04242605112f21b00e8dba65acdedbc60dde001a2860f2097"),
-    "rc": ("0.1.36", "https://github.com/rustfs/cli/releases/download/v0.1.36/rustfs-cli-linux-amd64-v0.1.36.tar.gz",
-           "4a8128911ccad4e7b481f26635a4cfd1ec064412210526e57ad2c748d356f3b7"),
     "rclone": ("1.75.2", "https://github.com/rclone/rclone/releases/download/v1.75.2/rclone-v1.75.2-linux-amd64.zip",
                "349ac8fba6ff65d6247043f1750cdcb518ec5d500ef91463a10d37c0ccdf3702"),
 }
@@ -83,6 +91,8 @@ RELEASE_TOOLS = {
 #   code         BC528686B50D79E339D3721CEB3E94ADBE1229CF (Microsoft Release signing)
 #   typora       4AC441BE68B4ADAB7439FBF9BA300B7755AFCFAE (Typora linux packages)
 #   xtradeb      5301FA4FD93244FBC6F6149982BB6851C64F6880 (Launchpad PPA for xtradeb)
+#   intel-oneapi E9BF0AFC46D6E8B7DA5882F1BAC6F0C353D04109 (Intel Software Development Products,
+#                current signer; the file also carries Intel's four expired predecessor keys)
 VENDOR_REPOS = {
     "sublime-text": ("sublime-text", ("sublime-text",), "subl",
                      "0c1b881841c723766c142ca122f3778016dc62d16f0011ccc36b6f8e5a836b28"),
@@ -92,6 +102,9 @@ VENDOR_REPOS = {
                "06bbbb3681896a3961dd8630594a92773e8f1aa750aa2e5398fe536e2529dd2e"),
     "chromium": ("xtradeb", ("chromium", "chromium-driver"), "chromium",
                  "cfce8900b216d10492cd1383ff43c8fcb3343a7fe9413fbae5121958b9a80a3e"),
+    # icx/icpx; not on PATH (no setvars.sh, no CC/CXX), so the probe is the absolute path.
+    "intel-oneapi": ("intel-oneapi", ("intel-oneapi-compiler-dpcpp-cpp",), "/opt/intel/oneapi/compiler/latest/bin/icx",
+                     "b64d30657bf1ba91aec0f932910419698047c9ab6387cbbe52430dc59bcf6d86"),
 }
 # Pinned vendor .debs: id -> (dpkg package, dpkg Version, url, sha256, executable).
 VENDOR_DEBS = {
@@ -169,6 +182,8 @@ OTHER = {
     "positron": ("vendor", _VENDOR_OWNER, "positron", _DEB + " (Posit CDN)"),
     "code": ("vendor", _VENDOR_OWNER, "code", _REPO + " (Microsoft; package's own repo entry suppressed)"),
     "remotedesktopmanager": ("vendor", _VENDOR_OWNER, "remotedesktopmanager", _DEB + " (Devolutions CDN)"),
+    "intel-oneapi": ("vendor", _VENDOR_OWNER, "/opt/intel/oneapi/compiler/latest/bin/icx",
+                     _REPO + " (icx/icpx; Intel EULA, no key)"),
     "zoom": ("vendor", _VENDOR_OWNER, "zoom", _DEB + " (Wayland portal sharing on)"),
     "slack": ("vendor", _VENDOR_OWNER, "slack", _DEB + " (its cron repo-add disabled)"),
     "discord": ("vendor", _VENDOR_OWNER, "discord", _DEB + " (host self-updates in ~/.config/discord)"),
@@ -187,14 +202,22 @@ OTHER = {
 }
 
 
-def catalog() -> dict[str, tuple[str, str, str | None, str | None]]:
+def release_tools(nix_attrs=DEFAULT_TOOLS) -> dict[str, tuple[str, str, str]]:
+    """Release pins tasks/apps.py installs: RELEASE_TOOLS + fallbacks whose Nix attribute is off."""
+    return {**RELEASE_TOOLS, **{n: pin for n, pin in RELEASE_FALLBACK.items() if MIGRATED[n] not in nix_attrs}}
+
+
+def catalog(nix_attrs=DEFAULT_TOOLS) -> dict[str, tuple[str, str, str | None, str | None]]:
     """id -> (disposition, owner, executable, reason) for every source entry."""
     entries = {i: ("native", "application-suite", exe, None) for i, (_, exe) in NATIVE.items()}
-    entries.update({n: ("release", "application-suite", n, None) for n in RELEASE_TOOLS})
+    entries.update({n: ("release", "application-suite", n, None) for n in release_tools(nix_attrs)})
     overlap = set(entries) & set(OTHER)
     if overlap:
         raise RuntimeError(f"Application ids owned twice: {sorted(overlap)}")
     entries.update(OTHER)
+    for app_id, attr in MIGRATED.items():
+        if attr in nix_attrs:
+            entries[app_id] = ("nix", "tasks/nix_tools.py", app_id, f"nixpkgs {attr} (was a pinned release binary)")
     return entries
 
 
@@ -212,18 +235,19 @@ def _dpkg_version(package: str) -> str | None:
     return version if out.returncode == 0 and status == "installed" else None
 
 
-def observe(home: str | None = None) -> list[dict]:
-    """Read-only availability probe (actual executables on PATH + ~/.local/bin)."""
+def observe(home: str | None = None, nix_attrs=DEFAULT_TOOLS) -> list[dict]:
+    """Read-only availability probe (Nix profile, ~/.local/bin, then PATH: the session order)."""
     home = home or os.path.expanduser("~")
-    path = os.pathsep.join((f"{home}/.local/bin", os.environ.get("PATH", "/usr/bin:/bin")))
+    path = os.pathsep.join((f"{home}/.nix-profile/bin", f"{home}/.local/bin", os.environ.get("PATH", "/usr/bin:/bin")))
+    pins = release_tools(nix_attrs)
     report = []
-    for app_id, (disposition, owner, exe, reason) in sorted(catalog().items()):
+    for app_id, (disposition, owner, exe, reason) in sorted(catalog(nix_attrs).items()):
         resolved = shutil.which(exe, path=path) if exe else None
         version = None
         if disposition == "native":
             version = _dpkg_version(NATIVE[app_id][0])
         elif disposition == "release":
-            version = RELEASE_TOOLS[app_id][0] if resolved else None
+            version = pins[app_id][0] if resolved else None
         elif app_id in VENDOR_DEBS:
             version = _dpkg_version(VENDOR_DEBS[app_id][0])
         elif app_id in VENDOR_TARBALLS:
@@ -232,9 +256,10 @@ def observe(home: str | None = None) -> list[dict]:
             version = _dpkg_version(VENDOR_REPOS[app_id][1][0] if app_id in VENDOR_REPOS else app_id)
         report.append({
             "id": app_id, "owner": owner, "disposition": disposition,
-            "selected": disposition in ("native", "release", "vendor"),
+            "selected": disposition in ("native", "release", "vendor", "nix"),
             "installed_version": version, "executable": resolved or exe,
             "available": bool(resolved), "reason": reason,
+            "nix_preferred": NIX_PREFERRED.get(app_id) in nix_attrs,
         })
     return report
 
@@ -245,12 +270,12 @@ def report_path(home: str | None = None) -> Path:
     return Path(state) / "t2-mac-kde" / "applications.json"
 
 
-def write_report(home: str | None = None) -> Path:
+def write_report(home: str | None = None, nix_attrs=DEFAULT_TOOLS) -> Path:
     """Write $XDG_STATE_HOME/t2-mac-kde/applications.json (schema_version 1) atomically."""
     target = report_path(home)
     target.parent.mkdir(parents=True, exist_ok=True)
     data = {"schema_version": 1, "source_revision": SOURCE_REVISION,
-            "entries": {e["id"]: e for e in observe(home)}}
+            "entries": {e["id"]: e for e in observe(home, nix_attrs)}}
     tmp = target.with_suffix(".json.tmp")
     tmp.write_text(json.dumps(data, indent=2, sort_keys=True) + "\n")
     os.replace(tmp, target)
@@ -260,4 +285,5 @@ def write_report(home: str | None = None) -> Path:
 if __name__ == "__main__":  # quick read-only status: python -m manage.applications
     for e in observe():
         state = "ok" if e["available"] else ("MISSING" if e["selected"] else "-")
-        print(f"{e['id']:24} {e['disposition']:9} {state:8} {e['reason'] or e['owner']}")
+        nix = " (Nix preferred in PATH)" if e["nix_preferred"] else ""
+        print(f"{e['id']:24} {e['disposition']:9} {state:8} {e['reason'] or e['owner']}{nix}")

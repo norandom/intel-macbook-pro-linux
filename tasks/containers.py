@@ -3,7 +3,8 @@
 Ported from the worker VM's tasks/containers.py. Local differences: existing Docker installs,
 docker-compose commands and user registry policy are detected and preserved (reported, not
 replaced); the source CPUWeight=200 for containers is NOT applied (laptop desktop responsiveness);
-podman-tui (not packaged in Ubuntu) comes from the pinned, sha256-checked upstream release into ~/.local.
+podman-tui comes from the Nix profile while config nix_tools lists it (tasks/nix_tools.py); otherwise
+from the pinned, sha256-checked upstream release into ~/.local.
 """
 import os
 import pwd
@@ -17,6 +18,8 @@ from pyinfra.operations import files, server
 from manage import containers as c
 from manage.packages import PackageRequest, install_packages
 from manage.preflight import validate_local_context
+from manage.nix_tools import tools as nix_tools
+from manage.userconfig import setting
 
 validate_local_context()
 
@@ -108,7 +111,9 @@ note("Source CPUWeight=200 for container slice not applied on this laptop (curre
 # --- podman-tui (not in Ubuntu archive): pinned upstream release, sha256-verified ----------------
 opt = home / ".local/opt" / f"podman-tui-{c.PODMAN_TUI_VERSION}"
 binary, bin_link = opt / "podman-tui", home / ".local/bin/podman-tui"
-if bin_link.exists() and not bin_link.is_symlink():
+if "podman-tui" in nix_tools(setting("nix_tools")):
+    note("podman-tui comes from the Nix profile (config nix_tools, tasks/nix_tools.py).")
+elif bin_link.exists() and not bin_link.is_symlink():
     note(f"podman-tui not installed: foreign {bin_link} is preserved.")
 else:
     if not binary.is_file():

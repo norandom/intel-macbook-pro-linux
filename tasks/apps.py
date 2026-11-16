@@ -14,9 +14,11 @@ from pyinfra import host, local, logger
 from pyinfra.facts.files import File
 from pyinfra.operations import files, python, server
 
-from manage.applications import RELEASE_TOOLS, native_packages, write_report
+from manage.applications import native_packages, release_tools, write_report
+from manage.nix_tools import tools as nix_tools
 from manage.packages import PackageRequest, install_packages
 from manage.preflight import validate_local_context
+from manage.userconfig import setting
 
 validate_local_context()
 local.include("tasks/package_policy.py")
@@ -24,6 +26,8 @@ local.include("tasks/package_policy.py")
 home = os.path.expanduser("~")
 bin_dir = f"{home}/.local/bin"
 marks = f"{home}/.local/share/t2-mac-kde/release-tools"
+# Tools in config nix_tools come from the Nix profile (tasks/nix_tools.py), not from here.
+nix_attrs = nix_tools(setting("nix_tools"))
 
 install_packages(PackageRequest(packages=native_packages(), source="ubuntu"))
 
@@ -35,8 +39,8 @@ server.shell(
               f'{{ mkdir -p "{bin_dir}" && ln -s /usr/bin/fdfind "{fd}"; }}'],
 )
 
-# --- Release binaries (source release_tools; podman-tui belongs to rootless-containers) ---
-for name, (version, url, sha) in RELEASE_TOOLS.items():
+# --- Release binaries (source release_tools minus what Nix provides; podman-tui: rootless-containers) ---
+for name, (version, url, sha) in release_tools(nix_attrs).items():
     dest, mark = f"{bin_dir}/{name}", f"{marks}/{name}.sha256"
     if host.get_fact(File, path=dest) and not host.get_fact(File, path=mark):
         logger.warning(f"apps: {dest} exists and is not managed here; leaving it alone ({name} {version} skipped)")
@@ -89,4 +93,4 @@ for path, line, replace in (
                ensure_newline=True)
 
 python.call(name="Availability report (~/.local/state/t2-mac-kde/applications.json)",
-            function=lambda: logger.info(f"apps: wrote {write_report(home)}"))
+            function=lambda: logger.info(f"apps: wrote {write_report(home, nix_attrs)}"))

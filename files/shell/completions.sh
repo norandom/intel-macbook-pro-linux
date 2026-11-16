@@ -7,7 +7,7 @@ set -u
 dir=${XDG_DATA_HOME:-$HOME/.local/share}/bash-completion/completions
 header='# Managed by t2-mac-kde shell-user-tools'
 mkdir -p "$dir"
-PATH="$HOME/.local/bin:$PATH"
+PATH="$HOME/.nix-profile/bin:$HOME/.local/bin:$PATH"
 
 ours() { [ ! -e "$1" ] || head -n1 "$1" 2>/dev/null | grep -qxF "$header"; }
 

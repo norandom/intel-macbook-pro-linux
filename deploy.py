@@ -20,6 +20,7 @@ for task in (
     "apps",             # application suite + release tools
     "vendor_apps",      # vendor repos/.debs/tarballs (before themes: editors get palettes)
     "office_apps",      # LibreOffice (tabbed UI), Craft suite, OpenIDEA
+    "nix_tools",        # Nix (Ubuntu package) + pinned flake profile for user CLI tools
     "xfe",              # Xfe file manager (unpacked; keeps KDE's im-config)
     "shell",            # bash/grml, history, nvim-simple, npm/uv user tools
     "themes",           # five palettes + hypr-termtheme
