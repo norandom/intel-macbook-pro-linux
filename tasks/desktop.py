@@ -159,7 +159,22 @@ if hibernate:
     files.put(name="systemd-sleep: HibernateMode=shutdown (no ACPI S4 firmware call)",
               src=f"{SRC}/systemd-sleep/t2-hibernate.conf", dest="/etc/systemd/sleep.conf.d/t2-hibernate.conf",
               mode="644", create_remote_dir=True, _sudo=True)
+    # Owner-approved boundary exception (2026-11-16): unload the T2 bridge drivers before
+    # hibernate, load them fresh after the restore (the T2 chip is power-cycled). Hibernate only.
+    bce = [files.put(name="T2 driver hook for hibernate (/usr/local/libexec/t2-hibernate-bce)",
+                     src=f"{SRC}/t2-hibernate-bce", dest="/usr/local/libexec/t2-hibernate-bce", mode="755",
+                     create_remote_dir=True, _sudo=True),
+           files.put(name="t2-hibernate-bce.service (required by systemd-hibernate.service)",
+                     src=f"{SRC}/systemd-system/t2-hibernate-bce.service",
+                     dest="/etc/systemd/system/t2-hibernate-bce.service", mode="644", _sudo=True)]
+    server.shell(name="Enable t2-hibernate-bce.service", _sudo=True,
+                 _if=lambda: any(op.did_change() for op in bce),
+                 commands=["systemctl daemon-reload", "systemctl reenable t2-hibernate-bce.service"])
 else:
+    server.shell(name="t2-hibernate-bce.service off (hibernate off)", _sudo=True, commands=[
+        "[ ! -e /etc/systemd/system/t2-hibernate-bce.service ] || { systemctl disable t2-hibernate-bce.service; "
+        "rm -f /etc/systemd/system/t2-hibernate-bce.service /usr/local/libexec/t2-hibernate-bce; "
+        "systemctl daemon-reload; }"])
     files.file(name="systemd-sleep hibernate mode removed (hibernate off)",
                path="/etc/systemd/sleep.conf.d/t2-hibernate.conf", present=False, _sudo=True)
     files.file(name="hypr-hibernate removed (hibernate off)", path=f"{bin_dir}/hypr-hibernate", present=False)

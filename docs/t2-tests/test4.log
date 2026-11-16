@@ -1,0 +1,43 @@
+== test4 t2bce unload/reload  2026-11-16T12:44:52+01:00  kernel 7.3.4-3-t2-resolute
+  before: t2bce_audio used by 3
+  before: hid_appletb_kbd used by 0
+  before: hid_appletb_bl used by 0
+  before: t2bce_vhci used by 0
+  before: t2bce_core used by 2
+  before: t2bce_dma used by 1
+12:44:55 stop audio (user services)
+12:44:56 unload t2bce_audio t2bce_vhci t2bce_core t2bce_dma
+modprobe: ERROR: could not remove 't2bce_core': No such file or directory
+12:44:57 unloaded
+12:45:00 load t2bce_vhci t2bce_audio (pulls in core + dma)
+12:45:00 loaded: 4 t2bce modules
+12:45:05 start audio
+  after: t2bce_audio used by 3
+  after: t2bce_vhci used by 0
+  after: t2bce_core used by 2
+  after: t2bce_dma used by 1
+  after: hid_appletb_kbd used by 0
+  after: hid_appletb_bl used by 0
+  input devices: 4 Apple keyboard/trackpad entries
+  audio sinks: 3
+[  609.784159] input: Apple Headset as /devices/pci0000:00/0000:00:1b.0/0000:04:00.1/t2bce_core/t2bce_core/t2bce_vhci/usb7/7-4/7-4:1.0/0003:05AC:8103.000D/input/input19
+[  609.834836] hid-generic 0003:05AC:8103.000D: input,hidraw1: USB HID v1.01 Device [Apple Headset] on usb-t2bce_vhci-4/input0
+[  609.947493] usb 7-5: new high-speed USB device number 6 using t2bce_core
+[  610.101595] apple 0003:05AC:0340.000E: hiddev1,hidraw2: USB HID v1.01 Device [Apple Inc. Apple Internal Keyboard / Trackpad] on usb-t2bce_vhci-5/input0
+[  610.105788] input: Apple Inc. Apple Internal Keyboard / Trackpad as /devices/pci0000:00/0000:00:1b.0/0000:04:00.1/t2bce_core/t2bce_core/t2bce_vhci/usb7/7-5/7-5:1.1/0003:05AC:0340.000F/input/input20
+[  610.177705] apple 0003:05AC:0340.000F: input,hidraw3: USB HID v1.01 Keyboard [Apple Inc. Apple Internal Keyboard / Trackpad] on usb-t2bce_vhci-5/input1
+[  610.182142] input: Apple Inc. Apple Internal Keyboard / Trackpad as /devices/pci0000:00/0000:00:1b.0/0000:04:00.1/t2bce_core/t2bce_core/t2bce_vhci/usb7/7-5/7-5:1.2/0003:05AC:0340.0010/input/input21
+[  610.182628] magicmouse 0003:05AC:0340.0010: input,hiddev2,hidraw4: USB HID v1.01 Mouse [Apple Inc. Apple Internal Keyboard / Trackpad] on usb-t2bce_vhci-5/input2
+[  610.186958] apple 0003:05AC:0340.0011: hiddev3,hidraw5: USB HID v1.01 Device [Apple Inc. Apple Internal Keyboard / Trackpad] on usb-t2bce_vhci-5/input3
+[  610.191457] apple 0003:05AC:0340.0012: hiddev4,hidraw6: USB HID v1.01 Device [Apple Inc. Apple Internal Keyboard / Trackpad] on usb-t2bce_vhci-5/input4
+[  610.304525] usb 7-6: new high-speed USB device number 7 using t2bce_core
+[  610.454982] input: Apple Inc. Touch Bar Display as /devices/pci0000:00/0000:00:1b.0/0000:04:00.1/t2bce_core/t2bce_core/t2bce_vhci/usb7/7-6/7-6:1.0/0003:05AC:8302.0013/input/input22
+[  610.505666] hid-appletb-kbd 0003:05AC:8302.0013: input: USB HID v1.01 Keyboard [Apple Inc. Touch Bar Display] on usb-t2bce_vhci-6/input0
+[  610.505673] hid-appletb-kbd 0003:05AC:8302.0013: error -ENODEV: Failed to get backlight device
+[  610.672517] usb 7-7: new high-speed USB device number 8 using t2bce_core
+[  610.820387] apple 0003:05AC:8102.0014: hiddev5,hidraw7: USB HID v1.01 Device [Apple Inc. Touch Bar Backlight] on usb-t2bce_vhci-7/input0
+[  610.821018] hid-appletb-bl 0003:05AC:8102.0014: : USB HID v1.01 Device [Apple Inc. Touch Bar Backlight] on usb-t2bce_vhci-7/input0
+[  610.878087] apple 0003:05AC:8102.0015: hiddev5,hidraw7: USB HID v1.01 Device [Apple Inc. Touch Bar Backlight] on usb-t2bce_vhci-7/input1
+[  610.990482] usb 7-8: new high-speed USB device number 9 using t2bce_core
+[  611.140636] hid-sensor-hub 0003:05AC:8104.0016: hiddev6,hidraw8: USB HID v1.01 Device [Apple] on usb-t2bce_vhci-8/input0
+12:46:10 done: does the keyboard type, the trackpad move, the Touch Bar show keys, audio play?

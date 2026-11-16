@@ -1,0 +1,40 @@
+#!/bin/sh
+# Managed by t2-mac-kde (desktop, config hibernate = true; owner-approved boundary exception,
+# .kiro/steering/protected-system-boundary.md). Run as root by t2-hibernate-bce.service:
+#   pre   before hibernate: stop PipeWire (it holds t2bce_audio open), unload the T2 bridge
+#         drivers without force. If any stays loaded, reload everything and exit 1, which
+#         cancels the hibernate (the unit is required by systemd-hibernate.service).
+#   post  after the restore (or a failed hibernate): load the drivers fresh, start PipeWire.
+# Why: with HibernateMode=shutdown the T2 chip is power-cycled; a restored kernel that still has
+# the old driver state gets no keyboard/trackpad (2026-11-16). Suspend is not affected.
+set -u
+log() { echo "t2-hibernate-bce: $*"; }
+audio() {   # start|stop PipeWire for every logged-in user, the way test4.sh did (user's own bus)
+  loginctl list-users --no-legend | while read -r uid u _rest; do
+    [ -S "/run/user/$uid/bus" ] || continue
+    if [ "$1" = stop ]; then units="pipewire-pulse.socket pipewire.socket pipewire-pulse.service wireplumber.service pipewire.service"
+    else units="pipewire.socket pipewire-pulse.socket wireplumber.service"; fi
+    runuser -u "$u" -- env XDG_RUNTIME_DIR="/run/user/$uid" DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/$uid/bus" \
+      systemctl --user "$1" $units || true
+  done
+}
+load() { modprobe t2bce_vhci; modprobe t2bce_audio; }
+case "${1:-}" in
+  pre)
+    audio stop; sleep 1
+    modprobe -r t2bce_audio t2bce_vhci t2bce_core t2bce_dma 2>/dev/null
+    if lsmod | grep -q '^t2bce'; then
+      log "T2 drivers still loaded ($(lsmod | awk '/^t2bce/{print $1}' | tr '\n' ' ')): hibernate cancelled, suspending instead"
+      load; sleep 2; audio start
+      # The lid may have triggered this: don't leave the Mac running in a bag. Suspend once the
+      # failed hibernate transaction is over.
+      systemd-run --quiet --no-block --on-active=5 /usr/bin/systemctl suspend || true
+      exit 1
+    fi
+    log "T2 drivers unloaded" ;;
+  post)
+    load
+    log "T2 drivers loaded: $(lsmod | grep -c '^t2bce') modules"
+    sleep 2; audio start ;;
+  *) echo "usage: t2-hibernate-bce pre|post" >&2; exit 2 ;;
+esac

@@ -1,4 +1,5 @@
 import re
+import subprocess
 import unittest
 from pathlib import Path
 
@@ -21,8 +22,7 @@ class HibernateTests(unittest.TestCase):
         task = (ROOT / "tasks/desktop.py").read_text()
         self.assertIn('dest="/etc/systemd/sleep.conf.d/t2-hibernate.conf"', task)
         self.assertIn('path="/etc/systemd/sleep.conf.d/t2-hibernate.conf", present=False', task)
-        for bad in ("rmmod", "modprobe -r", "t2bce"):
-            self.assertNotIn(bad, task)   # no driver unloading: pm_test showed devices freeze fine
+        self.assertNotIn("rmmod", task)          # the task itself never unloads anything
 
     def test_lid_hibernate_needs_hibernate_and_never_restarts_logind(self):
         task = (ROOT / "tasks/desktop.py").read_text()
@@ -31,6 +31,30 @@ class HibernateTests(unittest.TestCase):
         self.assertIn("HandleLidSwitch=hibernate", task)
         self.assertIn("systemctl kill -s HUP --kill-whom=main systemd-logind.service", task)
         self.assertNotIn("restart systemd-logind", task)
+
+    def test_t2_driver_hook_is_hibernate_only_and_never_forces(self):
+        hook = (ROOT / "files/desktop/t2-hibernate-bce").read_text()
+        unit = (ROOT / "files/desktop/systemd-system/t2-hibernate-bce.service").read_text()
+        self.assertNotIn("rmmod", hook)
+        self.assertNotIn("-f ", hook.replace("rm -f", ""))
+        self.assertIn("modprobe -r t2bce_audio t2bce_vhci t2bce_core t2bce_dma", hook)
+        self.assertIn("hibernate cancelled", hook)            # unload failure -> exit 1
+        self.assertIn("exit 1", hook)
+        for svc in ("systemd-hibernate.service", "systemd-hybrid-sleep.service", "systemd-suspend-then-hibernate.service"):
+            self.assertIn(svc, unit.split("RequiredBy=")[1])
+        self.assertNotIn("systemd-suspend.service", unit)
+        self.assertIn("systemctl suspend", hook)        # cancelled hibernate falls back to suspend
+        self.assertIn("runuser -u", hook)
+        self.assertIn("Before=systemd-hibernate.service", unit)
+        self.assertIn("StopWhenUnneeded=yes", unit)
+        subprocess.run(["sh", "-n", str(ROOT / "files/desktop/t2-hibernate-bce")], check=True)
+
+    def test_hook_only_installed_with_hibernate(self):
+        task = (ROOT / "tasks/desktop.py").read_text()
+        block = task[task.index('if hibernate:'):task.index('lid_close = setting')]
+        on, off = block.split("\nelse:", 1)
+        self.assertIn("t2-hibernate-bce", on)
+        self.assertIn("systemctl disable t2-hibernate-bce.service", off)
 
     def test_rule_sorts_before_ubuntus(self):
         self.assertLess("49-t2-hibernate.rules", "com.ubuntu.desktop.rules")

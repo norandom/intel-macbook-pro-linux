@@ -1,0 +1,18 @@
+# Managed by t2-mac-kde (desktop, config hibernate = true). Every sleep that writes an image
+# (hibernate, hybrid-sleep, suspend-then-hibernate); plain suspend is untouched.
+[Unit]
+Description=T2 bridge drivers out before hibernate, back after the restore (t2-mac-kde)
+Before=systemd-hibernate.service systemd-hybrid-sleep.service systemd-suspend-then-hibernate.service
+StopWhenUnneeded=yes
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/local/libexec/t2-hibernate-bce pre
+ExecStop=/usr/local/libexec/t2-hibernate-bce post
+TimeoutStartSec=60
+TimeoutStopSec=60
+
+[Install]
+# Required, not wanted: if the drivers can't be unloaded, hibernate doesn't start.
+RequiredBy=systemd-hibernate.service systemd-hybrid-sleep.service systemd-suspend-then-hibernate.service

@@ -53,3 +53,20 @@ off (single-user workstation, performance first). Allowed, and only this:
   `update-grub` (the same regeneration every kernel update already performs).
 - Kernels, initramfs, LUKS/LVM, fstab, keyboard-presence setup and all other boot options stay
   untouched. Any further boot change needs a new explicit owner decision.
+
+## Owner-approved exception: T2 driver reload around hibernate (2026-11-16)
+
+The owner explicitly asked for the t2linux community workaround after hibernate restored a
+session without keyboard or trackpad (the T2 chip is power-cycled with HibernateMode=shutdown).
+Allowed, and only this:
+
+- With config `hibernate = true`, `t2-hibernate-bce.service` (RequiredBy and Before
+  systemd-hibernate, -hybrid-sleep and -suspend-then-hibernate.service) runs `/usr/local/libexec/t2-hibernate-bce pre` before hibernate:
+  stop PipeWire, `modprobe -r t2bce_audio t2bce_vhci t2bce_core t2bce_dma` without force; if any
+  module stays loaded it reloads everything, fails (which cancels the hibernate) and suspends
+  instead, so a lid-triggered hibernate never leaves the Mac running.
+- After the restore (or a failed hibernate) `post` loads `t2bce_vhci` and `t2bce_audio` again
+  and starts PipeWire.
+- Image-writing sleeps only: plain suspend, the initramfs, module options, blacklists and the drivers' files stay
+  untouched. Tested by hand first (docs/t2-tests/test4.sh: unload + reload in a running session,
+  all devices back). Any further driver change needs a new explicit owner decision.

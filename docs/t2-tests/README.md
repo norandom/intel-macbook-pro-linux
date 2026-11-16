@@ -8,6 +8,7 @@ results from the owner's machine (2026-11-16, Ubuntu 26.04, kernel 7.3.4-3-t2).
 |---|---|---|---|
 | [test1.sh](test1.sh) | Does the SMC accept a battery charge limit? | Yes: 60/80/100 accepted, 0 refused (100 = no limit) | `battery_charge_limit`, `t2-battery` ([power.md](../power.md)) |
 | [test2.sh](test2.sh) | Can Linux set the fan speed? | No: `fan*_target` writes are refused (EOPNOTSUPP); the SMC keeps control | Fan curves stay in the backlog; Waybar only shows the speeds |
+| [test4.sh](test4.sh) | Can the T2 bridge drivers be unloaded and loaded again in a running session? | Yes: no force needed once PipeWire is stopped; keyboard, trackpad, Touch Bar, headset and audio come back | The hibernate driver hook (`t2-hibernate-bce`) |
 | [test3.sh](test3.sh) | Where does hibernation hang? | `freezer` and `devices` pass, `platform` (ACPI S4 firmware call) hangs; with disk mode `shutdown` all five stages pass | `HibernateMode=shutdown` via `hibernate = true` ([known-issues.md](../known-issues.md)) |
 
 ```sh
@@ -16,6 +17,7 @@ bash docs/t2-tests/test2.sh             # ~30 s, fans audible if writes work
 bash docs/t2-tests/test3.sh             # hibernate stages, default disk mode
 bash docs/t2-tests/test3.sh nowifi      # same with the Wi-Fi driver unloaded
 bash docs/t2-tests/test3.sh shutdown    # same with disk mode "shutdown"
+bash docs/t2-tests/test4.sh             # T2 drivers out and back in (keyboard gone ~10 s)
 ```
 
 test3 uses the kernel's `pm_test`: each stage runs hibernation up to that point and comes back
