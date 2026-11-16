@@ -27,6 +27,10 @@ packages are name-filtered, removals are blocked, and before apt runs as root
 every planned archive's payload paths and maintainer scripts are scanned for the
 protected boundary. No per-package human review manifest is required.
 
+Owner preference (2026-11-16): user-level CLI tools come from Nix (pinned flake, see spec
+nix-user-tools) wherever nixpkgs has them; apt for system, desktop, hardware and services;
+GitHub-release pins only where nixpkgs lacks the tool.
+
 Use native distro packages where appropriate, or reviewed upstream release
 artifacts/source builds. Python environments use uv and Node/npm use nvm.
 If an application has no permitted installation path, report that constraint
