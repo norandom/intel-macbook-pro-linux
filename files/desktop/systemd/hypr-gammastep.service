@@ -1,0 +1,16 @@
+# Managed by t2-mac-kde (desktop). Night shift (config night_shift): gammastep warms the screen
+# after sunset at the place in ~/.config/gammastep/config.ini and fades through dusk and dawn.
+# Hyprland session only (wanted by hypr-desktop.target when night_shift = true).
+[Unit]
+Description=Night shift (gammastep) for the Hyprland session
+PartOf=hypr-desktop.target
+After=graphical-session.target
+
+[Service]
+ExecStartPre=-/bin/sh -c 'rm -f "$XDG_RUNTIME_DIR/hypr-nightshift-paused"'
+ExecStart=/usr/bin/gammastep
+Restart=on-failure
+RestartSec=3
+
+[Install]
+WantedBy=hypr-desktop.target

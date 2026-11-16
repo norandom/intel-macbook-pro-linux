@@ -144,6 +144,7 @@ Right, in order:
 | Battery | charge, watts and time left in the tooltip | power profile menu |
 | Tray | Wi-Fi, Bluetooth, Tailscale, other apps | |
 | Clipboard | history | pick; right-click wipes it |
+| Moon / sun | night shift (`night_shift = true`): warm after sunset, period and temperature in the tooltip | pause / resume |
 | Rabbit | night filter | off, green, dark |
 | Theme | terminal theme | next; right-click previous |
 | `⌨ DE` | keyboard layout | switch DE and US |
@@ -160,6 +161,11 @@ kept free of windows. I need it for a few dead pixel columns.
 
 - `panel_scale` sets the internal panel scale (`auto` lets Hyprland decide; I use 1.6).
   Border and title bar sizes snap to whole pixels at fractional scales, so edges don't flicker.
+- X11 apps (Xfe, NEdit, xpdf, x3270) are sharp at fractional scales: Xwayland draws them at
+  the panel's real pixels (`force_zero_scaling`), and `hypr-xscale` sets their DPI at login to
+  96 × the panel scale (154 at 1.6): `Xft.dpi`, scaled NEdit and x3270 fonts, Xfe's `screenres`.
+  `hypr-xscale --print` shows the values. A font saved in NEdit's preferences wins; Xfe's DPI
+  is reset at every login. An X11 app that ignores `Xft.dpi` comes out small.
 - External monitors use their preferred mode. Your own monitor lines go in
   `~/.config/hypr/local.conf`, which is sourced near the end and never written by the deploy.
 - The AMD GPU drives the external ports. In `hypr-gpu battery` mode (the default) Hyprland only
@@ -190,12 +196,18 @@ Lid close is handled by logind: it suspends, as on a stock install, or hibernate
   The config keys `decorations_style` and `window_shadows` only set the first value; after that
   the commands decide.
 - Night filter: `hypr-nightmode next` (off, green, dark).
+- Night shift, like f.lux: with `night_shift = true`, gammastep warms the screen after sunset
+  and back after sunrise, fading through dusk and dawn. It follows the sun at a fixed place:
+  `night_shift_location = "lat:lon"`, or by default the city of your timezone (Europe/Berlin:
+  Berlin), looked up locally, nothing is sent anywhere. Temperatures: `night_shift_day` (6500 K)
+  and `night_shift_night` (4500 K). The moon on the bar pauses it; it runs only in the Hyprland
+  session (`hypr-gammastep.service`). It combines with the rabbit filter.
 - Pointer: `cursor_theme = "t2-highvis"` gives a large white arrow with a red outline;
   `cursor_size` makes it bigger.
 - Title bar and border colour come from the hostname, so different machines look different
   (`fleet_hosts`, `[decor_colors]`).
 - Five palettes (cobalt, navy, fixedsys, cream, petrol) are shared by Terminator, foot,
-  Ghostty, btop, Neovim, Sublime Text, VS Code, Positron and Claude Code. `hypr-termtheme next`
+  Ghostty, btop, fish, the Starship prompt, Neovim, Sublime Text, VS Code, Positron and Claude Code. `hypr-termtheme next`
   or SUPER+Y switches them together.
 
 ## Change it

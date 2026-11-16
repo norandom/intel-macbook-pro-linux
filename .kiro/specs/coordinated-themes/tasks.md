@@ -22,6 +22,11 @@ Assets: `files/themes/` (ported from source a1c09ec). Tests: `tests/test_themes.
 - [x] Chromium constant cream policy behind `host.data.themes_chromium_policy` and native `/etc/chromium` only.
 - [x] No packages installed (application-suite owns terminator/foot/ghostty/...). Fuzzel/mako/waybar left to hyprland-desktop.
 - [x] Fixture tests: cycle/wrap, apply, invalid args/state, JSONC preservation, btop, hypr-term argv/exit/127.
+- [x] fish follows the palette (2026-11-16): `fish_shell.palette_theme` derives fish colours from each foot
+      theme (bright set on dark backgrounds, regular on cream), installed to `~/.config/fish/t2-themes/`;
+      hypr-termtheme target `fish` sets them as universal variables, so open fish sessions repaint.
+- [x] Starship palettes: one `[palettes.<theme>]` per palette in starship.toml (same roles as fish);
+      hypr-termtheme target `starship` rewrites only the `palette = "..."` line (managed file only).
 
 ## Deferred / needs live owner check
 - [ ] Live acceptance in a real session (Terminator menu, remotinator switch, Ghostty SIGUSR2, Waybar refresh) — needs desktop.

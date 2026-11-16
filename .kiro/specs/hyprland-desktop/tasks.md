@@ -58,3 +58,6 @@ Then pick "Hyprland (uwsm-managed)" at the unchanged SDDM login screen.
 - [x] Keyring in Hyprland (ksecretd activation), Chromium/Electron `--password-store=kwallet6` overrides
 - [x] High-visibility cursor theme t2-highvis (tools/make_cursor.py), SUPER+SHIFT+C find pointer
 - [x] GPU render placement: hypr-gpu battery|external (laptop-gpu-policy research 2026-11-15)
+- [x] Sharp X11 apps at fractional scale (2026-11-16): `xwayland:force_zero_scaling`; `hypr-xscale` at
+      login sets Xft.dpi = 96 x panel scale, NEdit/x3270 core-font sizes, Xfe `screenres`
+- [x] App menu: desktop IDs uwsm refuses (e.g. `Rclone UI.desktop`, space) start from their Exec line

@@ -44,6 +44,10 @@ tooltip label { color: #fff8f0; font-family: "JetBrainsMono Nerd Font", monospac
 #custom-cliphist:hover { background: #c6c3be; }
 /* Night filter rabbit: black = off, mint = green filter, white (on navy) = dark */
 #custom-nightmode { padding: 0 8px; font-size: 15px; color: #1a2a3f; }
+#custom-nightshift { padding: 0 6px; font-size: 14px; color: #1a2a3f; }
+#custom-nightshift.night, #custom-nightshift.transition { color: #b8641e; }
+#custom-nightshift.paused { color: #8a877f; }
+#custom-nightshift:hover { background: #c6c3be; }
 #custom-nightmode.green { color: #3a8e6f; }
 #custom-nightmode.dark { color: #fff8f0; background: #1a2a3f; }
 #custom-nightmode:hover { background: #c6c3be; }

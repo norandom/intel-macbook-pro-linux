@@ -30,6 +30,7 @@ button, so the command line is just the second way in.
 | `t2-yubikey register` / `add-spare` / `status` | YubiKeys for sudo and login ([security-keys.md](security-keys.md)) |
 | `hypr-layout next` | dynamic (floating, the default) or golden-ratio tiling (SUPER+L) |
 | `hypr-nightmode next` | night filter: off, green or dark (the rabbit in the bar) |
+| `hypr-nightshift toggle` | pause or resume the night shift (the moon in the bar) |
 | `hypr-deco win311` / `mac` | title bar style; `hypr-shadow on` / `off` for shadows |
 | `hypr-kbd de` / `us` | keyboard layout (aliases `kbde`, `kbus`) |
 | `hypr-findcursor` | flashes a huge pointer so you can find it (SUPER+SHIFT+C) |

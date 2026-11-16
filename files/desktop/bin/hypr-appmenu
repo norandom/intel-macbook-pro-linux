@@ -17,6 +17,7 @@ icons from ~/.local/share/hypr-appmenu/win31 (fetched by the deploy), else the a
 import json
 import os
 import re
+import shlex
 import subprocess
 import sys
 from pathlib import Path
@@ -54,6 +55,19 @@ ICON_APP = [(r"bitwarden", "PROGM036"), (r"terminator", "TERMI001"), (r"^xfa", "
 
 def run(argv):
     subprocess.Popen(argv, start_new_session=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+
+# uwsm only accepts spec-conforming desktop IDs (misc.py Val.entry_id). Vendor packages
+# sometimes ship others, e.g. "Rclone UI.desktop" (space): uwsm refuses those by ID, so they
+# start from their Exec line instead, field codes (%U, %f, ...) dropped, still under uwsm.
+UWSM_ID = re.compile(r"\A[a-zA-Z0-9_][a-zA-Z0-9_.-]*\.desktop\Z")
+
+
+def launch_argv(app_id, commandline):
+    if UWSM_ID.match(app_id) or not commandline:
+        return ["uwsm", "app", "--", app_id]
+    argv = [a.replace("%%", "%") for a in shlex.split(commandline) if not re.fullmatch(r"%[a-zA-Z]", a)]
+    return ["uwsm", "app", "--", *argv]
 
 
 HIBERNATE = HOME / ".local/bin/hypr-hibernate"   # installed only with config hibernate = true
@@ -151,11 +165,11 @@ class Menu:
     def entries(self):
         """[(label, icon, action or None, submenu entries or None)]; None = separator"""
         by_cat, by_id = apps()
-        recent = [i for i in (RECENT.read_text().split() if RECENT.exists() else []) if i in by_id][:NRECENT]
-        out = [(by_id[i][0], app_icon(by_id[i][1]), self.launcher(i), None) for i in recent]
+        recent = [i for i in (RECENT.read_text().splitlines() if RECENT.exists() else []) if i in by_id][:NRECENT]
+        out = [(by_id[i][0], app_icon(by_id[i][1]), self.launcher(i, by_id[i][1]), None) for i in recent]
         out += [None] if recent else []
         for cat in sorted(by_cat, key=lambda c: (c == "Other", c)):
-            sub = [(n, app_icon(a), self.launcher(a.get_id()), None)
+            sub = [(n, app_icon(a), self.launcher(a.get_id(), a), None)
                    for n, a in sorted(by_cat[cat], key=lambda t: t[0].lower())]
             out.append((cat, image(ICON_CAT.get(cat)), None, sub))
         power = [("Lock", image(ICON_CAT["logout"]), self.cmd(["hyprlock"]), None),
@@ -212,12 +226,12 @@ class Menu:
             self.sub.destroy()
             self.sub = None
 
-    def launcher(self, app_id):
+    def launcher(self, app_id, info):
         def go():
             RECENT.parent.mkdir(parents=True, exist_ok=True)
-            old = RECENT.read_text().split() if RECENT.exists() else []
+            old = RECENT.read_text().splitlines() if RECENT.exists() else []
             RECENT.write_text("\n".join([app_id, *[i for i in old if i != app_id]][:NRECENT]) + "\n")
-            run(["uwsm", "app", "--", app_id])
+            run(launch_argv(app_id, info.get_commandline()))
             Gtk.main_quit()
         return go
 

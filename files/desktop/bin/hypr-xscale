@@ -1,0 +1,123 @@
+#!/usr/bin/python3
+"""Managed by t2-mac-kde (desktop). Sharp X11 apps at a fractional panel scale.
+
+Hyprland draws X11 (Xwayland) apps at 1x and stretches them, which blurs them at scale 1.6.
+xwayland:force_zero_scaling (looknfeel.conf) stops the stretching; the apps then draw at the
+panel's real pixels and this helper makes them big again: DPI = 96 x the internal panel's
+scale, set once per login (autostart.conf) after Xwayland is up.
+
+    hypr-xscale            apply (X resources via xrdb, Xfe's DPI)
+    hypr-xscale --print    show the DPI and the resources, change nothing
+
+- Xft.dpi: NEdit and xpdf menus and dialogs (Motif, Xft fonts), GTK/Xft apps on X11.
+- NEdit text and x3270 use core X fonts (pixels, not points): sizes scaled here.
+- Xfe has its own DPI (Preferences > Appearance > DPI, key screenres in ~/.config/xfe/xferc);
+  written only while Xfe isn't running, because Xfe saves that file when it quits.
+Without force_zero_scaling (Hyprland scales X11 apps itself) the DPI stays 96.
+"""
+import json
+import re
+import subprocess
+import sys
+import time
+from pathlib import Path
+
+XFERC = Path.home() / ".config/xfe/xferc"
+
+
+def panel_scale(monitors):
+    """Scale of the internal panel (eDP), else of the first monitor; 1.0 if unknown."""
+    if not monitors:
+        return 1.0
+    mon = next((m for m in monitors if str(m.get("name", "")).startswith("eDP")), monitors[0])
+    return float(mon.get("scale") or 1.0)
+
+
+def dpi_for(scale):
+    return max(96, round(96 * scale))
+
+
+def resources(dpi):
+    f = dpi / 96
+    px = lambda n: round(n * f)   # noqa: E731  core-font pixel sizes
+    efont = "12x24" if f >= 1.4 else "8x16" if f >= 1.15 else "3270"
+    return (f"! Managed by t2-mac-kde (desktop, hypr-xscale): DPI {dpi} for the panel scale {f:.2f}\n"
+            f"Xft.dpi: {dpi}\n"
+            "! NEdit text: its built-in default (Courier 14 px), scaled\n"
+            f"nedit.textFont: -*-courier-medium-r-normal--{px(14)}-*-*-*-*-*-iso8859-1\n"
+            f"nedit.boldHighlightFont: -*-courier-bold-r-normal--{px(14)}-*-*-*-*-*-iso8859-1\n"
+            f"nedit.italicHighlightFont: -*-courier-medium-o-normal--{px(14)}-*-*-*-*-*-iso8859-1\n"
+            f"nedit.boldItalicHighlightFont: -*-courier-bold-o-normal--{px(14)}-*-*-*-*-*-iso8859-1\n"
+            "! x3270: a larger fixed font from its own font list, menus scaled\n"
+            f"x3270.emulatorFont: {efont}\n"
+            f"x3270*font: -*-helvetica-bold-r-normal--{px(12)}-*-*-*-*-*-iso8859-1\n"
+            f"x3270*dataLabel.font: -*-courier-medium-r-normal--{px(14)}-*-*-*-*-*-iso8859-1\n")
+
+
+def set_screenres(text, dpi):
+    """xferc text with [SETTINGS] screenres=dpi (section created if missing)."""
+    lines = text.splitlines()
+    if "[SETTINGS]" not in (l.strip() for l in lines):
+        return text.rstrip("\n") + ("\n\n" if text.strip() else "") + f"[SETTINGS]\nscreenres={dpi}\n"
+    out, section, done = [], None, False
+    for line in lines:
+        s = line.strip()
+        if s.startswith("[") and s.endswith("]"):
+            if section == "[SETTINGS]" and not done:
+                at = len(out)
+                while at and not out[at - 1].strip():   # inside the section, before its blank lines
+                    at -= 1
+                out.insert(at, f"screenres={dpi}")
+                done = True
+            section = s
+        elif section == "[SETTINGS]" and re.match(r"screenres\s*=", s):
+            if not done:
+                out.append(f"screenres={dpi}")
+                done = True
+            continue
+        out.append(line)
+    if not done:
+        out.append(f"screenres={dpi}")
+    return "\n".join(out) + "\n"
+
+
+def _run(*argv, **kw):
+    return subprocess.run(argv, capture_output=True, text=True, **kw)
+
+
+def current_dpi():
+    try:
+        zero = json.loads(_run("hyprctl", "-j", "getoption", "xwayland:force_zero_scaling").stdout).get("int")
+        if not zero:
+            return 96
+        return dpi_for(panel_scale(json.loads(_run("hyprctl", "-j", "monitors").stdout)))
+    except (OSError, ValueError, AttributeError):
+        return 96
+
+
+def main(argv):
+    dpi = current_dpi()
+    res = resources(dpi)
+    if argv[1:] == ["--print"]:
+        print(res, end="")
+        return 0
+    if argv[1:]:
+        print(__doc__.strip(), file=sys.stderr)
+        return 2
+    for _ in range(40):                       # Xwayland may still be starting
+        if _run("xrdb", "-merge", "-", input=res).returncode == 0:
+            break
+        time.sleep(0.5)
+    else:
+        print("hypr-xscale: xrdb failed (no Xwayland?)", file=sys.stderr)
+        return 1
+    if XFERC.exists() and _run("pgrep", "-x", "xfe").returncode != 0:
+        text = XFERC.read_text()
+        new = set_screenres(text, dpi)
+        if new != text:
+            XFERC.write_text(new)
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv))

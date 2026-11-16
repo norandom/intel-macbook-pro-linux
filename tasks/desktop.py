@@ -21,6 +21,7 @@ from pyinfra.operations.util import any_changed
 
 from manage.desktop_hostcolor import color_for
 from manage.pixel_snap import conf as pixel_snap_conf
+from manage import night_shift as nightshift
 from manage import password_store
 from manage.packages import PackageRequest, install_packages
 from manage.preflight import validate_local_context
@@ -49,6 +50,11 @@ panel_scale = str(setting("panel_scale", "auto"))
 cursor_theme = str(setting("cursor_theme", "breeze_cursors"))
 cursor_size = int(setting("cursor_size", 24))
 font_rendering = setting("font_rendering", "grayscale")  # same default as tasks/fonts.py
+# Night shift (gammastep): warmer screen after sunset at night_shift_location (default: the
+# timezone's city), fading through dusk and dawn. Off by default.
+night_shift = setting("night_shift", False)
+if not isinstance(night_shift, bool):
+    raise ValueError("night_shift must be true or false")
 
 # --- Native packages (no recommends: Snap/Flatpak-free, guarded by manage.packages) --------
 # Audio (PipeWire/WirePlumber/pipewire-pulse), fonts, terminals and applications belong to
@@ -145,6 +151,7 @@ HELPERS = (
     "hypr-glass", "hypr-kbd", "hypr-nightmode", "hypr-windows", "hypr-session", "hypr-appmenu",
     "hypr-sparkline", "hypr-agent-quota", "hypr-cliphist", "hypr-clip-bridge", "hypr-termtheme-status",
     "hypr-brightness", "hypr-screenshot", "hypr-osd", "hypr-volume", "hypr-power-profile", "hypr-findcursor", "hypr-netrate", "hypr-thermal", "hypr-touchpad", "hypr-gpu", "hypr-wallet-check",
+    "hypr-nightshift", "hypr-xscale",
 )
 helper_ops = [owned_put(f"{SRC}/bin/{h}", f"{bin_dir}/{h}", mode="755") for h in HELPERS]
 
@@ -286,7 +293,8 @@ server.shell(
 
 # --- Bar, notifications, launcher, lock, file manager, GTK ---------------------------------
 bar_ops = [
-    owned_put(f"{TPL}/waybar-config.jsonc.j2", f"{cfg}/waybar/config.jsonc", template=True, bar_graphs=bar_graphs, left_reserve=left_reserve, hibernate=hibernate),
+    owned_put(f"{TPL}/waybar-config.jsonc.j2", f"{cfg}/waybar/config.jsonc", template=True, bar_graphs=bar_graphs, left_reserve=left_reserve, hibernate=hibernate,
+              night_shift=night_shift),
     owned_put(f"{SRC}/waybar/style.css", f"{cfg}/waybar/style.css"),
     owned_put(f"{SRC}/waybar/power-profile-menu.xml", f"{cfg}/waybar/power-profile-menu.xml"),
     files.put(name="Waybar: power button artwork", src=f"{SRC}/waybar/power.png",
@@ -332,7 +340,7 @@ server.shell(name="udev: apply the GPU names now", _if=gpu_rule.did_change, _sud
 # --- Session-scoped user services -----------------------------------------------------------------
 UNITS = ("hypr-desktop.target", "hypr-windows.service", "hypr-clip-bridge.service",
          "hypr-cliphist.service", "hypr-cliphist-wipe.service", "hypr-cliphist-wipe.timer",
-         "hypr-tailscale-tray.service", "hypr-secret-service.service")
+         "hypr-tailscale-tray.service", "hypr-secret-service.service", "hypr-gammastep.service")
 unit_ops = [owned_put(f"{SRC}/systemd/{u}", f"{cfg}/systemd/user/{u}") for u in UNITS]
 server.shell(name="systemd --user daemon-reload (desktop units changed)", commands=["systemctl --user daemon-reload"],
              _if=any_changed(*[o for o in unit_ops if o]))
@@ -351,6 +359,24 @@ if worker_op:
                   "systemctl --user restart hypr-windows.service || true"],
         _if=worker_op.did_change,
     )
+# Night shift: gammastep (Ubuntu package) as a session service, config from config.toml.
+if night_shift:
+    install_packages(PackageRequest(packages=("gammastep",), source="ubuntu"))
+    lat, lon = nightshift.location(str(setting("night_shift_location", "")))
+    gs_conf = owned_put(StringIO(nightshift.config_ini(lat, lon, setting("night_shift_day", 6500),
+                                                       setting("night_shift_night", 4500))),
+                        f"{cfg}/gammastep/config.ini")
+    server.shell(name=f"Night shift on (gammastep at {lat}:{lon}, Hyprland session)",
+                 commands=["systemctl --user enable hypr-gammastep.service",
+                           "systemctl --user is-active -q hypr-desktop.target && "
+                           "systemctl --user start hypr-gammastep.service || true"])
+    if gs_conf:
+        server.shell(name="Night shift: restart gammastep (config changed)", _if=gs_conf.did_change,
+                     commands=["systemctl --user is-active -q hypr-gammastep.service && "
+                               "systemctl --user restart hypr-gammastep.service || true"])
+else:
+    server.shell(name="Night shift off (config night_shift = false)",
+                 commands=["systemctl --user disable --now hypr-gammastep.service 2>/dev/null || true"])
 server.shell(
     name="Reload waybar of a running Hyprland session (bar changed)",
     commands=["systemctl --user is-active -q hypr-desktop.target && "

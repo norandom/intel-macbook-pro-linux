@@ -182,4 +182,9 @@ Invalid manifest, conflicting ownership, missing runtime, unknown hooks, digest 
 No source credentials/licenses, global shell token export, arbitrary installer command strings, privileged npm/pip or hidden installer fallback. Integrity and script/trigger review are required before execution. Logs redact authentication details/history. Protection status reflects verified wrapper coverage only.
 
 ## Migration Strategy
+
+fish (added 2026-11-16, config `shell_interactive`): an opt-in layer on top of bash, not a
+replacement. Bash keeps building the environment; fish only needs the non-inherited parts
+(aliases, functions, prompt), generated from the same sources (`grml.bash`, `SAFE_CHAIN_WRAPPED`,
+`turbo.bash`) so the two can't drift. `"bash"` removes the hand-over block and our conf file.
 Deliver optional entry without root inclusion. Resolve reviewed tool locks/prerequisites first, stage user tools/editor, validate, then add distinct shell loader. Back up only changed owned paths; retain legacy config/data until validation and never purge Lazy/Mason or old backups. Restore owned files and selected unit states with conflict detection; preserve themes, foundation, resource policy and protected system. No deployment, live service activation, cleanup or runtime acceptance occurred while generating this specification.

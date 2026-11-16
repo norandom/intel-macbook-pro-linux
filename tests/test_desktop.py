@@ -311,3 +311,89 @@ class BarIconTests(unittest.TestCase):
         self.assertNotIn('icon=""', script)
         menu = (root / "files/desktop/waybar/power-profile-menu.xml").read_text()
         self.assertEqual(len(_re.findall(r'label">\S+  ', menu)), 3)
+
+
+class AppMenuLaunch(unittest.TestCase):
+    """hypr-appmenu imports GTK at load time, so only its launch helper is compiled here."""
+
+    def setUp(self):
+        import ast
+        tree = ast.parse((SRC / "bin/hypr-appmenu").read_text())
+        keep = [n for n in tree.body if (isinstance(n, ast.FunctionDef) and n.name == "launch_argv")
+                or (isinstance(n, ast.Assign) and getattr(n.targets[0], "id", "") == "UWSM_ID")]
+        self.ns = {"re": re, "shlex": __import__("shlex")}
+        exec(compile(ast.Module(body=keep, type_ignores=[]), "hypr-appmenu", "exec"), self.ns)
+
+    def test_valid_id_goes_to_uwsm_by_id(self):
+        self.assertEqual(self.ns["launch_argv"]("vivaldi-stable.desktop", "/usr/bin/vivaldi-stable %U"),
+                         ["uwsm", "app", "--", "vivaldi-stable.desktop"])
+
+    def test_id_uwsm_refuses_starts_from_exec(self):
+        # rclone-ui ships "Rclone UI.desktop"; uwsm: Invalid Desktop Entry ID
+        self.assertEqual(self.ns["launch_argv"]("Rclone UI.desktop", '"Rclone UI"'),
+                         ["uwsm", "app", "--", "Rclone UI"])
+        self.assertEqual(self.ns["launch_argv"]("a b.desktop", "tool --x %U 100%%"),
+                         ["uwsm", "app", "--", "tool", "--x", "100%"])
+
+
+class XScale(unittest.TestCase):
+    def setUp(self):
+        loader = importlib.machinery.SourceFileLoader("hxs", str(SRC / "bin/hypr-xscale"))
+        self.m = importlib.util.module_from_spec(importlib.util.spec_from_loader("hxs", loader))
+        loader.exec_module(self.m)
+
+    def test_dpi_follows_the_internal_panel(self):
+        mons = [{"name": "hypr-rdp", "scale": 2.0}, {"name": "eDP-1", "scale": 1.6}]
+        self.assertEqual(self.m.dpi_for(self.m.panel_scale(mons)), 154)
+        self.assertEqual(self.m.dpi_for(self.m.panel_scale([])), 96)
+
+    def test_resources_scale_core_fonts(self):
+        res = self.m.resources(154)
+        self.assertIn("Xft.dpi: 154\n", res)
+        self.assertIn("courier-medium-r-normal--22-", res)   # NEdit 14 px x 1.6
+        self.assertIn("x3270.emulatorFont: 12x24", res)
+        self.assertIn("x3270.emulatorFont: 3270", self.m.resources(96))
+
+    def test_xfe_screenres_set_in_settings_only(self):
+        text = "[OPTIONS]\nscreenres=1\n\n[SETTINGS]\nbasecolor=Silver\nscreenres=96\n\n[FILETYPES]\nx=y\n"
+        out = self.m.set_screenres(text, 154)
+        self.assertEqual(out, "[OPTIONS]\nscreenres=1\n\n[SETTINGS]\nbasecolor=Silver\nscreenres=154\n\n[FILETYPES]\nx=y\n")
+        self.assertEqual(self.m.set_screenres(out, 154), out)
+        added = self.m.set_screenres("[SETTINGS]\nbasecolor=Silver\n\n[FILETYPES]\n", 154)
+        self.assertIn("basecolor=Silver\nscreenres=154\n\n[FILETYPES]", added)
+        self.assertEqual(self.m.set_screenres("", 120), "[SETTINGS]\nscreenres=120\n")
+
+
+class NightShift(unittest.TestCase):
+    def test_location_from_timezone_table(self):
+        from manage import night_shift as ns
+        with tempfile.NamedTemporaryFile("w", delete=False) as f:
+            f.write("#comment\nDE,DK\t+5230+01322\tEurope/Berlin\tmost of Germany\n"
+                    "US\t+404251-0740023\tAmerica/New_York\tEastern\n")
+        self.assertEqual(ns.timezone_location("Europe/Berlin", (f.name,)), (52.5, 13.37))
+        self.assertEqual(ns.timezone_location("America/New_York", (f.name,)), (40.71, -74.01))
+        self.assertIsNone(ns.timezone_location("Mars/Base", (f.name,)))
+
+    def test_explicit_location_and_config(self):
+        from manage import night_shift as ns
+        self.assertEqual(ns.location("48.14:11.58"), (48.14, 11.58))
+        for bad in ("munich", "95:0", "1:2:3"):
+            with self.assertRaises(ValueError):
+                ns.location(bad)
+        ini = ns.config_ini(48.14, 11.58, 6500, 4500)
+        self.assertIn("Managed by t2-mac-kde (desktop)", ini)
+        self.assertIn("location-provider=manual\n", ini)
+        self.assertIn("adjustment-method=wayland\n", ini)
+        self.assertIn("lat=48.14\nlon=11.58\n", ini)
+        with self.assertRaises(ValueError):
+            ns.config_ini(48.14, 11.58, 6500, 99)
+
+    def test_bar_module_only_when_enabled(self):
+        env = jinja2.Environment(loader=jinja2.FileSystemLoader(str(TPL)))
+        for on in (True, False):
+            text = env.get_template("waybar-config.jsonc.j2").render(bar_graphs=False, night_shift=on)
+            cfg = json.loads(re.sub(r"^\s*//.*$", "", text, flags=re.M))
+            self.assertEqual("custom/nightshift" in cfg["modules-right"], on)
+        unit = (SRC / "systemd/hypr-gammastep.service").read_text()
+        self.assertIn("PartOf=hypr-desktop.target", unit)
+        self.assertIn("WantedBy=hypr-desktop.target", unit)

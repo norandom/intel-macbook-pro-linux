@@ -31,6 +31,18 @@ Pins/config: `manage/shell_tools.py`. Assets: `files/shell/`. Tests: `tests/test
       ExecCondition on remote, bounded restarts (5.1, 5.2)
 - [x] Unit tests in disposable homes: repeated sourcing, status, array hooks, noninteractive quiet,
       turbo guard, keyboard shim, dir stack bound, completions safety, report-only cleanup, pins
+- [x] fish as the interactive shell (config `shell_interactive = "fish"`, owner 2026-11-16): bash stays the
+      login shell, `.bashrc` hands over at its first prompt (PROMPT_COMMAND, so PATH/CC/nvm carry over);
+      stays bash for `bash` in fish, `T2_NO_FISH=1`, scripts, `bash -c`, no tty. ble.sh skipped meanwhile
+- [x] `manage/fish_shell.py` -> `~/.config/fish/conf.d/t2-mac-kde.fish`: grml aliases as abbreviations
+      (test: every grml.bash alias has a fish version), `..`+ regex abbr, `cd -N` via prevd, mkcd/cdt/bk/sll/
+      ssearch, kbd shim, turbo aliases, GCC guard for package builds, safe-chain aliases, nvm via bash
+- [x] fish extras: fzf bindings (`fzf --fish`), palette-coloured prompt + git, right prompt with command
+      duration (>= 2 s), done notification (>= 30 s, terminal not focused, interactive tools skipped),
+      bash history imported once, completions from man pages once (`fish_update_completions`)
+- [x] Starship prompt (config `shell_prompt = "starship"`, Ubuntu package): `manage/starship.py` -> one
+      `~/.config/starship.toml` for bash + fish; grml layout + language symbols + duration; bash block
+      before ble attach (grml prompt no-op'd, VTE title kept to the directory name); fish: `starship init fish`
 
 ## Deferred / needs owner
 - [ ] Safe Chain 1.5.25: upstream installer rewrites shell profiles and can remove nvm; needs a wrapper review

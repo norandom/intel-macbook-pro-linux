@@ -53,6 +53,9 @@ Read by `tasks/desktop.py` (fonts: `tasks/fonts.py`).
 | `[decor_colors]` | empty | Per-host colour override, `hostname = "#rrggbb"` |
 | `[default_apps]` | empty | MIME type = desktop file, applied with `xdg-mime` |
 | `font_rendering` | `"grayscale"` | `"rgb"` for subpixel rendering (fontconfig) |
+| `night_shift` | `false` | `true`: warmer screen after sunset, like f.lux (gammastep; [desktop.md](desktop.md)) |
+| `night_shift_location` | `""` | `"lat:lon"`; empty = the city of the system timezone |
+| `night_shift_day` / `night_shift_night` | `6500` / `4500` | Colour temperature in K by day and at night |
 
 `font_rendering` is also used for the first GTK `settings.ini`, which the desktop task only
 writes if the file doesn't exist; there its default is `"rgb"`.
@@ -68,6 +71,7 @@ Read by `tasks/resource_policy.py` (mitigations: `tasks/cpu_mitigations.py`).
 | `crash_upload` | `true` | `false` masks whoopsie: no uploads to errors.ubuntu.com |
 | `cpu_mitigations_off` | `false` | `true` adds `mitigations=off` at the next reboot ([cpu-mitigations.md](cpu-mitigations.md)) |
 | `t2_pack_pin` | `false` | `true` holds the T2 kernel and Hyprland at the versions in `t2-pack.toml` ([t2-pack.md](t2-pack.md)) |
+| `background_updates` | `true` | `false` stops apt-daily, unattended-upgrades and the update notifier ([t2-pack.md](t2-pack.md)) |
 | `t2_pack_backup` | `true` | Keep `.deb` copies of the pack in `~/.local/share/t2-mac-kde/t2-packs/` |
 
 ## Shell and developer tools
@@ -77,6 +81,8 @@ Read by `tasks/shell.py`.
 | Key | Default | Effect |
 |---|---|---|
 | `shell_blesh` | `false` | ble.sh suggestions, syntax colours and completion menu in Bash |
+| `shell_prompt` | `"builtin"` | `"starship"`: Starship prompt in bash and fish (language symbols, palette colours) |
+| `shell_interactive` | `"bash"` | `"fish"`: every terminal hands over to fish (grml aliases, functions and prompt ported; bash stays the login shell) |
 | `default_cc` | `""` | `"icx"` = Intel icx/icpx as CC/CXX in your interactive shells, and for Nim |
 | `safe_chain` | `false` | Aikido Safe Chain in front of npm, pip, uv and friends |
 | `rclone_mounts` | `{}` | `{ remote = "Dir" }`: mount each rclone remote at `~/Dir` |

@@ -6,7 +6,7 @@
 Profiles in cycle order: default (cobalt), navy, fixedsys, cream, petrol.
 The selection lives in ~/.local/state/terminator-profile (one line), which
 hypr-term, the Terminator plugin, Neovim and the desktop bar read.
-Apps follow when present: Claude Code, btop, Ghostty, foot (new windows),
+Apps follow when present: Claude Code, btop, Ghostty, foot (new windows), fish, starship,
 Sublime Text, VS Code + Positron (scheme + font), Neovim (next start).
 "apply" re-applies the app themes for the current profile without cycling
 and without the live Terminator/bar/notification actions.
@@ -18,6 +18,7 @@ import fcntl
 import json
 import os
 import re
+import shlex
 import shutil
 import subprocess
 import sys
@@ -169,6 +170,32 @@ def t_foot(profile, app):
     return "applied (new windows)" if copy_theme(src, os.path.join(CONFIG, "foot/theme.ini")) else "unchanged"
 
 
+def t_fish(profile, app):
+    src = os.path.join(CONFIG, "fish/t2-themes", f"{app}.fish")
+    if not os.path.isfile(src) or not shutil.which("fish"):
+        return "skipped (fish or its colours not installed)"
+    # universal variables: every running fish repaints at its next prompt
+    # not --no-config: that mode never saves universal variables
+    r = subprocess.run(["fish", "-c", f"source {shlex.quote(src)}"],
+                       capture_output=True, text=True, check=False)
+    if r.returncode:
+        raise Unapplied(r.stderr.strip() or "fish failed")
+    return "applied"
+
+
+def t_starship(profile, app):
+    conf = os.path.join(CONFIG, "starship.toml")
+    try:
+        with open(conf) as f:
+            text = f.read()
+    except FileNotFoundError:
+        return "skipped (no starship.toml)"
+    if "Managed by t2-mac-kde" not in text or f"[palettes.{app}]" not in text:
+        return "skipped (not our starship.toml)"
+    new = re.sub(r'^palette = "[^"]*"$', f'palette = "{app}"', text, count=1, flags=re.M)
+    return "applied (next prompt)" if write_atomic(conf, new.encode()) else "unchanged"
+
+
 def t_sublime(profile, app):
     user = os.path.join(CONFIG, "sublime-text/Packages/User")
     if not os.path.isfile(os.path.join(user, f"debian-hypr-{app}.sublime-color-scheme")):
@@ -196,7 +223,7 @@ def t_vscode(conf):
     return target
 
 
-TARGETS = (("claude", t_claude), ("btop", t_btop), ("ghostty", t_ghostty), ("foot", t_foot),
+TARGETS = (("claude", t_claude), ("btop", t_btop), ("ghostty", t_ghostty), ("foot", t_foot), ("fish", t_fish), ("starship", t_starship),
            ("sublime", t_sublime), ("code", t_vscode("Code")), ("positron", t_vscode("Positron")))
 
 

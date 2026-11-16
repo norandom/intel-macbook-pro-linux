@@ -15,10 +15,12 @@ from shlex import quote
 
 from pyinfra import host
 from pyinfra.facts.server import Command
-from pyinfra.operations import files, server, systemd
+from pyinfra.operations import files, python, server, systemd
 
 from manage.packages import PackageRequest, install_packages
 from manage.preflight import validate_local_context
+from manage import fish_shell
+from manage import starship as starship_cfg
 from manage import shell_tools as cfg
 from manage.userconfig import setting
 
@@ -190,8 +192,74 @@ files.block(
 )
 
 
+# --- fish (optional, config shell_interactive = "fish"): every terminal hands over to fish --------
+shell_interactive = setting("shell_interactive", "bash")
+if shell_interactive not in ("bash", "fish"):
+    raise ValueError('shell_interactive must be "bash" or "fish"')
+fish = shell_interactive == "fish"
+shell_prompt = setting("shell_prompt", "builtin")
+if shell_prompt not in ("builtin", "starship"):
+    raise ValueError('shell_prompt must be "builtin" or "starship"')
+starship = shell_prompt == "starship"
+fish_conf = home / ".config/fish/conf.d/t2-mac-kde.fish"
+if fish:
+    install_packages(PackageRequest(packages=("fish",), source="ubuntu"))
+    files.put(name="fish: grml aliases, functions, prompt, safe-chain (~/.config/fish/conf.d/t2-mac-kde.fish)",
+              src=StringIO(fish_shell.fish_conf(cfg.SAFE_CHAIN_WRAPPED if safe_chain else (), starship)),
+              dest=str(fish_conf), mode="644", create_remote_dir=True)
+
+    fish_data = home / ".local/share/fish"
+
+    def _import_bash_history():
+        """Once: fish starts with your bash history (suggestions work from day one)."""
+        target, source = fish_data / "fish_history", home / ".bash_history"
+        if target.exists() or not source.exists():
+            return
+        target.parent.mkdir(parents=True, exist_ok=True)
+        text = source.read_text(errors="replace")
+        target.write_text(fish_shell.bash_history_to_fish(text, int(source.stat().st_mtime)))
+        target.chmod(0o600)
+
+    if not (fish_data / "fish_history").exists():
+        python.call(name="fish: import ~/.bash_history once (fish_history did not exist yet)",
+                    function=_import_bash_history)
+    # Completions for every tool with a man page; once (re-run: fish_update_completions).
+    server.shell(name="fish: completions generated from man pages (first time only)",
+                 commands=[f"[ -d {quote(str(fish_data / 'generated_completions'))} ] || "
+                           "fish -c fish_update_completions >/dev/null 2>&1 || true"])
+elif fish_conf.exists() and "Managed by t2-mac-kde" in fish_conf.read_text():
+    files.file(name="fish: our config removed (shell_interactive = bash)", path=str(fish_conf), present=False)
+files.block(
+    name=f"bash: hand over to fish at the first prompt ({'on' if fish else 'removed'})",
+    path=str(home / ".bashrc"), marker=fish_shell.MARKER, content=fish_shell.BASHRC,
+    present=fish, try_prevent_shell_expansion=True, backup=True,
+)
+
+# --- starship prompt (optional, config shell_prompt = "starship"): bash and fish ---------------
+starship_toml = home / ".config/starship.toml"
+if starship:
+    install_packages(PackageRequest(packages=("starship",), source="ubuntu"))
+    try:   # keep the palette hypr-termtheme last chose (default profile = cobalt)
+        profile = (home / ".local/state/terminator-profile").read_text().strip()
+    except OSError:
+        profile = "default"
+    themes_src = repo / "files/themes/foot/themes"
+    files.put(name="starship: ~/.config/starship.toml (grml layout, language symbols, five palettes)",
+              src=StringIO(starship_cfg.config({t: (themes_src / f"{t}.ini").read_text() for t in starship_cfg.THEMES},
+                                               "cobalt" if profile == "default" else profile)),
+              dest=str(starship_toml), mode="644", create_remote_dir=True)
+elif starship_toml.exists() and starship_cfg.MARKER in starship_toml.read_text():
+    files.file(name="starship: our config removed (shell_prompt = builtin)", path=str(starship_toml), present=False)
+files.block(
+    name=f"bash: starship prompt ({'on' if starship else 'removed'})",
+    path=str(home / ".bashrc"), marker=starship_cfg.BASHRC_MARKER, content=starship_cfg.BASHRC,
+    present=starship, before=True, line="BEGIN t2-mac-kde: ble.sh attach", try_prevent_shell_expansion=True,
+    backup=True,
+)
+
 # --- ble.sh (optional): Kali/zsh-like suggestions, syntax colours, completion menu ----------
-blesh = bool(setting("shell_blesh", False))
+# Not with fish: fish has all of it built in, and ble.sh would only slow down bash's start.
+blesh = bool(setting("shell_blesh", False)) and not fish
 if blesh:
     install_packages(PackageRequest(packages=("ble.sh",)))
     files.put(name="ble.sh settings ~/.config/bash/blerc", src=str(src / "blerc"),

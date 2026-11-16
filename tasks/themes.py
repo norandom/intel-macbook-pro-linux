@@ -93,6 +93,14 @@ if present("foot", f"{cfg}/foot"):
                   dest=f"{cfg}/foot/themes/{t}.ini", mode="644")
     managed_put(f"{SRC}/foot/foot.ini", f"{cfg}/foot/foot.ini")
 
+if present("fish", f"{cfg}/fish"):
+    from io import StringIO
+    from manage.fish_shell import palette_theme
+    for t in THEMES:
+        files.put(name=f"fish colours ({t}, from the foot palette)",
+                  src=StringIO(palette_theme(open(f"{SRC}/foot/themes/{t}.ini").read(), t)),
+                  dest=f"{cfg}/fish/t2-themes/{t}.fish", mode="644", create_remote_dir=True)
+
 if present("subl", f"{cfg}/sublime-text"):
     for t in THEMES:
         name = f"debian-hypr-{t}.sublime-color-scheme"

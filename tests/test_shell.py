@@ -2,6 +2,7 @@ import os
 import shutil
 import subprocess
 import tempfile
+import re
 import unittest
 from pathlib import Path
 
@@ -154,3 +155,98 @@ class BleshMarkerTests(unittest.TestCase):
         from manage import shell_tools as st
         for marker in (st.BLESH_TOP_MARKER, st.BLESH_END_MARKER, st.BASH_MARKER, st.INPUTRC_MARKER):
             self.assertNotRegex(marker, r"[()\[\]*+?|^$\\]", marker)
+
+
+class FishShellTests(unittest.TestCase):
+    def test_every_grml_alias_has_a_fish_version(self):
+        from manage import fish_shell as fs
+        aliases = fs.grml_aliases((Path(__file__).resolve().parents[1] / "files/shell/grml.bash").read_text())
+        self.assertTrue({"l", "ll", "..", "kbus", "dl"} <= aliases)
+        self.assertEqual(aliases - set(fs.ABBR) - set(fs.WRAP) - fs.NATIVE, set())
+
+    def test_fish_conf_ports_functions_and_safe_chain(self):
+        from manage import fish_shell as fs
+        from manage.shell_tools import SAFE_CHAIN_WRAPPED
+        text = fs.fish_conf(SAFE_CHAIN_WRAPPED)
+        for fn in ("mkcd", "cdt", "bk", "sll", "ssearch", "cd", "fish_prompt", "dpkg-buildpackage", "debuild", "nvm"):
+            self.assertRegex(text, rf"\nfunction {re.escape(fn)}( |\n)")
+        for tool in SAFE_CHAIN_WRAPPED:
+            self.assertIn(f"alias {tool} aikido-{tool}", text)
+        self.assertNotIn("aikido", fs.fish_conf(()))
+
+    def test_bash_hands_over_only_interactively(self):
+        from manage import fish_shell as fs
+        for guard in ("$- == *i*", "BASH_EXECUTION_STRING", "-t 0", "T2_NO_FISH", '!= fish', "PROMPT_COMMAND"):
+            self.assertIn(guard, fs.BASHRC)
+
+
+class FishExtrasTests(unittest.TestCase):
+    ROOT = Path(__file__).resolve().parents[1]
+
+    def test_palettes_cover_all_five_and_pick_readable_sets(self):
+        from manage import fish_shell as fs
+        for t in ("cobalt", "navy", "fixedsys", "cream", "petrol"):
+            text = fs.palette_theme((self.ROOT / f"files/themes/foot/themes/{t}.ini").read_text(), t)
+            self.assertRegex(text, r"set -U fish_color_command [0-9a-f]{6} --bold\n")
+            self.assertIn("set -U t2_color_git ", text)
+        cream = fs.palette_theme((self.ROOT / "files/themes/foot/themes/cream.ini").read_text(), "cream")
+        self.assertIn("fish_color_command 8a6a20", cream)        # regular yellow on the light background
+        cobalt = fs.palette_theme((self.ROOT / "files/themes/foot/themes/cobalt.ini").read_text(), "cobalt")
+        self.assertIn("fish_color_command ffe9a8", cobalt)       # bright yellow on the dark one
+
+    def test_bash_history_to_fish(self):
+        from manage import fish_shell as fs
+        text = "#1700000000\nls -l\n#1700000005\nfor x in a; do\n  echo \\$x\ndone\n#1700000009\nls -l\n"
+        out = fs.bash_history_to_fish(text, 1)
+        self.assertEqual(out, "- cmd: for x in a; do\\n  echo \\\\$x\\ndone\n  when: 1700000005\n"
+                              "- cmd: ls -l\n  when: 1700000009\n")
+        self.assertEqual(fs.bash_history_to_fish("git status\n\npwd\n", 7),
+                         "- cmd: git status\n  when: 7\n- cmd: pwd\n  when: 7\n")
+
+    def test_fish_conf_has_the_extras(self):
+        from manage import fish_shell as fs
+        text = fs.fish_conf(())
+        for needle in ("fzf --fish | source", "--on-event fish_postexec", "function fish_right_prompt",
+                       "set -q t2_color_git; or set -g t2_color_git"):
+            self.assertIn(needle, text)
+
+    def test_termtheme_switches_fish(self):
+        text = (self.ROOT / "files/themes/bin/hypr-termtheme").read_text()
+        self.assertIn('("fish", t_fish)', text)
+        self.assertNotIn('"--no-config"', text)   # that mode never saves universal variables
+
+
+class StarshipTests(unittest.TestCase):
+    ROOT = Path(__file__).resolve().parents[1]
+
+    def conf(self, current="navy"):
+        from manage import starship as st
+        return st.config({t: (self.ROOT / f"files/themes/foot/themes/{t}.ini").read_text() for t in st.THEMES}, current)
+
+    def test_config_has_all_palettes_and_roles(self):
+        import tomllib
+        from manage import starship as st
+        data = tomllib.loads(self.conf())
+        self.assertEqual(data["palette"], "navy")
+        self.assertEqual(set(data["palettes"]), set(st.THEMES))
+        for pal in data["palettes"].values():
+            self.assertEqual(set(pal), {"fg", "dim", "err", "user", "git", "lang"})
+        for m in st.LANGS:
+            self.assertIn(f"${m}", data["format"])
+            self.assertIn(m, data)
+
+    def test_switch_palette_changes_one_line(self):
+        from manage import starship as st
+        text = self.conf("cobalt")
+        new = st.switch_palette(text, "cream")
+        self.assertIn('palette = "cream"', new)
+        self.assertEqual(len(new.splitlines()), len(text.splitlines()))
+        self.assertEqual(self.conf("unknown").count('palette = "cobalt"'), 1)
+
+    def test_bash_and_fish_hooks(self):
+        from manage import fish_shell as fs, starship as st
+        self.assertIn('eval "$(starship init bash)"', st.BASHRC)
+        self.assertIn("__grml_prompt() { return $?; }", st.BASHRC)
+        self.assertIn("starship init fish | source", fs.fish_conf((), True))
+        self.assertNotIn("starship", fs.fish_conf((), False))
+        self.assertIn('("starship", t_starship)', (self.ROOT / "files/themes/bin/hypr-termtheme").read_text())

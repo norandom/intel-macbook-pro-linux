@@ -1,0 +1,36 @@
+#!/bin/sh
+# Managed by t2-mac-kde (desktop). Night shift on the bar (gammastep, config night_shift):
+#   hypr-nightshift status    Waybar JSON: moon while warm, sun by day, crossed out when paused
+#   hypr-nightshift toggle    pause / resume (gammastep toggles on SIGUSR1; it fades back)
+# gammastep runs as hypr-gammastep.service in the Hyprland session; the pause flag lives in
+# $XDG_RUNTIME_DIR, so every login starts unpaused like the service itself.
+set -eu
+unit=hypr-gammastep.service
+flag="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/hypr-nightshift-paused"
+active() { systemctl --user is-active -q "$unit"; }
+
+case "${1:-status}" in
+  toggle)
+    active || exit 0
+    systemctl --user kill -s USR1 --kill-whom=main "$unit"
+    if [ -e "$flag" ]; then rm -f "$flag"; else : > "$flag"; fi
+    pkill -RTMIN+14 -x waybar 2>/dev/null || true ;;
+  status)
+    if ! active; then echo '{"text":""}'; exit 0; fi
+    # -p prints the current period and temperature for the configured place, changes nothing.
+    info=$(gammastep -p 2>&1 || true)
+    period=$(printf '%s\n' "$info" | sed -n 's/^.*Period: //p' | head -n 1)
+    temp=$(printf '%s\n' "$info" | sed -n 's/^.*Color temperature: //p' | head -n 1)
+    case "$period" in
+      Night*) icon="󰖔"; cls=night ;;
+      Transition*) icon="󰖚"; cls=transition ;;
+      *) icon="󰖙"; cls=day ;;
+    esac
+    if [ -e "$flag" ]; then
+      printf '{"text":"%s","class":"paused","tooltip":"Night shift paused (click: resume)"}\n' "$icon"
+    else
+      printf '{"text":"%s","class":"%s","tooltip":"Night shift: %s, %s (click: pause)"}\n' \
+        "$icon" "$cls" "${period:-?}" "${temp:-?}"
+    fi ;;
+  *) echo "usage: hypr-nightshift status|toggle" >&2; exit 2 ;;
+esac
