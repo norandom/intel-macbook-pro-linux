@@ -63,7 +63,20 @@ NATIVE = {
     "vlc": ("vlc", "vlc"),
     # apt rather than Nix: Ubuntu's build finds the system VA-API drivers (Intel/AMD hardware encode)
     "ffmpeg": ("ffmpeg", "ffmpeg"),
+    # FFmpeg-free video player (owner request 2026-11-16): GStreamer, see GSTREAMER below
+    "clapper": ("clapper", "clapper"),
+    # File transfer (FTP/SFTP/mirror) and a terminal multiplexer front end (owner request 2026-11-16)
+    "lftp": ("lftp", "lftp"),
+    "byobu": ("byobu", "byobu"),
 }
+
+# GStreamer decoders for Clapper without FFmpeg (never gstreamer1.0-libav, which is FFmpeg):
+#   plugins-bad: openh264 (H.264), de265 (HEVC), aom (AV1), faad (AAC), MPEG-TS, HLS/DASH
+#   ugly: a52dec (AC-3 / Dolby Digital), mpeg2dec (MPEG-2, DVD), DVD subtitles and LPCM
+#   vaapi: hardware decoding on the Intel GPU (H.264, HEVC, VP8/VP9): quiet and low power
+# plugins-base/-good (MP4, MKV/WebM, VP8/VP9, MP3, Opus, FLAC) are already there with KDE.
+GSTREAMER = ("gstreamer1.0-plugins-bad", "gstreamer1.0-plugins-ugly", "gstreamer1.0-vaapi")
+NEVER = ("gstreamer1.0-libav",)
 
 # name -> (version, url, sha256), verbatim from source group_data/all.py release_tools.
 # Only tools nixpkgs lacks (upmd; rc = rustfs-cli, nixpkgs "rc" is the Plan 9 shell).
@@ -192,6 +205,8 @@ OTHER = {
     "sudo": ("excluded", "system", "sudo", "already part of the Ubuntu install"),
     "qemu-guest-agent": ("excluded", "none", None, "VM-only; this is a laptop"),
     "littlesnitch": ("excluded", "none", None, "source purge-only entry; not ported"),
+    "contour": ("backlog", "application-suite", "contour",
+                "owner wants it later (2026-11-16); not in Ubuntu 26.04: upstream .deb, pinned + sha256"),
     "xfe": ("delegated", "tasks/xfe.py", "xfe",
             "Ubuntu xfe 2.1.1-1 unpacked to /usr/local (its Conflicts: im-config would remove a KDE-base package)"),
     "chromium": ("vendor", _VENDOR_OWNER, "chromium", "XtraDeb PPA, pinned to chromium packages only"),
@@ -253,7 +268,7 @@ def catalog(nix_attrs=DEFAULT_TOOLS) -> dict[str, tuple[str, str, str | None, st
 
 
 def native_packages() -> tuple[str, ...]:
-    return tuple(pkg for pkg, _ in NATIVE.values())
+    return tuple(pkg for pkg, _ in NATIVE.values()) + GSTREAMER
 
 
 def _dpkg_version(package: str) -> str | None:

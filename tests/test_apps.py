@@ -52,6 +52,12 @@ class CatalogTests(unittest.TestCase):
         self.assertIn("terminator", pkgs)
         self.assertNotIn("xfe", pkgs)  # conflicts with im-config (KDE)
 
+    def test_clapper_stays_ffmpeg_free(self):
+        pkgs = set(apps.native_packages())
+        self.assertTrue({"clapper", "gstreamer1.0-plugins-bad", "gstreamer1.0-plugins-ugly", "gstreamer1.0-vaapi"} <= pkgs)
+        self.assertFalse(pkgs & set(apps.NEVER))  # gstreamer1.0-libav = FFmpeg
+        self.assertFalse({p for p in pkgs if p.startswith("gstreamer1.0-libav")})
+
     def test_release_tools_are_pinned_https_sha256(self):
         self.assertNotIn("podman-tui", apps.RELEASE_TOOLS)
         for name, (version, url, sha) in {**apps.RELEASE_TOOLS, **apps.RELEASE_FALLBACK}.items():

@@ -32,6 +32,8 @@ Entry point: `.venv/bin/pyinfra @local tasks/apps.py [--dry]`. Inventory: `manag
       t2-mac-kde.xcd; ArtCraft suite (7) and OpenIDEA as pinned sha256 .debs via the package guard.
 
 ## Deferred / needs owner check
+- [x] lftp and byobu from the Ubuntu archive (NATIVE; owner request 2026-11-16).
+- [ ] Contour terminal: backlog (docs/backlog.md); not in Ubuntu 26.04, upstream .deb + five palettes later.
 - [x] xfe: tasks/xfe.py unpacks the sha256-verified Ubuntu xfe 2.1.1-1 archive into /usr/local
       (apt `Conflicts: im-config` would remove a KDE-base package); wrappers clear ibus variables.
 - [ ] vivaldi-stable: still blocked (existing install left untouched).

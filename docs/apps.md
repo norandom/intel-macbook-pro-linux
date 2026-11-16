@@ -28,6 +28,15 @@ package guard ([safety.md](safety.md)). The full inventory, with the reason for 
 | Ristretto | Image viewer | |
 | VLC | Video and audio player | The QuickTime Player replacement |
 | ffmpeg | Convert, cut and record video and audio (command line) | Ubuntu's build, so hardware encoding through VA-API works |
+| Clapper | Video player without FFmpeg | GStreamer; the alternative to VLC, see below |
+
+Clapper is the FFmpeg-free player. It decodes through GStreamer: on the Intel GPU through
+VA-API (H.264, HEVC, VP8/VP9; quiet and low power), otherwise in software with openh264
+(H.264), libde265 (HEVC), aom (AV1), libvpx, faad (AAC), a52dec (AC-3), libdca (DTS), mpeg2dec
+(MPEG-2) and mpg123. MP4, MKV/WebM and MPEG-TS files and HLS/DASH streams play. Without FFmpeg
+there is no decoder for E-AC-3 (Dolby Digital Plus), TrueHD, DTS-HD extensions, or Windows Media
+audio and video: Clapper reports a missing plugin, and VLC plays those files. `gstreamer1.0-libav`, GStreamer's FFmpeg plugin, is never
+installed. VLC and the `ffmpeg` command still use FFmpeg; Clapper doesn't touch it.
 
 The Craft apps are young projects, so expect rough edges. LibreOffice Impress isn't installed;
 DeckCraft covers slides. You can change the LibreOffice UI per user in View > User Interface.
@@ -56,8 +65,9 @@ Manager, Rclone UI.
 
 VS Code and Sublime Text (vendor repos), Zed (tarball), Positron and Quarto (`.deb`), OpenIDEA,
 Podman Desktop, Meld, edb, heaptrack, and the Intel oneAPI compilers. Terminals: Terminator,
-foot, Ghostty, xfce4-terminal. Classic X apps: Xfe (file manager), NEdit, x3270 and c3270.
-TUI tools: atop, posting, lazygit, glow, gdu, trippy, multitail, upmd, rc (rustfs-cli). More
+foot, Ghostty, xfce4-terminal (Contour is planned, [backlog](backlog.md)). Classic X apps: Xfe (file manager), NEdit, x3270 and c3270.
+TUI tools: atop, posting, lazygit, glow, gdu, trippy, multitail, byobu (tmux with a status
+bar and F-key shortcuts), lftp (FTP/SFTP with mirroring and queues), upmd, rc (rustfs-cli). More
 CLI tools come from Nix ([nix.md](nix.md)).
 
 ## Updates

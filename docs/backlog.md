@@ -38,3 +38,10 @@ and configuration tasks, per explicit owner direction.
 - Done 2026-11-16: config `cpu_mitigations_off` (tasks/cpu_mitigations.py). Before:
   `benchmarks/linux.json`, after: `benchmarks/mitigations-off/linux.json` (syscalls +27 %).
   Kept off; results in `docs/benchmark.md`.
+
+## Contour terminal
+
+- Requested by the owner on 2026-11-16 for later. Not in Ubuntu 26.04; upstream publishes
+  Ubuntu .debs on GitHub (contour-terminal/contour). When reopened: a pinned, sha256-checked
+  .deb through the vendor-apps path, plus a palette for each of the five themes so
+  hypr-termtheme switches it like foot and Ghostty. It's in the app inventory as `backlog`.
