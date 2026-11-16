@@ -7,6 +7,34 @@ MacBook Pro over that, so this repository turns an Intel/T2 MacBook Pro into an 
 LTS workstation. Ubuntu supports 26.04 until 2031. The whole setup is one pyinfra deploy you
 can read before you run it, and every personal choice can be switched back off.
 
+<p align="center"><img src="docs/img/desktop.png" alt="The Hyprland desktop on the MacBook Pro: the top bar, and a terminal with a Windows 3.11 style title bar showing the T2 kernel and the Mac model" width="760"></p>
+
+The top bar, left to right:
+
+<img src="docs/img/bar-left.png" alt="Left half of the top bar" width="560">
+
+1. **Apps**: the application menu, like the Windows Start menu.
+2. Pinned apps: Xfe (file manager, like Windows Explorer), Terminator (terminal, like
+   Terminal.app) and Vivaldi.
+3. Layout: dynamic (floating windows) by default, or one of the golden-ratio tilings.
+4. The open windows. Click to bring one to the front, middle-click to close it.
+
+<img src="docs/img/bar-right.png" alt="Right half of the top bar" width="980">
+
+5. **Cl** / **Co**: usage quotas of the AI agents, Claude and Codex.
+6. CPU load. 7. Memory in use. 8. CPU temperature in °C. 9. Network down and up.
+10. Volume.
+11. Screen brightness (scroll on it to change).
+12. Power profile; the scales mean balanced.
+13. Battery.
+14. Wi-Fi. 15. Tailscale. 16. Bluetooth.
+17. Clipboard history, wiped every night.
+18. Night mode: screen tint, click for the next one (the rabbit).
+19. Terminal theme switcher.
+20. Keyboard layout (DE / US).
+21. Clock.
+22. Power menu (Debian logo): lock, suspend, hibernate, log out, restart, shut down.
+
 I use it daily on a MacBook Pro 16" 2019 (MacBookPro16,1). Other T2 models should mostly work,
 but I haven't tested them.
 
