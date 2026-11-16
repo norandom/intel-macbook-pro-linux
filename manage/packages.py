@@ -98,7 +98,10 @@ def _run(argv) -> str:
 
 
 def _apt_args(request):
-    return ("/usr/bin/apt-get", "--no-install-recommends", "--no-remove", "install", *request.packages)
+    # Lock::Timeout: apt waits (instead of failing) if a background apt run takes the lock between
+    # the transaction's lock check and this call.
+    return ("/usr/bin/apt-get", "-o", "DPkg::Lock::Timeout=300", "--no-install-recommends", "--no-remove",
+            "install", *request.packages)
 
 
 def _parse_simulation(output: str) -> PackagePlan:

@@ -21,6 +21,23 @@ PREF = "/etc/apt/preferences.d/90-t2-pack.pref"
 PRIORITY = 990  # beats every repo (500) so nothing newer is picked, never forces a downgrade (>1000)
 BACKUP_ROOT = Path(os.path.expanduser("~/.local/share/t2-mac-kde/t2-packs"))
 
+# config background_updates = false: no apt activity on its own (owner decision 2026-11-16).
+NO_BG_CONF = "/etc/apt/apt.conf.d/99-t2-no-background-updates"
+NO_BG_TIMERS = ("apt-daily.timer", "apt-daily-upgrade.timer",
+                "update-notifier-download.timer", "update-notifier-motd.timer", "unattended-upgrades.service")
+
+
+def no_background_conf() -> str:
+    """Sorts after 10periodic/20auto-upgrades, so these values win."""
+    return ("// Managed by t2-mac-kde (config background_updates = false; docs/t2-pack.md).\n"
+            "// No package-list refresh, download or unattended upgrade in the background:\n"
+            "// updates happen when you run apt. Remove: background_updates = true + tasks/t2_pack.py.\n"
+            'APT::Periodic::Update-Package-Lists "0";\n'
+            'APT::Periodic::Download-Upgradeable-Packages "0";\n'
+            'APT::Periodic::Unattended-Upgrade "0";\n'
+            'APT::Periodic::AutocleanInterval "0";\n')
+
+
 _ID = re.compile(r"^t2-[0-9A-Za-z.+~-]+$")
 _PKG = re.compile(r"^[a-z0-9][a-z0-9+.-]+$")
 _VER = re.compile(r"^[0-9][0-9A-Za-z.+~:-]*$")

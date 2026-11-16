@@ -145,7 +145,7 @@ class TransactionTests(unittest.TestCase):
             ready.recv()
             try:
                 with self.assertRaisesRegex(RuntimeError, 'package-manager'):
-                    with tx.package_transaction(prevent_service_start=True, root=self.root):
+                    with tx.package_transaction(prevent_service_start=True, root=self.root, lock_timeout=0):
                         self.fail('native lock ignored')
                 self.assertFalse(self.policy.exists())
                 self.assertFalse(self.receipt.exists())

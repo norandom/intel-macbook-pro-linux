@@ -6,6 +6,7 @@ locks. An unmanaged package-manager race therefore fails through apt normally.
 """
 from contextlib import contextmanager
 import fcntl
+import time
 import hashlib
 import json
 import os
@@ -116,22 +117,41 @@ def _recover(root):
     _sync_directory(receipt.parent)
 
 
-def _check_native_locks(root):
+# Ubuntu's background apt runs take seconds to a few minutes.
+LOCK_TIMEOUT = 300
+
+
+def _probe_native_locks(root):
     descriptors = []
     try:
         for name in ('lock-frontend', 'lock'):
             fd = os.open(root / 'var/lib/dpkg' / name, os.O_RDWR | os.O_NOFOLLOW)
             descriptors.append(fd)
             fcntl.lockf(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
-    except OSError as error:
-        raise RuntimeError('Native package-manager lock unavailable; retry after it completes.') from error
     finally:
         for fd in descriptors:
             os.close(fd)
 
 
+def _check_native_locks(root, timeout=LOCK_TIMEOUT):
+    """Wait (up to timeout s) while another apt/dpkg run holds the lock, e.g. Ubuntu's apt-daily."""
+    deadline = time.monotonic() + timeout
+    waited = False
+    while True:
+        try:
+            _probe_native_locks(root)
+            return
+        except OSError as error:
+            if time.monotonic() >= deadline:
+                raise RuntimeError('Native package-manager lock unavailable; retry after it completes.') from error
+            if not waited:
+                print(f'Another apt/dpkg run holds the lock; waiting up to {timeout} s ...', flush=True)
+                waited = True
+            time.sleep(2)
+
+
 @contextmanager
-def package_transaction(*, prevent_service_start=False, root=Path('/')):
+def package_transaction(*, prevent_service_start=False, root=Path('/'), lock_timeout=None):
     """Hold the managed lock through apt and restore only verified owned state."""
     root = Path(root)
     lock = root / 'run/lock/t2-mac-kde-packages.lock'
@@ -142,7 +162,7 @@ def package_transaction(*, prevent_service_start=False, root=Path('/')):
             fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
         except BlockingIOError as error:
             raise RuntimeError('A concurrent managed package transaction is active.') from error
-        _check_native_locks(root)
+        _check_native_locks(root, LOCK_TIMEOUT if lock_timeout is None else lock_timeout)
         _recover(root)
         if prevent_service_start:
             inspect_service_policy(root=root)

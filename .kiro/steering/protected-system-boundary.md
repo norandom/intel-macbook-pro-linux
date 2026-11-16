@@ -89,3 +89,8 @@ pack"), with .deb backups. Allowed, and only this:
 - `.deb` copies of the pack go to `~/.local/share/t2-mac-kde/t2-packs/<id>` (user files, apt
   download, checked against `packs/<id>.sha256`). Any further update-policy change needs a new
   explicit owner decision.
+- With config `background_updates = false` (owner request 2026-11-16, "all off"), the same task
+  writes `/etc/apt/apt.conf.d/99-t2-no-background-updates` (all `APT::Periodic` jobs "0") and
+  disables apt-daily, apt-daily-upgrade, update-notifier-download/-motd and
+  unattended-upgrades.service. Updates then happen only when the owner runs apt. `true`
+  removes the file and re-enables exactly those units.

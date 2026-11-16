@@ -33,6 +33,21 @@ Security fixes for these packages wait for the next pack too. That's the trade: 
 Hyprland update can't break hibernate, audio or the title bars behind your back, but you have
 to port to get them.
 
+## No background updates
+
+With `background_updates = false`, the same task stops everything apt does on its own: the
+twice-daily package-list refresh (`apt-daily`), unattended security upgrades
+(`apt-daily-upgrade`, `unattended-upgrades`) and Ubuntu's update notifier. It writes
+`/etc/apt/apt.conf.d/99-t2-no-background-updates` and disables those units. Nothing locks apt
+behind your back any more, and nothing changes the system while you work. The price: security
+updates arrive only when you run them.
+
+```sh
+sudo apt update && sudo apt upgrade     # weekly, or when a security notice matters
+```
+
+`true` (Ubuntu's default) removes the file and turns exactly those units back on.
+
 ## The .deb backup
 
 The same task (config `t2_pack_backup`, on by default) downloads the pack's packages to

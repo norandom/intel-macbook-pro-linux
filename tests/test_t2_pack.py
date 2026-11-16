@@ -65,3 +65,17 @@ class Wiring(unittest.TestCase):
                            capture_output=True, text=True)
         self.assertEqual(r.returncode, 0)
         self.assertIn("release", r.stdout)
+
+
+class BackgroundUpdates(unittest.TestCase):
+    def test_conf_turns_every_periodic_job_off(self):
+        text = t2_pack.no_background_conf()
+        for key in ("Update-Package-Lists", "Download-Upgradeable-Packages", "Unattended-Upgrade", "AutocleanInterval"):
+            self.assertIn(f'APT::Periodic::{key} "0";', text)
+        self.assertTrue(t2_pack.NO_BG_CONF.startswith("/etc/apt/apt.conf.d/99-"))  # after 20auto-upgrades
+        self.assertIn("unattended-upgrades.service", t2_pack.NO_BG_TIMERS)
+
+    def test_apt_waits_for_lock(self):
+        from manage import packages
+        from manage.packages import PackageRequest
+        self.assertIn("DPkg::Lock::Timeout=300", packages._apt_args(PackageRequest(("foo",))))

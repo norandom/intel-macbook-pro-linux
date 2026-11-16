@@ -59,9 +59,9 @@ class InstallTests(unittest.TestCase):
              patch.object(guard.subprocess, 'run', side_effect=lambda *a, **kw: events.append(('apt', a, kw))):
             guard._apply_install(self.request)
         self.assertEqual(events[:3], ['request', ('policy', {}), 'plan'])
-        self.assertEqual(events[3][1][0], ('/usr/bin/apt-get', '--download-only', '--yes', '--no-install-recommends', '--no-remove', 'install', 'btop'))
+        self.assertEqual(events[3][1][0], ('/usr/bin/apt-get', '--download-only', '--yes', '-o', 'DPkg::Lock::Timeout=300', '--no-install-recommends', '--no-remove', 'install', 'btop'))
         self.assertEqual(events[4], 'archive')
-        self.assertEqual(events[5][1][0], ('/usr/bin/apt-get', '--yes', '--no-install-recommends', '--no-remove', 'install', 'btop'))
+        self.assertEqual(events[5][1][0], ('/usr/bin/apt-get', '--yes', '-o', 'DPkg::Lock::Timeout=300', '--no-install-recommends', '--no-remove', 'install', 'btop'))
         self.assertTrue(events[3][2]['check'])
         self.assertEqual(events[3][2]['env'], {'PATH': '/usr/sbin:/usr/bin:/sbin:/bin', 'LC_ALL': 'C', 'LANG': 'C'})
 
