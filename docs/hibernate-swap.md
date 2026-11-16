@@ -104,15 +104,29 @@ cat /sys/power/resume    # still 252:1
 df -h /home              # ~632G
 ```
 
-## Switch Hibernate back on
+## Switch Hibernate on
 
-Hibernate was taken out of the power menu while it couldn't work (backlog). The guarded entry is in
-git history (`hypr-hibernate`, commit 0bb7ba8): it refuses to hibernate when the RAM in use wouldn't
-fit into free disk swap. Ask for it to be restored, or bring it back from that commit, then:
+Done on the owner's machine on 2026-11-16: swap is 80 GiB with the same UUID, resume still
+`252:1`. Two things were still in the way, and the config flag handles both:
+
+- Ubuntu forbids hibernate for everyone. `/usr/share/polkit-1/rules.d/com.ubuntu.desktop.rules`
+  answers "no" to `org.freedesktop.login1.hibernate`, so logind reports `CanHibernate: no` even
+  when swap and resume are fine. The deploy adds `/etc/polkit-1/rules.d/49-t2-hibernate.rules`,
+  which is read first and allows hibernate for the active local session only.
+- The power menu had no Hibernate entry. `hypr-hibernate` comes back: it refuses to hibernate,
+  with a notification, when the RAM in use wouldn't fit into free disk swap.
+
+```toml
+hibernate = true          # ~/.config/t2-mac-kde/config.toml
+```
 
 ```sh
 .venv/bin/pyinfra @local tasks/desktop.py --use-sudo-password
+busctl call org.freedesktop.login1 /org/freedesktop/login1 org.freedesktop.login1.Manager CanHibernate
+# s "yes"
 ```
+
+`hibernate = false` removes the rule and the menu entry again.
 
 ## First test
 

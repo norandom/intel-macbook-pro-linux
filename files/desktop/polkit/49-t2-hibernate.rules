@@ -1,0 +1,12 @@
+// Managed by t2-mac-kde (desktop, config hibernate = true). Ubuntu's com.ubuntu.desktop.rules
+// forbids hibernate for everyone; this rule is read first (49 < c...) and allows it for the
+// user at the machine (active local session) only. Disk swap must hold the RAM image
+// (docs/hibernate-swap.md); hypr-hibernate checks that before every hibernate.
+polkit.addRule(function(action, subject) {
+    if ((action.id == "org.freedesktop.login1.hibernate" ||
+         action.id == "org.freedesktop.login1.handle-hibernate-key" ||
+         action.id == "org.freedesktop.upower.hibernate") &&
+        subject.active && subject.local) {
+        return polkit.Result.YES;
+    }
+});

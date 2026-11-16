@@ -16,12 +16,10 @@ and configuration tasks, per explicit owner direction.
   each managed ~/.bashrc block. Harmless; silence it with a logging filter in
   manage/preflight.py when convenient (owner request 2026-11-15, low priority).
 
-## Hibernate (suspend to disk)
+## Hibernate
 
-- Backlogged by the owner on 2026-11-15. Kernel, resume device (swap LV, 252:1) and
-  systemd units are ready, but 16 GiB disk swap vs 64 GiB RAM makes it fail under load.
-- When reopened: owner-run swap LV resize keeping path + UUID (docs/hibernate-swap.md),
-  then a guarded Hibernate power-menu entry (see git history: hypr-hibernate).
+- Done 2026-11-16: swap LV 80 GiB (owner, live USB), config `hibernate` (polkit rule + guarded
+  menu entry). First real hibernate/resume test on the T2 still to do.
 
 ## Verbose boot and shutdown
 

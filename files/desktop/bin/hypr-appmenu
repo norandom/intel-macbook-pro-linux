@@ -3,7 +3,9 @@
 
     hypr-appmenu              recent apps, categories ▸ applications, Run…, Shut down… (top-left)
     hypr-appmenu --at X Y     same, opened at X/Y on the focused monitor (desktop right-click)
-    hypr-appmenu power        lock / suspend / log out / reboot / shut down (fuzzel, SUPER+ESCAPE)
+    hypr-appmenu power        lock / suspend / [hibernate] / log out / reboot / shut down (fuzzel, SUPER+ESCAPE)
+
+Hibernate only shows when ~/.local/bin/hypr-hibernate exists (config hibernate = true).
 
 Like Windows: hovering a category opens its submenu beside it, a click on an entry starts
 it, a click anywhere else (the Apps button too) or Escape closes the menu; arrow keys,
@@ -54,12 +56,14 @@ def run(argv):
     subprocess.Popen(argv, start_new_session=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
 
+HIBERNATE = HOME / ".local/bin/hypr-hibernate"   # installed only with config hibernate = true
 args = sys.argv[1:]
 if args[:1] == ["power"]:
     p = subprocess.run(["fuzzel", "--dmenu", "--anchor", "top-left", "--width", "32",
                         "--prompt", "Power > ", "--lines", "4"],
-                       input="Lock\nSuspend\nLog out\nReboot\nShut down\n", capture_output=True, text=True)
-    cmd = {"Lock": ["hyprlock"], "Suspend": ["systemctl", "suspend"],
+                       input="Lock\nSuspend\n" + ("Hibernate\n" if HIBERNATE.exists() else "")
+                       + "Log out\nReboot\nShut down\n", capture_output=True, text=True)
+    cmd = {"Lock": ["hyprlock"], "Suspend": ["systemctl", "suspend"], "Hibernate": [str(HIBERNATE)],
            "Log out": ["uwsm", "stop"], "Reboot": ["systemctl", "reboot"],
            "Shut down": ["systemctl", "poweroff"]}.get(p.stdout.strip())
     if cmd:
@@ -155,6 +159,8 @@ class Menu:
             out.append((cat, image(ICON_CAT.get(cat)), None, sub))
         power = [("Lock", image(ICON_CAT["logout"]), self.cmd(["hyprlock"]), None),
                  ("Suspend", image(ICON_CAT["logout"]), self.cmd(["systemctl", "suspend"]), None),
+                 *([("Hibernate", image(ICON_CAT["logout"]), self.cmd([str(HIBERNATE)]), None)]
+                   if HIBERNATE.exists() else []),
                  ("Log out", image(ICON_CAT["logout"]), self.cmd(["uwsm", "stop"]), None),
                  ("Reboot", image(ICON_CAT["reboot"]), self.cmd(["systemctl", "reboot"]), None),
                  ("Shut down", image(ICON_CAT["power"]), self.cmd(["systemctl", "poweroff"]), None)]

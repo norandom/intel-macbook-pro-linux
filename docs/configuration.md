@@ -128,6 +128,7 @@ Read by `tasks/rdp.py`.
 
 | Key | Default | Effect |
 |---|---|---|
+| `hibernate` | `false` | `true`: Hibernate in the power and Apps menus, allowed by a polkit rule (Ubuntu forbids it by default); needs disk swap at least as big as RAM ([hibernate-swap.md](hibernate-swap.md)) |
 | `yubikey_login` | `false` | `true`: touch a registered YubiKey instead of the password for sudo, polkit, login, lock screen ([security-keys.md](security-keys.md)) |
 
 ## Example

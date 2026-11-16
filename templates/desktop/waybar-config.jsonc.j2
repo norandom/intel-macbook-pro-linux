@@ -27,7 +27,7 @@
   // (waybar 0.15's "image" module hangs the bar at startup.)
   "custom/power": {
     "format": " ",
-    "tooltip-format": "Lock / suspend / log out / reboot / shut down",
+    "tooltip-format": "Lock / suspend{% if hibernate %} / hibernate{% endif %} / log out / reboot / shut down",
     "on-click": "$HOME/.local/bin/hypr-launch $HOME/.local/bin/hypr-appmenu power"
   },
   // Clipboard history (in RAM, wiped nightly at 01:00): click = pick, right-click = wipe now

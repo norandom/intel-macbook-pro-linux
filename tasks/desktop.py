@@ -147,6 +147,20 @@ HELPERS = (
 )
 helper_ops = [owned_put(f"{SRC}/bin/{h}", f"{bin_dir}/{h}", mode="755") for h in HELPERS]
 
+# Hibernate (config hibernate, default off): needs disk swap >= RAM (docs/hibernate-swap.md).
+# Ubuntu's polkit rules forbid it for everyone; ours allows the active local session.
+hibernate = setting("hibernate", False)
+if not isinstance(hibernate, bool):
+    raise ValueError("hibernate must be true or false")
+if hibernate:
+    owned_put(f"{SRC}/bin/hypr-hibernate", f"{bin_dir}/hypr-hibernate", mode="755")
+    files.put(name="polkit: allow hibernate for the active local session", src=f"{SRC}/polkit/49-t2-hibernate.rules",
+              dest="/etc/polkit-1/rules.d/49-t2-hibernate.rules", mode="644", _sudo=True)
+else:
+    files.file(name="hypr-hibernate removed (hibernate off)", path=f"{bin_dir}/hypr-hibernate", present=False)
+    files.file(name="polkit hibernate rule removed (hibernate off)",
+               path="/etc/polkit-1/rules.d/49-t2-hibernate.rules", present=False, _sudo=True)
+
 # Satty: Greenshot-style screenshot annotation (arrows, boxes, text, blur, crop). Not in
 # Ubuntu; upstream release binary, pinned + sha256, user-level. hypr-screenshot opens it.
 SATTY_VERSION = "0.22.0"
@@ -212,7 +226,7 @@ server.shell(
 
 # --- Bar, notifications, launcher, lock, file manager, GTK ---------------------------------
 bar_ops = [
-    owned_put(f"{TPL}/waybar-config.jsonc.j2", f"{cfg}/waybar/config.jsonc", template=True, bar_graphs=bar_graphs, left_reserve=left_reserve),
+    owned_put(f"{TPL}/waybar-config.jsonc.j2", f"{cfg}/waybar/config.jsonc", template=True, bar_graphs=bar_graphs, left_reserve=left_reserve, hibernate=hibernate),
     owned_put(f"{SRC}/waybar/style.css", f"{cfg}/waybar/style.css"),
     owned_put(f"{SRC}/waybar/power-profile-menu.xml", f"{cfg}/waybar/power-profile-menu.xml"),
     files.put(name="Waybar: power button artwork", src=f"{SRC}/waybar/power.png",
