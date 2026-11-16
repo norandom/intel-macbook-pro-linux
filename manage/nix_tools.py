@@ -16,7 +16,7 @@ import re
 DEFAULT_TOOLS = (
     "zellij", "kubectl", "kubernetes-helm", "k9s", "ktop", "bitwarden-cli", "rclone", "podman-tui",
     "btop", "ripgrep", "fd", "bat", "jq", "fzf", "lazygit", "glow", "gh", "gdu", "trippy",
-    "multitail", "aria2", "rustup", "go", "nim", "nimble", "nimlangserver",
+    "multitail", "aria2", "rustup", "go", "nim", "nimble", "nimlangserver", "nano-syntax-highlighting",
     "netcat-openbsd", "gef", "rizin", "valgrind",
 )
 

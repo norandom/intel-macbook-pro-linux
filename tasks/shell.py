@@ -235,3 +235,12 @@ if os.path.exists("/usr/sbin/dkms") or os.path.exists("/usr/bin/dkms"):
     files.put(name="DKMS: always the kernel's GCC (unset CC/CXX)", src=StringIO(cfg.DKMS_GCC_ONLY),
               dest="/etc/dkms/framework.conf.d/10-t2-gcc-only.conf", mode="644", create_remote_dir=True,
               _sudo=True)
+
+
+# --- nano: syntax highlighting (community set from Nix if present, else Ubuntu's) + settings --
+nix_nano = home / ".nix-profile/share"
+syntax = (str(nix_nano) + "/*.nanorc") if any(nix_nano.glob("*.nanorc")) else "/usr/share/nano/*.nanorc"
+files.put(name=f"nano: ~/.config/nano/nanorc (syntax from {'Nix' if 'nix' in syntax else 'Ubuntu'})",
+          src=StringIO(cfg.nanorc(syntax)), dest=str(home / ".config/nano/nanorc"), mode="644",
+          create_remote_dir=True)
+files.directory(name="nano backup dir", path=str(home / ".cache/nano/backups"), mode="700")

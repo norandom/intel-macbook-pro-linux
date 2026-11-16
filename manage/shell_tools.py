@@ -79,6 +79,28 @@ DKMS_GCC_ONLY = """# Managed by t2-mac-kde: DKMS builds kernel modules with the 
 unset CC CXX
 """
 
+NANO_SETTINGS = """set linenumbers
+set constantshow
+set mouse
+set softwrap
+set atblanks
+set tabsize 4
+set tabstospaces
+set autoindent
+set indicator
+set minibar
+set zap
+set backup
+set backupdir "~/.cache/nano/backups"
+"""
+
+
+def nanorc(syntax_glob: str) -> str:
+    """One syntax set only (duplicate definitions make nano complain)."""
+    return ("# Managed by t2-mac-kde (shell-user-tools): syntax highlighting + editor settings.\n"
+            f'include "{syntax_glob}"\n' + NANO_SETTINGS)
+
+
 SKILLS_CLI = 'skills@1.8.1'
 PRETTY_MERMAID = 'imxv/pretty-mermaid-skills@pretty-mermaid'
 
