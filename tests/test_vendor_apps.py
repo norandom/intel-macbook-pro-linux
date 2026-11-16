@@ -18,7 +18,7 @@ DEB_HOSTS = {"obsidian": "github.com", "bitwarden": "github.com", "quarto": "git
 DEB_PATHS = {"obsidian": "/obsidianmd/obsidian-releases/", "bitwarden": "/bitwarden/clients/releases/download/desktop-v",
              "quarto": "/quarto-dev/quarto-cli/", "rclone-ui": "/rclone-ui/rclone-ui/releases/download/v"}
 TARBALL_PATHS = {"zed": "/zed-industries/zed/", "zen": "/zen-browser/desktop/",
-                 "podman-desktop": "/podman-desktop/podman-desktop/"}
+                 "podman-desktop": "/podman-desktop/podman-desktop/", "xtool": "/xtool-org/xtool/"}
 
 
 class RepoTests(unittest.TestCase):

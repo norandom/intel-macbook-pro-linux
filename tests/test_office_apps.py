@@ -31,7 +31,7 @@ def debs() -> dict:
 class PinTests(unittest.TestCase):
     def test_pins_well_formed(self):
         table = debs()
-        self.assertEqual(set(table), {"pdfcraft", "designcraft", "gridcraft", "lightcraft", "wordcraft",
+        self.assertEqual(set(table), {"pdfcraft", "designcraft", "gridcraft", "lightcraft", "photocraft", "wordcraft",
                                       "deckcraft", "cadcraft", "open-idea"})
         for package, (version, url, sha) in table.items():
             with self.subTest(package=package):

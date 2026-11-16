@@ -19,6 +19,7 @@
 # --- Privacy (tasks/resource_policy.py) ------------------------------------------
 # crash_upload = true              # false: whoopsie masked, no uploads to errors.ubuntu.com
 
+# yubikey_login = false           # true: touch a registered YubiKey instead of the password (docs/security-keys.md)
 # cpu_mitigations_off = false     # true: mitigations=off via a GRUB drop-in, at the next reboot
 # battery_charge_limit = 100      # e.g. 80 when mostly plugged in; t2-battery full|limit|status
 # power_tuning = false            # runtime PM for 3 safe Intel chipset functions, nmi_watchdog off,

@@ -13,6 +13,7 @@ A map of everything under `docs/`. Start with the README, then pick the area you
 | [developer-tools.md](developer-tools.md) | Shell, compilers, Node, Python, containers, VMs, Nix |
 | [apps.md](apps.md) | Office and creative apps, browsers, vendor apps, default apps |
 | [remote-access.md](remote-access.md) | Tailscale, SSH with fail2ban, RDP into the Hyprland session |
+| [security-keys.md](security-keys.md) | YubiKey (primary + spare) instead of Touch ID for sudo, login and the lock screen |
 | [commands.md](commands.md) | Every helper command in one list |
 
 ## Customize when forking

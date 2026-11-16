@@ -20,6 +20,7 @@ package guard ([safety.md](safety.md)). The full inventory, with the reason for 
 | WordCraft, GridCraft, DeckCraft | Documents, spreadsheets, slides | Craft suite; layouts follow the programs they replace |
 | PdfCraft | PDFs | |
 | LightCraft | Photos | Lightroom-style |
+| PhotoCraft | Photo editing | Photoshop-style, written in Rust |
 | DesignCraft | Page layout | |
 | CADCraft | Drawings | |
 | Obsidian, Typora | Notes, Markdown | |
@@ -29,7 +30,7 @@ package guard ([safety.md](safety.md)). The full inventory, with the reason for 
 The Craft apps are young projects, so expect rough edges. LibreOffice Impress isn't installed;
 DeckCraft covers slides. You can change the LibreOffice UI per user in View > User Interface.
 
-If you live in real Excel macros or a full Photoshop workflow, these won't cover everything. Run
+If you live in real Excel macros or a heavy Photoshop workflow, these won't cover everything. Run
 Windows in virt-manager for those ([developer-tools.md](developer-tools.md#virtual-machines)).
 
 ## Browsers

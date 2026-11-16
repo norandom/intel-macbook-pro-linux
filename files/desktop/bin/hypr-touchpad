@@ -1,0 +1,40 @@
+#!/usr/bin/env bash
+# Managed by t2-mac-kde (desktop). Trackpad feel, live and remembered (internal trackpad only;
+# an external mouse keeps its own settings):
+#   hypr-touchpad                  show speed and scroll speed
+#   hypr-touchpad speed +0.1|-0.1|N   pointer speed, -1 (slow) .. 1 (fast), default 0
+#   hypr-touchpad scroll +0.1|-0.1|N  scroll speed factor, 0.1 .. 3, default 1
+#   hypr-touchpad reset            back to the defaults
+# Saved to ~/.config/hypr/touchpad.conf (sourced by hyprland.conf), so it survives restarts.
+set -eu
+export LC_NUMERIC=C
+conf="$HOME/.config/hypr/touchpad.conf"
+dev=$(hyprctl devices -j | jq -r '[.mice[].name | select(test("trackpad|touchpad"; "i"))] | last // empty')
+[ -n "$dev" ] || { echo "hypr-touchpad: no trackpad found" >&2; exit 1; }
+get() { sed -n "s/^ *$1 = //p" "$conf" 2>/dev/null | head -1; }
+speed=$(get sensitivity); speed=${speed:-0}
+scroll=$(get scroll_factor); scroll=${scroll:-1}
+step() {  # current, arg, min, max
+  awk -v c="$1" -v a="$2" -v lo="$3" -v hi="$4" 'BEGIN {
+    v = (a ~ /^[+-]/) ? c + a : a; if (v < lo) v = lo; if (v > hi) v = hi; printf "%.2f", v }'
+}
+case "${1:-status}" in
+  status) echo "trackpad: $dev"; echo "speed:    $speed  (-1 slow .. 1 fast, default 0)"
+          echo "scroll:   $scroll  (0.1 .. 3, default 1)"; exit 0 ;;
+  speed) speed=$(step "$speed" "${2:?value}" -1 1) ;;
+  scroll) scroll=$(step "$scroll" "${2:?value}" 0.1 3) ;;
+  reset) speed=0.00; scroll=1.00 ;;
+  *) echo "usage: hypr-touchpad [status | speed +0.1|-0.1|N | scroll +0.1|-0.1|N | reset]" >&2; exit 2 ;;
+esac
+mkdir -p "${conf%/*}"
+cat > "$conf.new" <<CONF
+# Written by hypr-touchpad (t2-mac-kde): internal trackpad feel. Edit with hypr-touchpad.
+device {
+    name = $dev
+    sensitivity = $speed
+    scroll_factor = $scroll
+}
+CONF
+mv -f "$conf.new" "$conf"
+hyprctl --batch "keyword device[$dev]:sensitivity $speed ; keyword device[$dev]:scroll_factor $scroll" >/dev/null
+echo "trackpad speed $speed, scroll $scroll"

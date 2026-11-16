@@ -29,6 +29,7 @@ ARTCRAFT = {
     "designcraft": ("0.20.1", "a4b50ceffd33a13d2d52e01530f6de3236d50ada02a7cf0c8946de3195057b0f"),
     "gridcraft": ("0.19.1", "3e9b093ee3bed8b1f008ea56c8d60e6a96890e24317be2bbb93e431f3c9d8112"),
     "lightcraft": ("0.21.1", "c91ef47bec44995d99ce58e6c748af9fa6ab1ff1c11de9e290e0b8231176dad1"),
+    "photocraft": ("0.23.1", "baabdcdbe46df2f72ccf6ecc2e98be00fbc33dbd4c1cd9426362a89a4b95f673"),
     "wordcraft": ("0.18.1", "9b557161ded7b5973112c8c21f600fe0b0110c1a4d3151184485733c96f87e19"),
     "deckcraft": ("0.18.1", "59801c24ef5bdaf01a6a465f0e1d5f59aba36ad1e723cb833304b22d98c3f909"),
     "cadcraft": ("0.20.1", "8e6ad1f487d6cd44dbcb73cd88ef1efb52252a2071094f2c23a468a641a06faa"),

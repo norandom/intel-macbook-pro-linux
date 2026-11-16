@@ -156,6 +156,9 @@ VENDOR_TARBALLS = {
     "podman-desktop": ("1.30.5",
                        "https://github.com/podman-desktop/podman-desktop/releases/download/v1.30.5/podman-desktop-1.30.5-x64.tar.gz",
                        "aa616a948a8b254132e903b751a95765eeae3454cbd5b7049146b5bdeb842d3d", "podman-desktop"),
+    # Xcode replacement (SwiftPM iOS builds). An AppImage: unpacked once, so no libfuse2 needed.
+    "xtool": ("1.24.0", "https://github.com/xtool-org/xtool/releases/download/1.24.0/xtool-x86_64.AppImage",
+              "dbfd9d7216f077c84c171b688c4173c37c23ca76bf7fd185d1a9ae8a53dab59f", "xtool"),
 }
 _VENDOR_OWNER = "tasks/vendor_apps.py"
 
@@ -220,7 +223,7 @@ OTHER = {
         "fonts-crosextra-carlito", "hunspell-de-de", "hunspell-en-us", "hyphen-de", "hyphen-en-us",
         "mythes-de", "mythes-en-us")},
     **{p: ("delegated", _OFFICE, p, _CRAFT) for p in (
-        "pdfcraft", "designcraft", "gridcraft", "lightcraft", "wordcraft", "deckcraft", "cadcraft")},
+        "pdfcraft", "designcraft", "gridcraft", "lightcraft", "photocraft", "wordcraft", "deckcraft", "cadcraft")},
     "openidea": ("delegated", _OFFICE, "openidea", "pinned l0ng-ai/openidea GitHub .deb (package open-idea), "
                  "sha256 + package guard"),
 }

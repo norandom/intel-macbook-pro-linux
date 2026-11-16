@@ -128,6 +128,7 @@ Read by `tasks/rdp.py`.
 
 | Key | Default | Effect |
 |---|---|---|
+| `yubikey_login` | `false` | `true`: touch a registered YubiKey instead of the password for sudo, polkit, login, lock screen ([security-keys.md](security-keys.md)) |
 
 ## Example
 

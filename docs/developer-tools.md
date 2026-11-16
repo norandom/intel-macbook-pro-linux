@@ -85,6 +85,19 @@ rclone, podman-tui, btop, ripgrep, fd, bat, jq, fzf, lazygit, glow, gh, gdu, tri
 aria2, rustup, go, Nim, nimble, nimlangserver, netcat, gef, rizin and valgrind. Add your own with
 `nix_tools_extra`. Updating, adding and rolling back: [nix.md](nix.md).
 
+## iOS apps with xtool
+
+[xtool](https://github.com/xtool-org/xtool) replaces Xcode for building and deploying iOS apps
+with SwiftPM. The deploy unpacks the pinned AppImage into `~/.local/opt/xtool-<version>` (no
+FUSE 2 needed) and links `xtool` into `~/.local/bin`. Once:
+
+```sh
+xtool setup     # Swift toolchain check, Apple Developer login, Darwin SDK from your Xcode.xip
+```
+
+You need an Apple ID and a downloaded `Xcode.xip`; xtool extracts the SDK from it. Then
+`xtool new`, `xtool dev` build and run on a connected iPhone.
+
 ## Editors and GUI tools
 
 VS Code, Zed, Sublime Text, Positron, Quarto, OpenIDEA, Typora, Neovim, NEdit and Meld; edb and

@@ -12,6 +12,8 @@ installs or configures are listed. Where there's no counterpart, the table says 
 | Battery health in System Information | `t2-battery status`: capacity vs design, cycles, health |
 | AlDente, optimized charging | `battery_charge_limit = 80` and `t2-battery full` before a trip ([power.md](power.md#battery-charge-limit)) |
 | Low Power Mode | The power-saver profile (battery icon). Turbo is off by default anyway |
+| AirPods battery and noise control | [LibrePods](https://github.com/kavishdevar/librepods), a tray app; not installed by the repo yet ([audio.md](audio.md#airpods-extras)) |
+| Trackpad settings | `hypr-touchpad speed +0.1` / `scroll 0.8` / `reset`, remembered ([desktop.md](desktop.md#trackpad)) |
 | Boom3D | EasyEffects presets `plain`, `room`, `stage`, `room+`, `auditorium` for your music headphones; `hypr-3d` switches them live. Hyprland session only ([audio.md](audio.md)) |
 | The speaker processing macOS does for you | The speaker DSP (`speaker_dsp = true`), MacBookPro16,1 only |
 | Microsoft Word | WordCraft, or LibreOffice Writer with the tabbed (ribbon-style) UI |
@@ -20,7 +22,7 @@ installs or configures are listed. Where there's no counterpart, the table says 
 | Adobe Lightroom | LightCraft |
 | Adobe InDesign | DesignCraft |
 | Adobe Acrobat | PdfCraft; qpdfview and xpdf for viewing |
-| Adobe Photoshop | Not in the Craft suite. The ArtCraft apps cover InDesign, Lightroom, Acrobat, AutoCAD and Office; for pixel editing add GIMP or Krita ([apps.md](apps.md#add-or-remove-an-app)) |
+| Adobe Photoshop | PhotoCraft (Craft suite photo editor) |
 | Adobe Illustrator | Not in the Craft suite; Inkscape is the usual Linux choice ([apps.md](apps.md#add-or-remove-an-app)) |
 | Adobe Premiere, After Effects | No counterpart installed, and no video player either |
 | AutoCAD | CADCraft |
@@ -44,9 +46,10 @@ installs or configures are listed. Where there's no counterpart, the table says 
 | Screen Sharing | RDP into the Hyprland session over Tailscale ([remote-access.md](remote-access.md)) |
 | Microsoft Remote Desktop | Remote Desktop Manager |
 | Remote Login (SSH) | sshd at boot behind fail2ban |
+| Xcode | [xtool](https://github.com/xtool-org/xtool): build and deploy iOS apps with SwiftPM, `xtool setup` once ([developer-tools.md](developer-tools.md#ios-apps-with-xtool)) |
 | Xcode command line tools | GCC and make; optionally Intel's icx/icpx as your default compiler |
 | Time Machine | Coming next: the owner's backup tool will be added. Until then rsync and rclone are installed |
-| Touch ID | Not available on Linux. You type your password |
+| Touch ID | A YubiKey, primary + spare: touch it for sudo, admin prompts, login and the lock screen ([security-keys.md](security-keys.md)) |
 
 KDE Plasma is still there, with its own apps (Dolphin, System Settings and so on). The table
 above is about what this repository adds.

@@ -15,6 +15,7 @@ for task in (
     "cpu_mitigations",  # config cpu_mitigations_off: GRUB drop-in (owner exception)
     "storage_health",   # smartd + daily NVMe check, alerts in new shells
     "remote_access",    # tailscale, sshd at boot, fail2ban, RDP firewall
+    "security_keys",    # YubiKey tools; config yubikey_login: touch the key instead of a password
     "containers",       # rootless podman, docker compat, compose, podman-tui
     "virtualization",   # virt-manager on KVM, libvirt default NAT network
     "fonts",            # nerd fonts, fixedsys, fontconfig

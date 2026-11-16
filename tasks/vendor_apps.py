@@ -193,6 +193,20 @@ files.put(name="Podman Desktop desktop entry", dest=f"{apps_dir}/podman-desktop.
 _apparmor("t2-podman-desktop")
 
 
+# xtool (Xcode replacement): the AppImage's own runtime unpacks it (after the sha256 check), so it
+# runs without FUSE 2; ~/.local/bin/xtool points at its AppRun. `xtool setup` does the rest.
+version, url, sha, _exe = VENDOR_TARBALLS["xtool"]
+xt = f"{opt}/xtool-{version}"
+if not os.access(f"{xt}/AppRun", os.X_OK):
+    server.shell(name=f"xtool {version} -> {xt} (sha256 verified, unpacked)", commands=[f"""set -eu
+mkdir -p "{opt}"; t=$(mktemp -d "{opt}/.t2-download.XXXXXX"); trap 'rm -rf "$t"' EXIT
+{CURL} -o "$t/xtool.AppImage" "{url}"
+echo "{sha}  $t/xtool.AppImage" | sha256sum -c --quiet
+chmod 700 "$t/xtool.AppImage"; (cd "$t" && ./xtool.AppImage --appimage-extract >/dev/null)
+rm -rf "{xt}" && mv -T "$t/squashfs-root" "{xt}" """])
+files.link(name="~/.local/bin/xtool", path=f"{bin_dir}/xtool", target=f"{xt}/AppRun", create_remote_dir=True)
+
+
 def _podman_desktop_no_self_update():
     """The pin is the update path: turn off its update check unless the user chose otherwise."""
     path = Path(home, ".local/share/containers/podman-desktop/configuration/settings.json")

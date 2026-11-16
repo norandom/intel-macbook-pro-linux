@@ -44,6 +44,7 @@ leaves it working as the T2 install set it up. It's one logout away if you ever 
 - [Developer tools](docs/developer-tools.md): grml Bash, nvm, uv, rootless Podman, KVM, icx, [Nix](docs/nix.md) CLI tools.
 - [Apps](docs/apps.md): the Craft office suite, LibreOffice with the ribbon UI, VS Code, Zed, Chromium, Zoom.
 - [Remote access](docs/remote-access.md): Tailscale, SSH behind fail2ban, RDP into Hyprland over Tailscale only.
+- [Security keys](docs/security-keys.md): a YubiKey (primary + spare) instead of Touch ID for sudo, login and the lock screen.
 
 Switching from a Mac? [Coming from macOS](docs/coming-from-macos.md) maps the apps you used
 (iStat Menus, Boom3D, Office, Adobe, OneDrive) to what's here.

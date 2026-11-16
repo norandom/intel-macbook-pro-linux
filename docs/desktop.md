@@ -91,6 +91,21 @@ Screenshots land in `~/Screenshots` and on the clipboard.
 The bindings come from `templates/desktop/bindings.conf.j2`; the laptop keys and screenshot
 keys from `files/desktop/hypr/laptop.conf`.
 
+## Trackpad
+
+The trackpad uses Hyprland's defaults. To change how it feels:
+
+```sh
+hypr-touchpad                 # current speed and scroll speed
+hypr-touchpad speed +0.1      # faster pointer (-1 .. 1, default 0)
+hypr-touchpad scroll 0.8      # slower scrolling (0.1 .. 3, default 1)
+hypr-touchpad reset
+```
+
+It applies right away and only to the internal trackpad, so an external mouse keeps its own
+settings. The values are saved to `~/.config/hypr/touchpad.conf`, which the deploy creates once
+and then leaves to you.
+
 ## Waybar
 
 The top bar is rendered from `templates/desktop/waybar-config.jsonc.j2`, styled by
@@ -141,6 +156,10 @@ From `files/desktop/hypr/hypridle.conf`:
 | 10 min | Lock (hyprlock) |
 | 11 min | Panel off |
 | Before suspend | Always locks first |
+
+The clipboard history (cliphist) lives in RAM only and is wiped every night at 01:00. The timer
+catches up after resume, so if the machine slept through 01:00 the wipe runs as soon as it
+wakes. Logging out or shutting down clears it as well.
 
 Lid close is still handled by logind, as on a stock install.
 

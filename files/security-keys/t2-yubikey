@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+# Managed by t2-mac-kde (security keys). Register YubiKeys for login/sudo (pam_u2f):
+#   t2-yubikey register     first key: touch it when it blinks
+#   t2-yubikey add-spare    the spare key (plug it in instead of the first one)
+#   t2-yubikey status       keys plugged in, keys registered, whether PAM uses them
+# Registration writes ~/.config/t2-mac-kde/u2f_keys; the deploy (tasks/security_keys.py, config
+# yubikey_login = true) copies it to the root-owned /etc/t2-mac-kde/u2f_mappings.
+set -eu
+staged="$HOME/.config/t2-mac-kde/u2f_keys"
+origin="pam://t2-mac-kde"   # = manage/security_keys.ORIGIN
+case "${1:-status}" in
+  register)
+    mkdir -p "${staged%/*}"
+    [ -s "$staged" ] && { echo "already registered (t2-yubikey add-spare for the second key)"; exit 1; }
+    echo "Touch the YubiKey when it blinks ..."
+    pamu2fcfg -o "$origin" -i "$origin" > "$staged.new" && mv -f "$staged.new" "$staged"
+    echo "registered: key 1. Next: t2-yubikey add-spare with the spare key, then deploy." ;;
+  add-spare)
+    [ -s "$staged" ] || { echo "register the first key first: t2-yubikey register"; exit 1; }
+    echo "Plug in the spare key (only that one) and touch it when it blinks ..."
+    spare=$(pamu2fcfg -n -o "$origin" -i "$origin")
+    printf '%s%s\n' "$(tr -d '\n' < "$staged")" "$spare" > "$staged.new" && mv -f "$staged.new" "$staged"
+    echo "registered: $(( $(tr ':' '\n' < "$staged" | wc -l) - 1 )) keys. Deploy to activate." ;;
+  status)
+    echo "plugged in:  $(lsusb 2>/dev/null | grep -ci yubico) YubiKey(s)"
+    n=0; [ -s "$staged" ] && n=$(( $(tr ':' '\n' < "$staged" | wc -l) - 1 ))
+    echo "registered:  $n key(s) in $staged$([ "$n" -lt 2 ] && echo '  (recommended: 2, primary + spare)')"
+    if grep -qs pam_u2f /etc/pam.d/common-auth; then echo "PAM:         on (sudo, polkit, login, lock screen)"
+    else echo "PAM:         off (config yubikey_login = true, then deploy)"; fi ;;
+  *) echo "usage: t2-yubikey register | add-spare | status" >&2; exit 2 ;;
+esac

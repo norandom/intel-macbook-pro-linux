@@ -143,7 +143,7 @@ HELPERS = (
     "hypr-desktop-state", "hypr-launch", "hypr-deco", "hypr-shadow", "hypr-layout", "hypr-pin",
     "hypr-glass", "hypr-kbd", "hypr-nightmode", "hypr-windows", "hypr-session", "hypr-appmenu",
     "hypr-sparkline", "hypr-agent-quota", "hypr-cliphist", "hypr-clip-bridge", "hypr-termtheme-status",
-    "hypr-brightness", "hypr-screenshot", "hypr-osd", "hypr-volume", "hypr-power-profile", "hypr-findcursor", "hypr-netrate", "hypr-thermal", "hypr-gpu",
+    "hypr-brightness", "hypr-screenshot", "hypr-osd", "hypr-volume", "hypr-power-profile", "hypr-findcursor", "hypr-netrate", "hypr-thermal", "hypr-touchpad", "hypr-gpu",
 )
 helper_ops = [owned_put(f"{SRC}/bin/{h}", f"{bin_dir}/{h}", mode="755") for h in HELPERS]
 
@@ -222,6 +222,7 @@ owned_put(f"{SRC}/mako/config", f"{cfg}/mako/config")
 owned_put(f"{SRC}/fuzzel/fuzzel.ini", f"{cfg}/fuzzel/fuzzel.ini")
 seed(f"{SRC}/xdg-terminals.list", f"{cfg}/xdg-terminals.list")
 seed(f"{SRC}/xfe/xferc", f"{cfg}/xfe/xferc")   # Windows 3.11 colours; Xfe keeps user changes
+seed(f"{SRC}/hypr/touchpad.conf", f"{cfg}/hypr/touchpad.conf")   # hypr-touchpad owns it afterwards
 # GTK settings.ini is shared with KDE (kde-gtk-config): only seeded when absent.
 if not host.get_fact(File, path=f"{cfg}/gtk-3.0/settings.ini"):
     files.template(name="Seed (once): GTK 3 settings", src=f"{TPL}/gtk-settings.ini.j2",
