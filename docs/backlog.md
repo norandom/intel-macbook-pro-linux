@@ -34,3 +34,8 @@ and configuration tasks, per explicit owner direction.
 - 2026-11-16: the t2 kernel's macsmc_hwmon driver rejects writes to fan*_target (EOPNOTSUPP),
   and t2fanrd targets the old applesmc files, so custom fan curves aren't possible now.
   Revisit with a newer t2 kernel / the owner's t2 fork (test: ~/t2-tests/test2.sh).
+
+## CPU mitigations off
+
+- Owner decision 2026-11-16: run after the macOS benchmark, with a before/after measurement.
+  Runbook: `docs/cpu-mitigations.md` (baseline `benchmarks/linux.json` is the "before").

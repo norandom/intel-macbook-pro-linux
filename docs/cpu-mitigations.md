@@ -23,6 +23,23 @@ coarse timers), the npm/pip/cargo packages you install (Safe Chain checks them b
 and the guests under KVM/libvirt reading host memory. Nothing becomes reachable from the
 network by this change.
 
+## Order: before, macOS, after
+
+1. **Before** (done 2026-11-16): `benchmarks/linux.json`, Linux with mitigations on, AC,
+   turbo off, balanced, 10 runs.
+2. **macOS** on the same Mac: `benchmarks/macos.json` (turbo off via Turbo Boost Switcher,
+   Low Power Mode off). macOS keeps its mitigations on, so this compares against step 1.
+3. **After**: switch the mitigations off (below), reboot, then
+   `benchmarks/mitigations-off/linux.json` under the same conditions as step 1.
+
+Three comparisons then come out of `tools/benchmark-compare.sh`:
+
+```sh
+bash tools/benchmark-compare.sh benchmarks/linux.json benchmarks/macos.json                       # Linux vs macOS, both mitigated
+bash tools/benchmark-compare.sh benchmarks/linux.json benchmarks/mitigations-off/linux.json      # cost of the mitigations
+bash tools/benchmark-compare.sh benchmarks/macos.json benchmarks/mitigations-off/linux.json      # macOS vs tuned Linux
+```
+
 ## Do it
 
 ```sh
