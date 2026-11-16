@@ -54,6 +54,11 @@ NATIVE = {
     "terminator": ("terminator", "terminator"),
     # source: Debian forky .deb from mkasberg/ghostty-ubuntu; Ubuntu 26.04 ships it natively
     "ghostty": ("ghostty", "ghostty"),
+    # GUI dev tools (owner request 2026-11-16). Launch targets under them; attaching to a
+    # running process needs ptrace_scope 0, which is not changed here.
+    "edb-debugger": ("edb-debugger", "edb"),
+    "heaptrack": ("heaptrack", "heaptrack"),
+    "heaptrack-gui": ("heaptrack-gui", "heaptrack_gui"),
 }
 
 # name -> (version, url, sha256), verbatim from source group_data/all.py release_tools.
@@ -130,6 +135,8 @@ VENDOR_DEBS = {
               "c2057f221e41275b7eadc5b658edc00289466b6fb55c912c5894831f6900f969", "slack"),
     "discord": ("discord", "1.0.169", "https://dl.discordapp.net/apps/linux/1.0.169/discord-1.0.169.deb",
                 "64d39ef66390149c09ec7d20759a2e4aa0b93efc071d073e3e72155eb86639df", "discord"),
+    "rclone-ui": ("rclone-ui", "3.7.5", "https://github.com/rclone-ui/rclone-ui/releases/download/v3.7.5/Rclone.UI_amd64.deb",
+                  "9abf7db50839350fe336710574232197b87be9204036f94390de458b59ab9faf", "Rclone UI"),
 }
 # Pinned user-level tarballs (~/.local/opt/<id>-<version>): id -> (version, url, sha256, executable).
 VENDOR_TARBALLS = {
@@ -187,6 +194,12 @@ OTHER = {
     "zoom": ("vendor", _VENDOR_OWNER, "zoom", _DEB + " (Wayland portal sharing on)"),
     "slack": ("vendor", _VENDOR_OWNER, "slack", _DEB + " (its cron repo-add disabled)"),
     "discord": ("vendor", _VENDOR_OWNER, "discord", _DEB + " (host self-updates in ~/.config/discord)"),
+    "rclone-ui": ("vendor", _VENDOR_OWNER, "Rclone UI", _DEB + " (Tauri, system WebKitGTK; point it at Nix rclone)"),
+    # Its postinst builds and insmods the SEP sampling drivers and installs a boot script
+    # (kernel boundary); VTune 2026.6 HW sampling also does not support this i9-9980HK.
+    "intel-oneapi-vtune": ("blocked", "application-suite", None,
+                           "postinst builds/loads SEP kernel modules + boot script; user-mode sampling needs "
+                           "ptrace_scope 0; HW sampling unsupported on this CPU"),
     **{t: ("vendor", _VENDOR_OWNER, v[3], "pinned upstream tarball (sha256) in ~/.local/opt")
        for t, v in VENDOR_TARBALLS.items()},
     "libreoffice-calc": ("delegated", _OFFICE, "localc", _LIBREOFFICE),

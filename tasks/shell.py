@@ -81,6 +81,17 @@ for package, version in cfg.NPM_TOOLS.items():
         _if=missing(nvm + f"npm ls -g --depth=0 {quote(f'{package}@{version}')}"),
     )
 
+# Aikido Safe Chain (config safe_chain): pinned npm global; aliases come from the devtools block.
+safe_chain = bool(setting("safe_chain", False))
+if safe_chain:
+    package, version = cfg.SAFE_CHAIN
+    server.shell(
+        name=f"npm global {package}@{version} (Safe Chain, nvm Node {node})",
+        commands=nvm + prefix_ok + f" && npm install -g --no-fund --no-audit {quote(f'{package}@{version}')}",
+        _shell_executable="bash",
+        _if=missing(nvm + f"npm ls -g --depth=0 {quote(f'{package}@{version}')}"),
+    )
+
 server.shell(
     name="Claude Code skill: pretty-mermaid (pinned skills CLI)",
     commands=nvm + f"npx -y {cfg.SKILLS_CLI} add {cfg.PRETTY_MERMAID} -g -y"
@@ -140,20 +151,31 @@ changed = [
     for unit, body in reclaim_units.items()
 ]
 
-# --- rclone mounts (owner-configured remotes only; RCLONE_MOUNTS is empty by default) -----
-rclone = shutil.which("rclone")
-if cfg.RCLONE_MOUNTS and not rclone:
+# --- rclone mounts: config rclone_mounts = { remote = "Dir" } -> user services (never fstab) ---
+mounts = dict(setting("rclone_mounts", cfg.RCLONE_MOUNTS))
+cfg.validate_mounts(mounts)
+# Prefer Nix's stable profile path (survives upgrades); fall back to whatever rclone is on PATH.
+nix_rclone = home / ".nix-profile/bin/rclone"
+rclone = str(nix_rclone) if nix_rclone.exists() else shutil.which("rclone")
+if mounts and not rclone:
     print("shell-user-tools: rclone not installed; rclone mounts pending")
-for remote, folder in (cfg.RCLONE_MOUNTS.items() if rclone else ()):
+for remote, folder in (mounts.items() if rclone else ()):
     changed.append(files.put(name=f"rclone mount {remote}: -> ~/{folder} (user service)",
-                             src=StringIO(cfg.rclone_unit(remote, folder, rclone)),
+                             src=StringIO(cfg.rclone_unit(remote, folder, rclone, str(setting("rclone_cache_size", "10G")),
+                                                           str(setting("rclone_cache_age", "24h")))),
                              dest=str(units / f"rclone-{remote}.service"), mode="644"))
+# remotes removed from the config: stop, disable and delete their units
+for unit in sorted(units.glob("rclone-*.service")) if units.exists() else ():
+    if unit.stem.removeprefix("rclone-") not in mounts and "Managed by t2-mac-kde" in unit.read_text():
+        systemd.service(name=f"{unit.name} removed from config: stop", service=unit.name, user_mode=True,
+                        running=False, enabled=False)
+        changed.append(files.file(name=f"remove {unit.name}", path=str(unit), present=False))
 
 server.shell(name="systemd user daemon-reload", commands=["systemctl --user daemon-reload"],
              _if=lambda: any(op.did_change() for op in changed))
 systemd.service(name="dev-disk-reclaim.timer (report-only)", service="dev-disk-reclaim.timer", user_mode=True,
                 enabled=cfg.DEV_DISK_REPORT_TIMER, running=cfg.DEV_DISK_REPORT_TIMER)
-for remote in (cfg.RCLONE_MOUNTS if rclone else ()):
+for remote in (mounts if rclone else ()):
     systemd.service(name=f"rclone-{remote}.service enabled", service=f"rclone-{remote}.service",
                     user_mode=True, enabled=True, running=True)
 
@@ -184,3 +206,32 @@ files.block(
     path=str(home / ".bashrc"), marker=cfg.BLESH_END_MARKER, content=cfg.BLESH_END,
     present=blesh, try_prevent_shell_expansion=True, backup=True,
 )
+
+
+# --- aria2c: parallel downloads by default (every aria2c call; `dl` is a short alias) --------
+files.put(name="aria2c defaults ~/.config/aria2/aria2.conf (16 connections, resume, retries)",
+          src=str(src / "aria2.conf"), dest=str(home / ".config/aria2/aria2.conf"), mode="644",
+          create_remote_dir=True)
+
+
+# --- Compilers: config default_cc ("icx" = Intel oneAPI for your shells; unset = GCC) --------
+# CC/CXX only in interactive user shells. Root, apt, DKMS and Kbuild stay on GCC (sudo resets the
+# environment, the package helper runs apt with a fixed env, Kbuild sets its own CC).
+default_cc = str(setting("default_cc", ""))
+files.block(
+    name=f"bash: compilers ({default_cc or 'gcc'}), GCC for Debian package builds, safe-chain aliases",
+    path=str(home / ".bashrc"), marker=cfg.DEVTOOLS_MARKER, content=cfg.devtools_block(default_cc, safe_chain),
+    before=True, line="BEGIN t2-mac-kde: ble.sh attach", try_prevent_shell_expansion=True, backup=True,
+)
+nim_cfg = home / ".config/nim/nim.cfg"
+if default_cc == "icx":
+    files.put(name="Nim: compile through icx/icpx (~/.config/nim/nim.cfg)", src=StringIO(cfg.NIM_CFG),
+              dest=str(nim_cfg), mode="644", create_remote_dir=True)
+elif nim_cfg.exists() and "Managed by t2-mac-kde" in nim_cfg.read_text():
+    files.file(name="Nim: back to its default compiler (remove our nim.cfg)", path=str(nim_cfg), present=False)
+# DKMS (not installed today; e.g. if a forked t2 kernel brings out-of-tree modules): never icx,
+# even under `sudo -E`.
+if os.path.exists("/usr/sbin/dkms") or os.path.exists("/usr/bin/dkms"):
+    files.put(name="DKMS: always the kernel's GCC (unset CC/CXX)", src=StringIO(cfg.DKMS_GCC_ONLY),
+              dest="/etc/dkms/framework.conf.d/10-t2-gcc-only.conf", mode="644", create_remote_dir=True,
+              _sudo=True)

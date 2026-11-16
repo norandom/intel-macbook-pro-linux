@@ -38,6 +38,47 @@ NPM_TOOLS = {
     '@openai/codex': '0.169.0',
     'ccusage': '20.0.51',
 }
+# Aikido Safe Chain (AGPL-3.0): malware check before npm/pip/uv/... installs (config safe_chain).
+# Pinned to a release at least two weeks old; its own `safe-chain setup` (rewrites profiles) is not used.
+SAFE_CHAIN = ('@aikidosec/safe-chain', '1.5.27')
+SAFE_CHAIN_WRAPPED = ('npm', 'npx', 'yarn', 'pnpm', 'pnpx', 'bun', 'bunx', 'pip', 'pip3', 'pipx', 'uv', 'uvx', 'poetry')
+
+ICX_BIN = '/opt/intel/oneapi/compiler/latest/bin'
+DEVTOOLS_MARKER = '# {mark} t2-mac-kde: compilers, package-build safety, safe-chain'
+
+
+def devtools_block(default_cc: str = '', safe_chain: bool = False) -> str:
+    """Interactive shells only. CC/CXX never go system-wide (no /etc/environment, no session env),
+    so root, apt, DKMS and Kbuild keep GCC; Debian package builds are forced to GCC as well."""
+    lines = ['if [[ $- == *i* ]]; then']
+    if default_cc == 'icx':
+        lines += [f'  if [ -x {ICX_BIN}/icx ]; then',
+                  f'    case ":$PATH:" in *:{ICX_BIN}:*) ;; *) PATH="$PATH:{ICX_BIN}" ;; esac  # last: never shadows gcc/clang',
+                  '    export CC=icx CXX=icpx   # your default compiler (config default_cc); CC=gcc make for one build',
+                  '  fi']
+    lines += ['  # Debian package builds honour an exported CC: always GCC there (kernel/Kbuild ignores CC anyway)',
+              '  dpkg-buildpackage() { CC=gcc CXX=g++ command dpkg-buildpackage "$@"; }',
+              '  debuild() { CC=gcc CXX=g++ command debuild "$@"; }']
+    if safe_chain:
+        for tool in SAFE_CHAIN_WRAPPED:
+            lines.append(f'  command -v aikido-{tool} >/dev/null && alias {tool}=aikido-{tool}')
+    lines.append('fi')
+    return '\n'.join(lines)
+
+
+NIM_CFG = """# Managed by t2-mac-kde (config default_cc = "icx"): Nim compiles its C/C++ through Intel's
+# clang-based icx/icpx. One build with GCC instead: nim c --cc:gcc file.nim
+cc = clang
+clang.exe = "icx"
+clang.linkerexe = "icx"
+clang.cpp.exe = "icpx"
+clang.cpp.linkerexe = "icpx"
+"""
+
+DKMS_GCC_ONLY = """# Managed by t2-mac-kde: DKMS builds kernel modules with the kernel's GCC, even under sudo -E.
+unset CC CXX
+"""
+
 SKILLS_CLI = 'skills@1.8.1'
 PRETTY_MERMAID = 'imxv/pretty-mermaid-skills@pretty-mermaid'
 
@@ -48,8 +89,8 @@ EUPORIE_WITH = ('ipykernel==7.4.0',)
 AX_VERSION = 'v0.3.1'
 AX_GO_TOOLCHAIN = 'go1.27.2'
 
-# Owner-configured rclone remotes -> mount dir relative to $HOME, e.g. {'onedrive': 'OneDrive'}.
-# Empty by default: no mount units are written until the owner adds a configured remote.
+# Repository default for config rclone_mounts (remote -> dir under $HOME), e.g. {'onedrive': 'OneDrive'}.
+# Empty: no mount units are written until the owner configures remotes.
 RCLONE_MOUNTS: dict[str, str] = {}
 
 # Report-only nightly dev-disk-reclaim timer; off by default.
@@ -67,23 +108,38 @@ def validate_mounts(mounts: dict[str, str]) -> None:
         seen.add(folder)
 
 
-def rclone_unit(remote: str, folder: str, rclone: str) -> str:
+def rclone_unit(remote: str, folder: str, rclone: str, cache_size: str = "10G", cache_age: str = "24h") -> str:
+    """User service, never fstab: starts after login, never blocks boot or shutdown, and keeps
+    retrying (30 s growing to 10 min) while offline (airport, train) instead of giving up."""
     return f"""# Managed by t2-mac-kde (shell-user-tools)
 [Unit]
 Description=rclone mount {remote}: on ~/{folder}
 After=network-online.target
-StartLimitIntervalSec=600
-StartLimitBurst=3
+# retry forever while offline
+StartLimitIntervalSec=0
 
 [Service]
 Type=notify
 # Skipped until the remote exists (rclone config)
 ExecCondition=/bin/sh -c '{rclone} listremotes | grep -qx {remote}:'
 ExecStartPre=/bin/mkdir -p %h/{folder}
-ExecStart={rclone} mount {remote}: %h/{folder} --vfs-cache-mode full --vfs-cache-max-size 2G --dir-cache-time 5m
+# Full VFS cache: opened files stay local, writes land in the cache and upload in the background
+# (write-back), so edits survive a dropped connection. Parallel transfers, read-ahead and chunked
+# reads for throughput; generous retries and short connect timeouts for flaky links.
+ExecStart={rclone} mount {remote}: %h/{folder} \\
+  --vfs-cache-mode full --vfs-cache-max-size {cache_size} --vfs-cache-max-age {cache_age} \\
+  --vfs-write-back 10s --vfs-read-ahead 128M --vfs-read-chunk-size 32M \\
+  --vfs-read-chunk-size-limit 512M --buffer-size 32M \\
+  --transfers 8 --checkers 16 --multi-thread-streams 4 \\
+  --dir-cache-time 1h --poll-interval 1m \\
+  --contimeout 15s --timeout 1m --retries 10 --retries-sleep 10s --low-level-retries 10
+# lazy unmount: logout/shutdown never waits on an unreachable remote
 ExecStop=/bin/fusermount3 -uz %h/{folder}
+TimeoutStopSec=10
 Restart=on-failure
-RestartSec=30
+RestartSec=30s
+RestartSteps=5
+RestartMaxDelaySec=10min
 
 [Install]
 WantedBy=default.target

@@ -13,9 +13,10 @@ SRC = ROOT / "files/vendor-apps"
 TASK = (ROOT / "tasks/vendor_apps.py").read_text()
 DEB_HOSTS = {"obsidian": "github.com", "bitwarden": "github.com", "quarto": "github.com",
              "positron": "cdn.posit.co", "remotedesktopmanager": "cdn.devolutions.net",
-             "zoom": "cdn.zoom.us", "slack": "downloads.slack-edge.com", "discord": "dl.discordapp.net"}
+             "zoom": "cdn.zoom.us", "slack": "downloads.slack-edge.com", "discord": "dl.discordapp.net",
+             "rclone-ui": "github.com"}
 DEB_PATHS = {"obsidian": "/obsidianmd/obsidian-releases/", "bitwarden": "/bitwarden/clients/releases/download/desktop-v",
-             "quarto": "/quarto-dev/quarto-cli/"}
+             "quarto": "/quarto-dev/quarto-cli/", "rclone-ui": "/rclone-ui/rclone-ui/releases/download/v"}
 TARBALL_PATHS = {"zed": "/zed-industries/zed/", "zen": "/zen-browser/desktop/",
                  "podman-desktop": "/podman-desktop/podman-desktop/"}
 
@@ -54,6 +55,12 @@ class RepoTests(unittest.TestCase):
         self.assertEqual(packages, ("intel-oneapi-compiler-dpcpp-cpp",))
         self.assertEqual(exe, "/opt/intel/oneapi/compiler/latest/bin/icx")
         self.assertNotRegex(TASK, r"setvars|\bCC=|\bCXX=|bashrc")
+
+
+    def test_vtune_is_not_installed(self):
+        # its postinst builds and loads kernel modules (protected boundary)
+        self.assertFalse(any("vtune" in p for _n, pkgs, *_ in apps.VENDOR_REPOS.values() for p in pkgs))
+        self.assertEqual(apps.catalog()["intel-oneapi-vtune"][0], "blocked")
 
 
 class PinnedDownloadTests(unittest.TestCase):

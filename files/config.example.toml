@@ -33,6 +33,13 @@
 # Leaving out zellij/kubectl/kubernetes-helm/k9s/ktop/bitwarden-cli/rclone/podman-tui brings back
 # their pinned release binary; [] keeps only apt and release tools.
 
+# default_cc = ""                 # "icx": Intel oneAPI icx/icpx as CC/CXX in your shells (+ Nim);
+#                                  # root, apt, DKMS and kernel builds always keep GCC
+# safe_chain = false               # Aikido Safe Chain wraps npm/npx/pnpm/yarn/bun/pip/uv/poetry
+# rclone_mounts = {}               # { gdrive = "GoogleDrive", onedrive = "OneDrive" }: user mounts, never fstab
+# rclone_cache_size = "10G"        # VFS cache per mount
+# rclone_cache_age = "24h"
+
 # --- Fonts (tasks/fonts.py) -------------------------------------------------------
 # font_rendering = "grayscale"     # "grayscale" | "rgb" (subpixel)
 

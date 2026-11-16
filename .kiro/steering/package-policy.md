@@ -30,6 +30,8 @@ protected boundary. No per-package human review manifest is required.
 Owner preference (2026-11-16): user-level CLI tools come from Nix (pinned flake, see spec
 nix-user-tools) wherever nixpkgs has them; apt for system, desktop, hardware and services;
 GitHub-release pins only where nixpkgs lacks the tool.
+Productivity GUI apps written in Rust/Tauri are welcome; they come via their official
+.deb (system WebKitGTK, system Mesa), not Nix.
 
 Use native distro packages where appropriate, or reviewed upstream release
 artifacts/source builds. Python environments use uv and Node/npm use nvm.

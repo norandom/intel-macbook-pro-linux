@@ -17,6 +17,7 @@ alias grep='grep --color=auto'
 alias diff='diff --color=auto'
 alias ip='ip -color=auto'
 alias k=kubectl   # completion: ~/.local/share/bash-completion/completions/k
+alias dl='aria2c'  # parallel downloads, defaults in ~/.config/aria2/aria2.conf
 
 # Keyboard layout shortcuts only in a Hyprland session with hypr-kbd; in KDE/X11
 # setxkbmap and the KDE keyboard settings keep their native behavior.

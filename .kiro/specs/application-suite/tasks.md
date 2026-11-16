@@ -9,7 +9,7 @@ Entry point: `.venv/bin/pyinfra @local tasks/apps.py [--dry]`. Inventory: `manag
       native / release / vendor / delegated / excluded / blocked / backlog (test checks coverage).
 - [x] Native Ubuntu packages via `install_packages(PackageRequest(..., source="ubuntu"))`:
       aria2 atop c3270 x3270 gdu gh glow golang-go lazygit meld multitail nedit posting qpdfview
-      ristretto rsync rust-coreutils trippy xpdf foot xfce4-terminal terminator ghostty.
+      ristretto rsync rust-coreutils trippy xpdf foot xfce4-terminal terminator ghostty edb-debugger heaptrack heaptrack-gui.
       gh and ghostty use Ubuntu's native builds instead of the source vendor repo / forky .deb.
 - [x] Foundation-owned CLI tools (git bat fd-find fzf gcc make ripgrep tree unzip neovim htop btop ...)
       are observed, not installed twice; cliphist/x11-xserver-utils/podman-tui delegated.
@@ -26,7 +26,7 @@ Entry point: `.venv/bin/pyinfra @local tasks/apps.py [--dry]`. Inventory: `manag
 - [x] No purges, no Snap/Flatpak in tasks/apps.py.
 - [x] tasks/vendor_apps.py (owner-approved): sha-pinned keyring repos sublime-text, code (own repo entry
       suppressed via debconf), typora, intel-oneapi icx/icpx, chromium + chromium-driver (XtraDeb PPA pinned to chromium only);
-      pinned .debs obsidian, bitwarden, quarto, positron, remotedesktopmanager, zoom, slack, discord;
+      pinned .debs obsidian, bitwarden, quarto, positron, remotedesktopmanager, zoom, slack, discord, rclone-ui;
       user tarballs zed, zen, podman-desktop in ~/.local/opt (+ userns AppArmor profiles).
 - [x] tasks/office_apps.py: LibreOffice Writer+Calc (de/en-US, Carlito; guarded apt) + Tabbed UI layer
       t2-mac-kde.xcd; ArtCraft suite (7) and OpenIDEA as pinned sha256 .debs via the package guard.
@@ -35,6 +35,7 @@ Entry point: `.venv/bin/pyinfra @local tasks/apps.py [--dry]`. Inventory: `manag
 - [x] xfe: tasks/xfe.py unpacks the sha256-verified Ubuntu xfe 2.1.1-1 archive into /usr/local
       (apt `Conflicts: im-config` would remove a KDE-base package); wrappers clear ibus variables.
 - [ ] vivaldi-stable: still blocked (existing install left untouched).
+- [ ] intel-oneapi-vtune: blocked (postinst builds/loads SEP kernel modules; see manage/applications.py).
 - [ ] vendor_apps.py not wired into deploy.py yet (after apps); live check of each vendor app, chromedriver.
 - [ ] Release archives' member layout (esp. `rc`, `upmd`) verified only on the first live run.
 - [ ] Terminator config/plugin, Sublime schemes, VS Code themes: owned by coordinated-themes.
