@@ -12,6 +12,7 @@ for task in (
     "node",             # nvm + Node/npm (user)
     "tools",            # snap/flatpak pin + core CLI packages
     "resource_policy",  # turbo, zram, earlyoom, journald/coredump limits
+    "cpu_mitigations",  # config cpu_mitigations_off: GRUB drop-in (owner exception)
     "storage_health",   # smartd + daily NVMe check, alerts in new shells
     "remote_access",    # tailscale, sshd at boot, fail2ban, RDP firewall
     "containers",       # rootless podman, docker compat, compose, podman-tui

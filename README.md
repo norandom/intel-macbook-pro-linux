@@ -220,7 +220,7 @@ around anyway, because SSD, T2 and EFI firmware updates only arrive through macO
 - Verbose boot and shutdown (backlog; runbook ready): `docs/verbose-boot.md`
 - Nix for user CLI tools (update, add, roll back): `docs/nix.md`
 - Linux vs macOS benchmark on the same Mac: `docs/benchmark.md`
-- CPU security mitigations off for performance (owner-run): `docs/cpu-mitigations.md`
+- CPU security mitigations off for performance (config `cpu_mitigations_off`): `docs/cpu-mitigations.md`
 
 ## Credits
 

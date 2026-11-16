@@ -37,5 +37,5 @@ and configuration tasks, per explicit owner direction.
 
 ## CPU mitigations off
 
-- Owner decision 2026-11-16: run after the macOS benchmark, with a before/after measurement.
-  Runbook: `docs/cpu-mitigations.md` (baseline `benchmarks/linux.json` is the "before").
+- Done 2026-11-16: config `cpu_mitigations_off` (tasks/cpu_mitigations.py). Before:
+  `benchmarks/linux.json`; after-reboot run still to do (`docs/cpu-mitigations.md`).

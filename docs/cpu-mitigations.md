@@ -1,12 +1,10 @@
-# CPU security mitigations off (owner-run)
+# CPU security mitigations off (config flag)
 
 The kernel protects against the Spectre/Meltdown family of CPU flaws (Spectre v1/v2, MDS/MMIO
 buffer clearing, Retbleed, BHI, ...) with extra work on kernel entry and exit, context switches
 and some branches. The owner's call (2026-11-16): single-user workstation, performance first,
 so turn them off with one kernel option, `mitigations=off`.
 
-It's a kernel command-line change in `/etc/default/grub`, which is on the protected list
-(`.kiro/steering/protected-system-boundary.md`), so it's a manual step, not part of the deploy.
 
 ## What to expect
 
@@ -29,7 +27,7 @@ network by this change.
    turbo off, balanced, 10 runs.
 2. **macOS** on the same Mac: `benchmarks/macos.json` (turbo off via Turbo Boost Switcher,
    Low Power Mode off). macOS keeps its mitigations on, so this compares against step 1.
-3. **After**: switch the mitigations off (below), reboot, then
+3. **After**: set the flag and deploy (below), reboot, then
    `benchmarks/mitigations-off/linux.json` under the same conditions as step 1.
 
 Three comparisons then come out of `tools/benchmark-compare.sh`:
@@ -42,19 +40,27 @@ bash tools/benchmark-compare.sh benchmarks/macos.json benchmarks/mitigations-off
 
 ## Do it
 
+Set the flag in `~/.config/t2-mac-kde/config.toml` and deploy (part of `deploy.py`, or alone):
+
+```toml
+cpu_mitigations_off = true
+```
+
 ```sh
-sudo cp /etc/default/grub /etc/default/grub.before-mitigations
-sudoedit /etc/default/grub
+.venv/bin/pyinfra @local tasks/cpu_mitigations.py --use-sudo-password
 ```
 
-Add `mitigations=off` to the existing line, keeping everything else:
+The task writes one GRUB drop-in, `/etc/default/grub.d/90-t2-mitigations.cfg`, which appends
+`mitigations=off` to the kernel options; `/etc/default/grub` itself stays as it is. Only when
+the drop-in changes does it back up `/boot/grub/grub.cfg` (to `grub.cfg.before-t2-mitigations`)
+and run `update-grub`, the same regeneration every kernel update performs. Kernels, initramfs
+and LUKS aren't touched. Each deploy also checks that the boot menu matches the setting, so a
+failed `update-grub` is retried. The backup always holds the menu from just before the last
+change. It takes effect at the next reboot; until then new shells print
+`t2: CPU mitigations off is configured - reboot to apply`.
 
-```
-GRUB_CMDLINE_LINUX_DEFAULT='quiet splash intel_iommu=on iommu=pt pm_async=off mitigations=off'
-```
-
-Then `sudo update-grub` and reboot. The initramfs doesn't need regenerating. (If you also want
-verbose boot from `docs/verbose-boot.md` later, it's the same line: drop `quiet splash`.)
+This is the one owner-approved exception to the protected boot boundary
+(`.kiro/steering/protected-system-boundary.md`).
 
 ## Check and measure
 
@@ -71,6 +77,13 @@ If the gain is negligible, going back costs nothing.
 
 ## Going back
 
+If the system misbehaves after the reboot, the GRUB menu's recovery entry boots without the
+option (the menu is hidden: hold **Shift** or tap **Esc** right after the Apple chime).
+
+
+Set `cpu_mitigations_off = false` (or remove the line), run the task again and reboot. It
+removes the drop-in and regenerates the boot menu. By hand, without the repo:
+
 ```sh
-sudo cp /etc/default/grub.before-mitigations /etc/default/grub && sudo update-grub
+sudo rm /etc/default/grub.d/90-t2-mitigations.cfg && sudo update-grub
 ```

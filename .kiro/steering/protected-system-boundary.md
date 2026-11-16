@@ -40,3 +40,16 @@ Read-only inventory or hashes may document the baseline where accessible;
 do not expose encryption keys or confidential decryption configuration. Lack of
 read access is a reported verification gap, never a reason to escalate for
 modification. Existing GPU power configuration remains untouched pending capture.
+
+## Owner-approved exception: CPU mitigations switch (2026-11-16)
+
+The owner explicitly asked for a config flag to turn the kernel's CPU security mitigations
+off (single-user workstation, performance first). Allowed, and only this:
+
+- `tasks/cpu_mitigations.py` (config `cpu_mitigations_off`) writes or removes one file,
+  `/etc/default/grub.d/90-t2-mitigations.cfg`, which appends `mitigations=off` to
+  `GRUB_CMDLINE_LINUX_DEFAULT`. `/etc/default/grub` itself is never edited.
+- When, and only when, that drop-in changes, it backs up `/boot/grub/grub.cfg` and runs
+  `update-grub` (the same regeneration every kernel update already performs).
+- Kernels, initramfs, LUKS/LVM, fstab, keyboard-presence setup and all other boot options stay
+  untouched. Any further boot change needs a new explicit owner decision.
