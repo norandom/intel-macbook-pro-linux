@@ -3,6 +3,14 @@
 Owner-run, not automated. Swap and LVM are on the protected list
 (`.kiro/steering/protected-system-boundary.md`); these steps are a deliberate, manual exception.
 
+## Status (2026-11-16)
+
+The swap is resized (80 GiB), but hibernate itself doesn't work on this T2 yet: the kernel hangs
+right after it starts hibernating, because the T2 bridge drivers (`t2bce_*`) don't support the
+hibernation freeze. The known workaround unloads those drivers before sleeping, which this
+repository doesn't do (protected boundary). Keep `hibernate = false` and use Suspend; see
+`docs/backlog.md`.
+
 ## Why it's needed
 
 Hibernate writes the contents of RAM into swap. This machine has 64 GiB of RAM but only 16 GiB of

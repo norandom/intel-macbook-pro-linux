@@ -18,8 +18,12 @@ and configuration tasks, per explicit owner direction.
 
 ## Hibernate
 
-- Done 2026-11-16: swap LV 80 GiB (owner, live USB), config `hibernate` (polkit rule + guarded
-  menu entry). First real hibernate/resume test on the T2 still to do.
+- 2026-11-16: swap LV grown to 80 GiB (owner, live USB); config `hibernate` built (polkit rule +
+  guarded menu entry). First test: the kernel hangs right after "PM: hibernation: hibernation
+  entry" / "Filesystems sync" (forced power-off needed). Cause: the T2 bridge drivers (t2bce_*,
+  formerly apple-bce) don't survive the hibernation freeze. The t2linux workaround unloads them
+  before sleep and reloads them after, which the protected boundary forbids (and which can lose
+  keyboard and trackpad). `hibernate = false` again; revisit with a newer t2 kernel.
 
 ## Verbose boot and shutdown
 

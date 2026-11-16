@@ -59,8 +59,9 @@ def run(argv):
 HIBERNATE = HOME / ".local/bin/hypr-hibernate"   # installed only with config hibernate = true
 args = sys.argv[1:]
 if args[:1] == ["power"]:
-    p = subprocess.run(["fuzzel", "--dmenu", "--anchor", "top-left", "--width", "32",
-                        "--prompt", "Power > ", "--lines", "4"],
+    # The power button sits at the right end of the bar: open the menu under it.
+    p = subprocess.run(["fuzzel", "--dmenu", "--anchor", "top-right", "--width", "32",
+                        "--prompt", "Power > ", "--lines", "6"],
                        input="Lock\nSuspend\n" + ("Hibernate\n" if HIBERNATE.exists() else "")
                        + "Log out\nReboot\nShut down\n", capture_output=True, text=True)
     cmd = {"Lock": ["hyprlock"], "Suspend": ["systemctl", "suspend"], "Hibernate": [str(HIBERNATE)],
