@@ -104,3 +104,32 @@ class BatchTests(unittest.TestCase):
         with patch("pyinfra.operations.server.shell") as shell:
             guard.schedule_batch("T")
         shell.assert_not_called()
+
+
+class KernelModuleScriptTests(unittest.TestCase):
+    """Maintainer scripts must not build/load out-of-tree modules or unload drivers."""
+
+    def test_blocks_vtune_style_and_unloading(self):
+        for script in (b"sepdk/src/build-driver -ni\n", b"insmod ./sep5.ko\n", b"rmmod t2bce_core\n",
+                       b"modprobe -r apple-gmux\n", b"modprobe -q -r snd\n", b"make -C /lib/modules/$(uname -r)/build M=$PWD\n",
+                       b"cp vtsspp.ko /lib/modules/7.3.4/extra/\n", b"modprobe -rq apple_gmux\n",
+                       b"modprobe --quiet --remove snd\n", b"kmod modprobe -rv t2bce_vhci\n",
+                       b"cp a.ko /lib/modules/$(uname -r)/kernel/drivers/x/\n", b"make -C $KDIR M=$(pwd) modules\n",
+                       b"make -C /usr/src/linux-headers-$(uname -r) M=$PWD\n", b"modprobe -d /opt/mods sep5\n"):
+            with self.subTest(script=script):
+                self.assertIsNotNone(guard._PROTECTED_SCRIPT.search(script))
+
+    def test_allows_in_tree_modprobe_and_config_paths(self):
+        for script in (b"modprobe fuse > /dev/null 2>&1 || true\n", b"rm -f /etc/modprobe.d/blacklist-oss.conf\n",
+                       b"modprobe -q fuse\n", b"modprobe --first-time fuse\n", b"echo kotlin > /tmp/x\n",
+                       b"# Delete obsolete modprobe dir\n"):
+            with self.subTest(script=script):
+                self.assertIsNone(guard._PROTECTED_SCRIPT.search(script))
+
+    def test_installed_maintainer_scripts_do_not_trip(self):
+        import glob
+        hits = [f for f in glob.glob("/var/lib/dpkg/info/*.[pr][or]*inst") + glob.glob("/var/lib/dpkg/info/*.p*rm")
+                if not any(n in f for n in ("linux-", "kmod", "alsa-base", "linux-sound-base"))
+                and guard._PROTECTED_SCRIPT.search(open(f, "rb").read())
+                and any(k in open(f, "rb").read() for k in (b"insmod", b"rmmod", b"build-driver", b"/lib/modules"))]
+        self.assertEqual(hits, [])

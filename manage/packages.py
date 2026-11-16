@@ -58,7 +58,12 @@ _PROTECTED_PATHS = (
 _PROTECTED_LIBRARY = re.compile(r"/usr/lib(?:32|64)?/(?:[^/]+/)*(?:libcryptsetup|libdevmapper|liblvm)[^/]*$")
 _PROTECTED_SCRIPT = re.compile(
     rb"update-initramfs|mkinitcpio|dracut|update-grub|grub-install|grub-mkconfig|cryptsetup|"
-    rb"depmod|dkms|kernel-install")
+    rb"depmod|dkms|kernel-install|"
+    # kernel modules: building or loading out-of-tree ones and unloading drivers (2026-11-16:
+    # VTune's postinst runs sepdk build-driver + insmod via a boot script). A plain
+    # `modprobe <name>` (in-tree module, e.g. fuse3) and modprobe.d paths stay allowed.
+    rb"\binsmod\b|\brmmod\b|\bmodprobe\b[^\n;|&]*\s(?:-[a-zA-Z]*[rd][a-zA-Z]*|--remove|--dirname)\b|"
+    rb"build-driver|/lib/modules/|\.ko(?:\.(?:xz|zst|gz))?\b|/usr/src/linux|\bmake\b[^\n;|&]*\sM=")
 _MAX_PACKAGES = 256
 # Vendor .deb files (pinned + sha256-checked by their task) are staged here and passed
 # to the root helper by absolute path; the guard scans them like archive packages.
