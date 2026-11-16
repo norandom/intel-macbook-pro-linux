@@ -219,6 +219,7 @@ around anyway, because SSD, T2 and EFI firmware updates only arrive through macO
 - Hibernate (needs a bigger swap, owner-run): `docs/hibernate-swap.md`
 - Verbose boot and shutdown (backlog; runbook ready): `docs/verbose-boot.md`
 - Nix for user CLI tools (update, add, roll back): `docs/nix.md`
+- Linux vs macOS benchmark on the same Mac: `docs/benchmark.md`
 
 ## Credits
 
