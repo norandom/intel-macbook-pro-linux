@@ -69,8 +69,10 @@ comparison, just not a pure kernel one.
 1. Plugged in, not in the middle of a heavy charge, lid open, machine idle (close heavy apps;
    a running Claude session costs a few percent in every run).
 2. Linux as is (turbo off). For the maximum, once more after `turbo-on` (`turbo-off` after).
-3. macOS with Low Power Mode off. macOS always boosts, so compare it with the Linux turbo-on
-   run for raw numbers; the normalized kernel numbers are valid against both.
+3. macOS with Low Power Mode off. macOS has no built-in turbo switch: turbo off there needs
+   Turbo Boost Switcher (a kext). The script detects that kext and records `turbo` as `off` or
+   `on`; check that line before comparing raw numbers with Linux turbo off. The normalized
+   kernel numbers are valid either way.
 4. 10 runs each, compare medians; the first run warms caches and the median absorbs that.
 5. On macOS, check the log: if LibreSSL doesn't support `-multi`, the all-threads sha256 value
    is a single-core value and shouldn't be compared.

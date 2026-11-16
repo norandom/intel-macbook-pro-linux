@@ -38,7 +38,10 @@ if [ "$OS" = Darwin ]; then
   MEM=$(( $(sysctl -n hw.memsize) / 1073741824 ))
   MODEL=$(sysctl -n hw.model)
   POWER=$(pmset -g batt 2>/dev/null | sed -n 's/.*Now drawing from //p' | tr -d "'")
-  TURBO="n/a"; GOV="n/a"; EPP="n/a"
+  # macOS has no built-in turbo switch; Turbo Boost Switcher does it with a kext.
+  if kextstat 2>/dev/null | grep -qi DisableTurboBoost || kmutil showloaded 2>/dev/null | grep -qi DisableTurboBoost; then
+    TURBO=off; else TURBO="on (no turbo-disable kext loaded)"; fi
+  GOV="n/a"; EPP="n/a"
   PROFILE="lowpowermode=$(pmset -g 2>/dev/null | awk '/lowpowermode/{print $2}')"
   OSV="macOS $(sw_vers -productVersion) (Darwin $(uname -r))"
 else
