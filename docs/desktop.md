@@ -6,6 +6,23 @@ the hyprbars plugin, uwsm, Waybar, mako, fuzzel, hyprlock, hypridle). Pick
 SDDM isn't reconfigured. KDE is dormant: Kubuntu is the base for its support lifetime, and the
 repo puts no work into the KDE session beyond not breaking it.
 
+## Windows: dynamic by default, tiling when needed
+
+Hyprland is usually set up as a tiling desktop. This one isn't. The default layout, `dynamic`,
+floats every new window and centres it, and `hypr-windows` remembers where each application
+was and how big. Windows get title bars (the hyprbars plugin) with buttons to close and
+maximise, so the laptop works the way you'd expect without learning a tiling workflow first.
+
+Tiling is there for the moments it helps, such as a terminal next to an editor, or several
+agent dashboards side by side:
+
+- SUPER+T switches the focused window between floating and tiled.
+- SUPER+L cycles the layout mode: `dynamic` (floating), then the golden-ratio tilings
+  `golden-h`, `golden-v` and `golden-spiral`, then back to `dynamic`. The Waybar layout button
+  does the same.
+
+The modes live in `files/desktop/hypr/layout-*.conf`.
+
 ## How it lives next to KDE
 
 - Everything the Hyprland session needs (Waybar, the window worker, clipboard history,

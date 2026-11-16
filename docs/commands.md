@@ -26,7 +26,7 @@ button, so the command line is just the second way in.
 | Command | What it does |
 |---|---|
 | `hypr-screenshot edit` | rectangle to `~/Screenshots`, then the Satty editor (SUPER+SHIFT+4) |
-| `hypr-layout next` | dynamic or golden-ratio tiling (SUPER+L) |
+| `hypr-layout next` | dynamic (floating, the default) or golden-ratio tiling (SUPER+L) |
 | `hypr-nightmode next` | night filter: off, green or dark (the rabbit in the bar) |
 | `hypr-deco win311` / `mac` | title bar style; `hypr-shadow on` / `off` for shadows |
 | `hypr-kbd de` / `us` | keyboard layout (aliases `kbde`, `kbus`) |

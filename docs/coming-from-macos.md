@@ -33,7 +33,7 @@ installs or configures are listed. Where there's no counterpart, the table says 
 | Terminal, iTerm2 | Terminator (SUPER+Return), Ghostty, foot, xfce4-terminal, all sharing five themes (SUPER+Y) |
 | Cmd+Shift+4 | SUPER+SHIFT+4: rectangle to `~/Screenshots`, then the Satty editor |
 | Night Shift | `hypr-nightmode`, the rabbit in the bar |
-| Rectangle, Magnet | Hyprland tiling: dynamic and golden-ratio layouts (SUPER+L), snapping for floating windows |
+| Rectangle, Magnet | Windows float by default with gentle snapping; golden-ratio tiling on demand (SUPER+L, SUPER+T per window) |
 | A clipboard manager | Clipboard history on SUPER+V, kept in RAM and wiped every night at 01:00 |
 | Keychain | KDE Wallet for Chromium and Electron apps in both sessions; Bitwarden |
 | Safari | Vivaldi (default), Chromium, Firefox Developer Edition, Zen |

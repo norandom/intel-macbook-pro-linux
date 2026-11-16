@@ -27,8 +27,10 @@ hardware).
 
 ## The desktop
 
-The desktop is Hyprland: a tiling desktop you drive from the keyboard, set up by this
-repository for code, terminals, containers, AI agents and remote desktop all day.
+The desktop is Hyprland, set up by this repository for code, terminals, containers, AI agents
+and remote desktop all day. It isn't a tiling setup: windows float like on a Mac, with title
+bars to drag and close them, so it stays simple on a laptop. Tiling is there when a task needs
+it (SUPER+L), not as the default.
 
 KDE Plasma stays installed but dormant. Kubuntu is the base because it gives this machine
 Ubuntu's support lifetime; the repo doesn't configure or improve the KDE session, it just
