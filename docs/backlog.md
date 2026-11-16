@@ -23,7 +23,8 @@ and configuration tasks, per explicit owner direction.
   entry" / "Filesystems sync" (forced power-off needed). Cause: the T2 bridge drivers (t2bce_*,
   formerly apple-bce) don't survive the hibernation freeze. The t2linux workaround unloads them
   before sleep and reloads them after, which the protected boundary forbids (and which can lose
-  keyboard and trackpad). `hibernate = false` again; revisit with a newer t2 kernel.
+  keyboard and trackpad). `hibernate = false` again; revisit with a newer t2 kernel. Defect write-up with sources:
+  `docs/known-issues.md`.
 
 ## Verbose boot and shutdown
 

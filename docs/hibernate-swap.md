@@ -8,8 +8,8 @@ Owner-run, not automated. Swap and LVM are on the protected list
 The swap is resized (80 GiB), but hibernate itself doesn't work on this T2 yet: the kernel hangs
 right after it starts hibernating, because the T2 bridge drivers (`t2bce_*`) don't support the
 hibernation freeze. The known workaround unloads those drivers before sleeping, which this
-repository doesn't do (protected boundary). Keep `hibernate = false` and use Suspend; see
-`docs/backlog.md`.
+repository doesn't do (protected boundary). Keep `hibernate = false` and use Suspend. Details and sources:
+[known-issues.md](known-issues.md#hibernate-hangs-the-machine-t2-driver-limitation).
 
 ## Why it's needed
 
