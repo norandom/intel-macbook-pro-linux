@@ -22,7 +22,8 @@ class HibernateTests(unittest.TestCase):
         script = (ROOT / "files/desktop/bin/hypr-hibernate").read_text()
         self.assertIn("zram", script)
         self.assertIn("MemAvailable", script)
-        self.assertIn("exec systemctl hibernate", script)
+        self.assertIn("systemctl hibernate 2>&1", script)
+        self.assertIn("Hibernate refused", script)  # a refusal is shown, never silent
 
     def test_off_by_default_and_removable(self):
         task = (ROOT / "tasks/desktop.py").read_text()

@@ -9,4 +9,7 @@ if [ "$used_kb" -ge "$disk_free_kb" ]; then
   notify-send -a Power -u critical "Hibernate not possible" "$msg" 2>/dev/null || echo "$msg" >&2
   exit 1
 fi
-exec systemctl hibernate
+if ! err=$(systemctl hibernate 2>&1); then
+  notify-send -a Power -u critical "Hibernate refused" "$err" 2>/dev/null || echo "$err" >&2
+  exit 1
+fi
