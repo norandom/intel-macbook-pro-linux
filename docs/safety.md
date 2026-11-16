@@ -16,7 +16,8 @@ No task, helper or package install may change:
 
 The deploy doesn't run `update-initramfs`, `update-grub` (with one exception, below),
 `grub-install` or kernel module builds, and doesn't unload or replace T2 drivers. It never runs
-`apt autoremove` or a full upgrade. Your normal system updates are yours; there are no apt holds.
+`apt autoremove` or a full upgrade. Your normal system updates are yours; there are no apt holds
+unless you turn on the T2 pack pin (below).
 
 That's also why some features are manual runbooks instead of tasks: growing swap for hibernate
 ([hibernate-swap.md](hibernate-swap.md)) and verbose boot ([verbose-boot.md](verbose-boot.md)).
@@ -54,6 +55,12 @@ write a single GRUB drop-in (`/etc/default/grub.d/90-t2-mitigations.cfg`) that a
 `update-grub`. `/etc/default/grub`, kernels, initramfs and every other boot option stay as they
 are. Setting it back to `false` removes the drop-in the same way. Details and the trade-off:
 [cpu-mitigations.md](cpu-mitigations.md).
+
+## Opt-in: the T2 pack pin
+
+`t2_pack_pin = true` makes `tasks/t2_pack.py` write one apt preferences file that holds the T2
+kernel, the T2 audio and firmware packages and Hyprland at the versions in `t2-pack.toml`. It
+installs, upgrades and removes nothing, and never downgrades. Details: [t2-pack.md](t2-pack.md).
 
 ## Root changes are small and visible
 

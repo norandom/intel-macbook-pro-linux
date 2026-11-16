@@ -31,6 +31,7 @@ Read-only inventory found:
 
 Versions describe the observed installation, not new upgrade pins. Preserve
 existing repository/update mechanisms; do not freeze normal T2 support updates
+(except the owner-approved, opt-in T2 pack pin: protected-system-boundary.md)
 or switch to a generic kernel just to build the compositor. Never copy firmware
 blobs, machine identifiers or private data into committed specs.
 

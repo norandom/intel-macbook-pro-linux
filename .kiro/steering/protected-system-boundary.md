@@ -29,7 +29,8 @@ replacements, and maintainer-script/trigger paths that regenerate or reconfigure
 protected boot/storage state. A simulated package list alone is insufficient
 when maintainer scripts/triggers are unknown. Report a blocked plan rather than
 execute it. Preserve normal owner-managed system upkeep outside this project;
-this project does not impose apt holds or rewrite update policy.
+this project does not impose apt holds or rewrite update policy (one opt-in exception: the
+T2 pack pin, below).
 
 Building a userspace compositor does not authorize changes to the kernel,
 DKMS, initramfs, bootloader, encryption or storage. Use a compatible isolated
@@ -70,3 +71,21 @@ Allowed, and only this:
 - Image-writing sleeps only: plain suspend, the initramfs, module options, blacklists and the drivers' files stay
   untouched. Tested by hand first (docs/t2-tests/test4.sh: unload + reload in a running session,
   all devices back). Any further driver change needs a new explicit owner decision.
+
+## Owner-approved exception: T2 pack pin (2026-11-16)
+
+The owner explicitly asked to pin the T2 package versions and to release this repository
+against them ("in case a new version comes out we port and then release against the new T2
+pack"), with .deb backups. Allowed, and only this:
+
+- `t2-pack.toml` lists exact versions (T2 kernel metapackage + image + headers, T2 audio
+  config, Apple firmware script, Hyprland + its -dev and hyprbars).
+- With config `t2_pack_pin = true`, `tasks/t2_pack.py` writes one file,
+  `/etc/apt/preferences.d/90-t2-pack.pref`, pinning those versions at priority 990: newer
+  versions are not picked, nothing is ever downgraded (that needs > 1000). `false` removes it.
+- The deploy never installs, upgrades, downgrades or removes these packages, and runs no
+  kernel, initramfs or bootloader step. Moving to a new pack is an owner-run apt step after the
+  manifest is bumped (docs/t2-pack.md).
+- `.deb` copies of the pack go to `~/.local/share/t2-mac-kde/t2-packs/<id>` (user files, apt
+  download, checked against `packs/<id>.sha256`). Any further update-policy change needs a new
+  explicit owner decision.

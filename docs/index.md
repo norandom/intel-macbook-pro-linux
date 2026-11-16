@@ -26,6 +26,7 @@ A map of everything under `docs/`. Start with the README, then pick the area you
 | [forking.md](forking.md) | Which file to edit for keyboard layout, keys, apps, bar, themes, tasks |
 | [safety.md](safety.md) | What the deploy never touches, the package guard, the one boot exception |
 | [nix.md](nix.md) | Nix for the CLI tools: update, add, roll back |
+| [t2-pack.md](t2-pack.md) | The tested T2 kernel + Hyprland versions: pin, .deb backup, port, release |
 
 ## Performance
 

@@ -1,0 +1,19 @@
+# T2 pack: the exact package versions this repository is tested and released against
+# (docs/t2-pack.md). Pinned by tasks/t2_pack.py (config t2_pack_pin), backed up as .debs,
+# checked by tools/t2-pack. A new T2 kernel or Hyprland means: port, bump this file, release.
+id = "t2-7.3.4-3"
+ubuntu = "26.04"
+tested = "2026-11-16"
+
+[packages]
+# T2 kernel (t2-ubuntu-repo): the metapackage pulls exactly this image + headers.
+"linux-t2" = "7.3.4-3-resolute"
+"linux-image-7.3.4-3-t2-resolute" = "7.3.4-3"
+"linux-headers-7.3.4-3-t2-resolute" = "7.3.4-3"
+# T2 support (t2-ubuntu-repo): speaker/mic UCM profiles, Wi-Fi/Bluetooth firmware fetcher.
+"apple-t2-audio-config" = "0.5.3-resolute"
+"apple-firmware-script" = "1.4-3"
+# Hyprland (Ubuntu): the hyprbars patch and build are tied to this exact version.
+"hyprland" = "0.53.3+ds-4"
+"hyprland-dev" = "0.53.3+ds-4"
+"hyprland-plugin-hyprbars" = "0.53.0-1"

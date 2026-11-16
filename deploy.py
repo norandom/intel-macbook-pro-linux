@@ -13,6 +13,7 @@ for task in (
     "tools",            # snap/flatpak pin + core CLI packages
     "resource_policy",  # turbo, zram, earlyoom, journald/coredump limits
     "cpu_mitigations",  # config cpu_mitigations_off: GRUB drop-in (owner exception)
+    "t2_pack",          # config t2_pack_pin: hold the tested T2/Hyprland versions (owner exception); .deb backup
     "storage_health",   # smartd + daily NVMe check, alerts in new shells
     "remote_access",    # tailscale, sshd at boot, fail2ban, RDP firewall
     "security_keys",    # YubiKey tools; config yubikey_login: touch the key instead of a password

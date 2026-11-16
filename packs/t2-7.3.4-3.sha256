@@ -1,0 +1,9 @@
+# T2 pack t2-7.3.4-3: sha256 of the backed-up .debs (tools/t2-pack backup)
+b6b8729afe3183378dee2f232f9311bad00d5e2646df280d0cbd3df22d58d0c6  apple-firmware-script_1.4-3_amd64.deb
+c2f6a8951dd3a2683f456d2bfbd1349f9664ceb214fa0c6e0d37fb495449a4d1  apple-t2-audio-config_0.5.3-resolute_amd64.deb
+d4411bedaafe07a64a892fea885ea7d74424c9a15a9c706c9e9b907b0b1257bb  hyprland-dev_0.53.3+ds-4_all.deb
+55d285af4db2666801b0807a7af0e020d047b9b93fcf5c6be267f588f8f49543  hyprland-plugin-hyprbars_0.53.0-1_amd64.deb
+d82d408a4e133054bd352498758b6d29e20a6a43151913fc9e26b52f55682240  hyprland_0.53.3+ds-4_amd64.deb
+77a1d5a23ea5c2a93f89e2261fc7917968d103a1b3f9872bfcf2c2c894c9499d  linux-headers-7.3.4-3-t2-resolute_7.3.4-3_amd64.deb
+f04df491f14779dfa09cde952c68d3b068efef12434130628ea0b7400e4a8ae6  linux-image-7.3.4-3-t2-resolute_7.3.4-3_amd64.deb
+8b5ea265b7fd3fd87803bb5c43f23e3caaedce61299c95989c895d19bf530e8c  linux-t2_7.3.4-3-resolute_amd64.deb

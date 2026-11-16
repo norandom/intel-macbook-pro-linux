@@ -67,6 +67,8 @@ Read by `tasks/resource_policy.py` (mitigations: `tasks/cpu_mitigations.py`).
 | `power_tuning` | `false` | Runtime PM for three Intel chipset functions, fewer wakeups |
 | `crash_upload` | `true` | `false` masks whoopsie: no uploads to errors.ubuntu.com |
 | `cpu_mitigations_off` | `false` | `true` adds `mitigations=off` at the next reboot ([cpu-mitigations.md](cpu-mitigations.md)) |
+| `t2_pack_pin` | `false` | `true` holds the T2 kernel and Hyprland at the versions in `t2-pack.toml` ([t2-pack.md](t2-pack.md)) |
+| `t2_pack_backup` | `true` | Keep `.deb` copies of the pack in `~/.local/share/t2-mac-kde/t2-packs/` |
 
 ## Shell and developer tools
 

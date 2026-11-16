@@ -1,0 +1,96 @@
+#!/usr/bin/env python3
+"""T2 pack tool (docs/t2-pack.md). Read-only except `backup` (user files) and `release` (git tag).
+
+    tools/t2-pack check              installed vs pack, newer versions in the repos (exit 1 on drift)
+    tools/t2-pack backup [--record]  download + verify the pack's .debs; --record writes packs/<id>.sha256
+    tools/t2-pack release [--push] [--debs]
+                                     tag <date>-<pack id> after checks; --push pushes the tag and creates
+                                     the GitHub release (manifest + sums); --debs attaches the .debs
+"""
+import argparse
+import datetime
+import subprocess
+import sys
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
+from manage import t2_pack  # noqa: E402
+
+
+def check(pack) -> int:
+    rows = t2_pack.status(pack)
+    print(f"T2 pack {pack['id']} (tested {pack.get('tested', '?')})")
+    print(f"{'package':38} {'pack':22} {'installed':22} newer in repo")
+    drift = 0
+    for r in rows:
+        mark = "" if r["installed"] == r["pack"] else "  <- differs"
+        drift += bool(mark)
+        print(f"{r['package']:38} {r['pack']:22} {str(r['installed'] or '-'):22} {r['newer'] or '-'}"
+              f"{'' if r['in_repo'] else '  (pack version no longer in repo)'}{mark}")
+    if any(r["newer"] for r in rows):
+        print("\nNewer versions exist: port on a branch, bump t2-pack.toml, test, release.")
+    pinned = Path(t2_pack.PREF).exists()
+    print(f"\napt pin: {'on' if pinned else 'off'} ({t2_pack.PREF})")
+    return 1 if drift else 0
+
+
+def git(*a, check=True):
+    return subprocess.run(["git", "-C", str(ROOT), *a], capture_output=True, text=True, check=check).stdout.strip()
+
+
+def release(pack, push: bool, debs: bool) -> int:
+    if check(pack):
+        print("refusing: installed versions differ from the pack", file=sys.stderr)
+        return 1
+    if git("status", "--porcelain"):
+        print("refusing: working tree not clean", file=sys.stderr)
+        return 1
+    sums = t2_pack.sums_file(pack)
+    if not sums.exists():
+        print(f"refusing: {sums.relative_to(ROOT)} missing (tools/t2-pack backup --record)", file=sys.stderr)
+        return 1
+    backup = t2_pack.backup(pack)
+    tag = f"{datetime.date.today():%Y.%m.%d}-{pack['id']}"
+    n = 1
+    while git("tag", "-l", tag):
+        n += 1
+        tag = f"{datetime.date.today():%Y.%m.%d}.{n}-{pack['id']}"
+    notes = (f"Tested against T2 pack `{pack['id']}` (Ubuntu {pack.get('ubuntu', '?')}, tested "
+             f"{pack.get('tested', '?')}).\n\n| package | version |\n|---|---|\n"
+             + "".join(f"| `{k}` | `{v}` |\n" for k, v in pack["packages"].items())
+             + f"\nsha256 of the .debs: `{sums.relative_to(ROOT)}`. See docs/t2-pack.md.\n")
+    git("tag", "-a", tag, "-m", f"Release against T2 pack {pack['id']}")
+    print(f"\ntagged {tag}")
+    if not push:
+        print(f"push: git push origin {tag}  (or rerun with --push)")
+        return 0
+    git("push", "origin", tag)
+    assets = [str(ROOT / "t2-pack.toml"), str(sums)] + ([str(p) for p in sorted(backup.glob("*.deb"))] if debs else [])
+    subprocess.run(["gh", "release", "create", tag, "--title", tag, "--notes", notes, *assets],
+                   cwd=ROOT, check=True)
+    return 0
+
+
+def main() -> int:
+    ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    sub = ap.add_subparsers(dest="cmd", required=True)
+    sub.add_parser("check")
+    b = sub.add_parser("backup")
+    b.add_argument("--record", action="store_true")
+    r = sub.add_parser("release")
+    r.add_argument("--push", action="store_true")
+    r.add_argument("--debs", action="store_true")
+    a = ap.parse_args()
+    pack = t2_pack.load()
+    if a.cmd == "check":
+        return check(pack)
+    if a.cmd == "backup":
+        dest = t2_pack.backup(pack, write_sums=a.record)
+        print(f"T2 pack {pack['id']}: {len(list(dest.glob('*.deb')))} .debs verified in {dest}")
+        return 0
+    return release(pack, a.push, a.debs)
+
+
+if __name__ == "__main__":
+    sys.exit(main())

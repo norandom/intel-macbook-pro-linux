@@ -53,8 +53,9 @@ Switching from a Mac? [Coming from macOS](docs/coming-from-macos.md) maps the ap
 
 Disk encryption (LUKS/LVM), `fstab`, kernels, the bootloader and the initramfs are on a strict
 no-go list. Every package install goes through a guard that blocks Snap/Flatpak, protected
-packages and removals, and scans each package for boot or encryption hooks first. The one
-exception is an opt-in switch for CPU mitigations. Details: [docs/safety.md](docs/safety.md).
+packages and removals, and scans each package for boot or encryption hooks first. The
+exceptions are opt-in: a switch for CPU mitigations, and a pin that holds the tested T2 kernel and
+Hyprland versions ([T2 pack](docs/t2-pack.md)). Details: [docs/safety.md](docs/safety.md).
 
 ## Quick start
 
