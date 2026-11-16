@@ -154,12 +154,16 @@ if not isinstance(hibernate, bool):
     raise ValueError("hibernate must be true or false")
 if hibernate:
     owned_put(f"{SRC}/bin/hypr-hibernate", f"{bin_dir}/hypr-hibernate", mode="755")
-    files.put(name="polkit: allow hibernate for the active local session", src=f"{SRC}/polkit/49-t2-hibernate.rules",
-              dest="/etc/polkit-1/rules.d/49-t2-hibernate.rules", mode="644", _sudo=True)
+    rule = files.put(name="polkit: allow hibernate for the active local session", src=f"{SRC}/polkit/49-t2-hibernate.rules",
+                     dest="/etc/polkit-1/rules.d/49-t2-hibernate.rules", mode="644", _sudo=True)
 else:
     files.file(name="hypr-hibernate removed (hibernate off)", path=f"{bin_dir}/hypr-hibernate", present=False)
-    files.file(name="polkit hibernate rule removed (hibernate off)",
-               path="/etc/polkit-1/rules.d/49-t2-hibernate.rules", present=False, _sudo=True)
+    rule = files.file(name="polkit hibernate rule removed (hibernate off)",
+                      path="/etc/polkit-1/rules.d/49-t2-hibernate.rules", present=False, _sudo=True)
+# polkitd reloads rules on inotify, but it saw the file before its chmod 644 ("Error loading
+# script") and doesn't retry: restart it after a change (agents reconnect by themselves).
+server.shell(name="Restart polkit to load the hibernate rule", _if=rule.did_change, _sudo=True,
+             commands=["systemctl restart polkit.service"])
 
 # Satty: Greenshot-style screenshot annotation (arrows, boxes, text, blur, crop). Not in
 # Ubuntu; upstream release binary, pinned + sha256, user-level. hypr-screenshot opens it.
