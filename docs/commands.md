@@ -26,7 +26,7 @@ button, so the command line is just the second way in.
 | Command | What it does |
 |---|---|
 | `hypr-screenshot edit` | rectangle to `~/Screenshots`, then the Satty editor (SUPER+SHIFT+4) |
-| `hypr-touchpad speed +0.1` / `scroll 0.8` / `reset` | trackpad feel, remembered |
+| `hypr-touchpad speed +0.1` / `scroll 0.8` / `tapdrag on\|off` / `reset` | trackpad feel, remembered |
 | `t2-yubikey register` / `add-spare` / `status` | YubiKeys for sudo and login ([security-keys.md](security-keys.md)) |
 | `hypr-layout next` | dynamic (floating, the default) or golden-ratio tiling (SUPER+L) |
 | `hypr-nightmode next` | night filter: off, green or dark (the rabbit in the bar) |

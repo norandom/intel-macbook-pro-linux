@@ -4,6 +4,7 @@
 #   hypr-touchpad                  show speed and scroll speed
 #   hypr-touchpad speed +0.1|-0.1|N   pointer speed, -1 (slow) .. 1 (fast), default 0
 #   hypr-touchpad scroll +0.1|-0.1|N  scroll speed factor, 0.1 .. 3, default 1
+#   hypr-touchpad tapdrag on|off   double-tap-and-drag (default off: title-bar drags can stick)
 #   hypr-touchpad reset            back to the defaults
 # Saved to ~/.config/hypr/touchpad.conf (sourced by hyprland.conf), so it survives restarts.
 set -eu
@@ -14,17 +15,20 @@ dev=$(hyprctl devices -j | jq -r '[.mice[].name | select(test("trackpad|touchpad
 get() { sed -n "s/^ *$1 = //p" "$conf" 2>/dev/null | head -1; }
 speed=$(get sensitivity); speed=${speed:-0}
 scroll=$(get scroll_factor); scroll=${scroll:-1}
+tapdrag=$(get tap-and-drag); tapdrag=${tapdrag:-false}
 step() {  # current, arg, min, max
   awk -v c="$1" -v a="$2" -v lo="$3" -v hi="$4" 'BEGIN {
     v = (a ~ /^[+-]/) ? c + a : a; if (v < lo) v = lo; if (v > hi) v = hi; printf "%.2f", v }'
 }
 case "${1:-status}" in
   status) echo "trackpad: $dev"; echo "speed:    $speed  (-1 slow .. 1 fast, default 0)"
-          echo "scroll:   $scroll  (0.1 .. 3, default 1)"; exit 0 ;;
+          echo "scroll:   $scroll  (0.1 .. 3, default 1)"
+          echo "tapdrag:  $tapdrag  (double-tap-and-drag, default false)"; exit 0 ;;
   speed) speed=$(step "$speed" "${2:?value}" -1 1) ;;
   scroll) scroll=$(step "$scroll" "${2:?value}" 0.1 3) ;;
-  reset) speed=0.00; scroll=1.00 ;;
-  *) echo "usage: hypr-touchpad [status | speed +0.1|-0.1|N | scroll +0.1|-0.1|N | reset]" >&2; exit 2 ;;
+  tapdrag) case "${2:-}" in on) tapdrag=true ;; off) tapdrag=false ;; *) echo "hypr-touchpad tapdrag on|off" >&2; exit 2 ;; esac ;;
+  reset) speed=0.00; scroll=1.00; tapdrag=false ;;
+  *) echo "usage: hypr-touchpad [status | speed +0.1|-0.1|N | scroll +0.1|-0.1|N | tapdrag on|off | reset]" >&2; exit 2 ;;
 esac
 mkdir -p "${conf%/*}"
 cat > "$conf.new" <<CONF
@@ -33,8 +37,9 @@ device {
     name = $dev
     sensitivity = $speed
     scroll_factor = $scroll
+    tap-and-drag = $tapdrag
 }
 CONF
 mv -f "$conf.new" "$conf"
-hyprctl --batch "keyword device[$dev]:sensitivity $speed ; keyword device[$dev]:scroll_factor $scroll" >/dev/null
-echo "trackpad speed $speed, scroll $scroll"
+hyprctl --batch "keyword device[$dev]:sensitivity $speed ; keyword device[$dev]:scroll_factor $scroll ; keyword device[$dev]:tap-and-drag $tapdrag" >/dev/null
+echo "trackpad speed $speed, scroll $scroll, tapdrag $tapdrag"

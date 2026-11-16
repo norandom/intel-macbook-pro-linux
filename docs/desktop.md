@@ -104,8 +104,13 @@ The trackpad uses Hyprland's defaults. To change how it feels:
 hypr-touchpad                 # current speed and scroll speed
 hypr-touchpad speed +0.1      # faster pointer (-1 .. 1, default 0)
 hypr-touchpad scroll 0.8      # slower scrolling (0.1 .. 3, default 1)
+hypr-touchpad tapdrag on      # double-tap-and-drag (default off)
 hypr-touchpad reset
 ```
+
+Double-tap-and-drag is off by default. With it on, libinput ends the drag a moment after you
+lift your finger, and the title bars can miss that late release: the window keeps following the
+pointer. Press the trackpad down to drag instead, as on macOS. Tap to click stays on.
 
 It applies right away and only to the internal trackpad, so an external mouse keeps its own
 settings. The values are saved to `~/.config/hypr/touchpad.conf`, which the deploy creates once
