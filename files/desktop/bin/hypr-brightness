@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 # Managed by t2-mac-kde (desktop). Brightness via logind (no root, no udev rule):
 #   hypr-brightness screen|kbd +5|-5|N%   (percent steps; backlight never fully dark)
+#   hypr-brightness screen dim [N]        idle: remember the current value, dim to N % (10) if brighter
+#   hypr-brightness screen undim          activity: restore exactly the remembered value
 # Screen: one more step down at the minimum turns the backlight off (dark panel);
 # the next step up turns it back on at the minimum. Other input does not wake it.
 set -eu
@@ -12,6 +14,17 @@ esac
 [ -n "$dev" ] && [ -r "$base/max_brightness" ] || { echo "hypr-brightness: no $1 device" >&2; exit 1; }
 max=$(cat "$base/max_brightness"); cur=$(cat "$base/brightness"); step=${2:-+5}
 pct=$(( (cur * 100 + max / 2) / max ))
+# Idle dim/undim (hypridle): stateful, so activity restores the value from before the dim.
+state="${XDG_RUNTIME_DIR:-/tmp}/hypr-brightness-$1.saved"
+raw() { busctl call org.freedesktop.login1 /org/freedesktop/login1/session/auto \
+          org.freedesktop.login1.Session SetBrightness ssu "$sub" "$dev" "$1"; }
+case "$step" in
+  dim) [ -e "$state" ] || echo "$cur" > "$state"
+       target=$(( max * ${3:-10} / 100 )); [ "$cur" -gt "$target" ] && raw "$target"; exit 0 ;;
+  undim) [ -e "$state" ] || exit 0; saved=$(cat "$state"); rm -f "$state"
+         case "$saved" in ''|*[!0-9]*) exit 0 ;; esac
+         [ "$saved" -gt "$max" ] && saved=$max; raw "$saved"; exit 0 ;;
+esac
 # Screen "off" = backlight 0 (dark panel, backlight power off). No DPMS: waking a panel via
 # DPMS makes gmux restore 100 % for a moment; a backlight change has no such flash.
 if [ "$1" = screen ] && [ "${HYPR_OSD:-1}" != 0 ]; then

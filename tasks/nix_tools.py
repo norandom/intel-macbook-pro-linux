@@ -52,7 +52,13 @@ def holds(check):
 install_packages(PackageRequest(packages=("nix-setup-systemd",), source="ubuntu"))
 server.shell(
     name="nix-daemon.socket enabled and listening",
-    commands=["systemctl enable --now nix-daemon.socket"], _sudo=True,
+    # The package's postinst may start nix-daemon.service directly; systemd then refuses the
+    # socket ("Socket service nix-daemon.service already active"). Stop it, start the socket;
+    # the socket activates the daemon on the next use.
+    commands=["systemctl enable nix-daemon.socket",
+              "systemctl is-active -q nix-daemon.socket || { systemctl stop nix-daemon.service; "
+              "systemctl start nix-daemon.socket; }",
+              "systemctl is-active -q nix-daemon.socket"], _sudo=True,
     _if=lambda: not holds("systemctl is-enabled -q nix-daemon.socket && systemctl is-active -q nix-daemon.socket")(),
 )
 server.shell(
