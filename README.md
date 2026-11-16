@@ -213,7 +213,7 @@ around anyway, because SSD, T2 and EFI firmware updates only arrive through macO
 - Specs and steering: `.kiro/specs/`, `.kiro/steering/`
 - Source port plan: `docs/source-port-plan.md`; backlog: `docs/backlog.md`
 - Hibernate (needs a bigger swap, owner-run): `docs/hibernate-swap.md`
-- Verbose boot and shutdown instead of the animation (owner-run): `docs/verbose-boot.md`
+- Verbose boot and shutdown (backlog; runbook ready): `docs/verbose-boot.md`
 - Nix for user CLI tools (update, add, roll back): `docs/nix.md`
 
 ## Credits

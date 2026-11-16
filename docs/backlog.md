@@ -22,3 +22,9 @@ and configuration tasks, per explicit owner direction.
   systemd units are ready, but 16 GiB disk swap vs 64 GiB RAM makes it fail under load.
 - When reopened: owner-run swap LV resize keeping path + UUID (docs/hibernate-swap.md),
   then a guarded Hibernate power-menu entry (see git history: hypr-hibernate).
+
+## Verbose boot and shutdown
+
+- Backlogged by the owner on 2026-11-16. Runbook ready: `docs/verbose-boot.md` (owner-run
+  removal of `quiet splash` from GRUB; protected bootloader config). Until then: press Esc
+  during boot or shutdown to see the messages.
