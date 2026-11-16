@@ -14,8 +14,12 @@ Worker behaviour (source semantics):
     monitor (~/.local/state/hypr-window-geometry), restores it for new windows, cascades
     duplicates 32 px, never for self-sizing X3270; written every 5 s and on close.
   * floating windows are pushed back below the top bar once they stop moving, so the
-    title bar (hyprbars, drawn above the window) stays reachable.
+    title bar (hyprbars, drawn above the window) stays reachable. Sideways they may hang off
+    the screen (parked aside on purpose); SUPER+W closes the focused window then.
   * a monitor that changes logical size scales its floating windows with it.
+  * minimized windows (title-bar button -> special:minimized) come back to the normal
+    workspace as soon as they get focus (taskbar click, SUPER+M), instead of staying in the
+    special workspace overlay above every other window.
   * aero snap: drag a floating window until the cursor touches the left/right edge
     (half), the top edge (maximized area) or a corner (quarter); dragging it away again
     restores its previous size.
@@ -240,6 +244,32 @@ class HyprIPC:
         return s
 
 
+MINIMIZED = "special:minimized"
+
+
+def restore_cmds(win, monitors):
+    """A minimized window that gets focus (taskbar click, or picked from SUPER+M) comes back.
+
+    The title bar's minimize button parks windows on special:minimized. A taskbar "activate"
+    only focuses such a window, which opens the special workspace as an overlay above every
+    normal window: the restored window then stays on top and the windows below can't be raised
+    by clicking. So: close the overlay, move the window to its monitor's workspace, raise it.
+    """
+    if not win or win.get("workspace", {}).get("name") != MINIMIZED:
+        return []
+    mon = next((m for m in monitors if m.get("id") == win.get("monitor")), None) or \
+        next((m for m in monitors if m.get("focused")), None)
+    if not mon:
+        return []
+    addr = win["address"]
+    cmds = []
+    if mon.get("specialWorkspace", {}).get("name") == MINIMIZED:
+        cmds.append("togglespecialworkspace minimized")
+    cmds += [f"movetoworkspacesilent {mon['activeWorkspace']['id']},address:{addr}",
+             f"focuswindow address:{addr}", f"alterzorder top,address:{addr}"]
+    return cmds
+
+
 def geometry_cmds(addr, x, y, w, h):
     if not ADDR_RE.match(addr):
         return []
@@ -426,6 +456,16 @@ class Worker:
                 self.pending["0x" + parts[0]] = (time.monotonic() + 0.08, parts[2])
         elif name == "closewindow":
             self.closed("0x" + data.strip())
+        elif name == "activewindowv2" and data.strip():
+            self.unminimize("0x" + data.strip())
+
+    def unminimize(self, addr):
+        try:
+            win = next((c for c in self.ipc.query("clients") if c.get("address") == addr), None)
+            if win and win.get("workspace", {}).get("name") == MINIMIZED:
+                self.ipc.batch(restore_cmds(win, self.ipc.query("monitors")))
+        except (OSError, ValueError):
+            pass
 
     def run(self):
         self.refresh()

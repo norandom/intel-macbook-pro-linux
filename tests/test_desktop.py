@@ -77,6 +77,17 @@ class Geometry(unittest.TestCase):
         x3, _, _, _ = hw.placement((0.0, 0.0, 0.5, 0.5), m, "mac", [win(cls="bar", at=(x, y))], "foo")
         self.assertEqual(x3, x)
 
+    def test_minimized_window_restored_on_focus(self):
+        mons = [{"id": 0, "focused": True, "activeWorkspace": {"id": 3},
+                 "specialWorkspace": {"name": "special:minimized"}}]
+        win = {"address": "0xab", "monitor": 0, "workspace": {"name": "special:minimized"}}
+        self.assertEqual(hw.restore_cmds(win, mons), [
+            "togglespecialworkspace minimized", "movetoworkspacesilent 3,address:0xab",
+            "focuswindow address:0xab", "alterzorder top,address:0xab"])
+        mons[0]["specialWorkspace"] = {"name": ""}          # overlay already closed: don't reopen it
+        self.assertNotIn("togglespecialworkspace minimized", hw.restore_cmds(win, mons))
+        self.assertEqual(hw.restore_cmds({**win, "workspace": {"name": "3"}}, mons), [])
+
     def test_snap_zones(self):
         m = mon()
         self.assertEqual(hw.snap_zone((0, 450), m), "left")

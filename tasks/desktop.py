@@ -343,6 +343,14 @@ server.shell(
               "hypr-cliphist.service hypr-cliphist-wipe.timer hypr-tailscale-tray.service hypr-secret-service.service",
               "systemctl --user add-wants hypr-desktop.target waybar.service"],
 )
+worker_op = helper_ops[HELPERS.index("hypr-windows")]
+if worker_op:
+    server.shell(
+        name="Restart the window worker of a running Hyprland session (hypr-windows changed)",
+        commands=["systemctl --user is-active -q hypr-windows.service && "
+                  "systemctl --user restart hypr-windows.service || true"],
+        _if=worker_op.did_change,
+    )
 server.shell(
     name="Reload waybar of a running Hyprland session (bar changed)",
     commands=["systemctl --user is-active -q hypr-desktop.target && "

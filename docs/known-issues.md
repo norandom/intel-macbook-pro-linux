@@ -2,6 +2,22 @@
 
 Defects we know about, with what we saw, the cause as far as we know it, and the sources.
 
+## Windows restored from the tab bar stay on top of everything - fixed
+
+Status: fixed in `hypr-windows`, 2026-11-16 (tested live: overlay closed, window back on its
+workspace, focused and on top).
+
+What happens: after minimizing a window (title-bar button) and bringing it back from the tab
+bar, it stays above every other window. Clicking another window, or its title bar, doesn't bring
+that one forward, and its contents (terminal tabs) don't react. Only the tab bar seems to work.
+Windows that were never minimized behave normally.
+
+Cause: minimize moves the window to the hidden workspace `special:minimized`. The tab bar's
+"activate" only focused it there, which opens that special workspace as an overlay. Hyprland
+always draws special workspaces above the normal one, so the window was still minimized, just
+shown on a layer nothing on the desktop can get above. Fix: the window worker moves a minimized
+window back to the normal workspace as soon as it gets focus, and closes the overlay.
+
 ## Title bars: click doesn't raise, double-click doesn't unmaximize - fix pending verification
 
 Status: patched build ready, 2026-11-16, not yet confirmed on the machine (Hyprland 0.53.3, hyprland-plugin-hyprbars 0.53.0-1).
