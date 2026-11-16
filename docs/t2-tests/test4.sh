@@ -14,7 +14,9 @@ log() { echo "$(date +%T) $*"; sync; }
 echo "== test4 t2bce unload/reload  $(date -Is)  kernel $(uname -r)"
 sudo -v || exit 1
 lsmod | grep -E '^t2bce|^hid_appletb' | awk '{print "  before: " $1 " used by " $3}'
-log "stop audio (user services)"
+log "stop audio (user services; EasyEffects and the filter chain first, they crash otherwise)"
+clients=$(for c in easyeffects.service filter-chain.service; do systemctl --user -q is-active "$c" && echo "$c"; done)
+[ -n "$clients" ] && systemctl --user stop $clients
 systemctl --user stop pipewire-pulse.socket pipewire.socket pipewire-pulse.service wireplumber.service pipewire.service 2>&1
 sleep 1
 # One sudo call for the whole unload/reload, so it can't stop half-way waiting for a password.
@@ -30,6 +32,7 @@ sudo sh -c '
 sleep 5
 log "start audio"
 systemctl --user start pipewire.socket pipewire-pulse.socket wireplumber.service 2>&1
+sleep 2; [ -n "$clients" ] && systemctl --user start $clients
 sleep 3
 lsmod | grep -E '^t2bce|^hid_appletb' | awk '{print "  after: " $1 " used by " $3}'
 echo "  input devices: $(hyprctl devices -j 2>/dev/null | jq '[.keyboards[].name, .mice[].name] | map(select(test("apple|trackpad"; "i"))) | length') Apple keyboard/trackpad entries"

@@ -9,13 +9,26 @@
 # the old driver state gets no keyboard/trackpad (2026-11-16). Suspend is not affected.
 set -u
 log() { echo "t2-hibernate-bce: $*"; }
+# PipeWire clients that crash when PipeWire vanishes under them (EasyEffects dumped core in the
+# rehearsal, 2026-11-16): stopped first, restarted afterwards, but only if they were running.
+CLIENTS="easyeffects.service filter-chain.service"
+state=/run/t2-hibernate-bce        # tmpfs: survives the hibernate image, gone after a reboot
 audio() {   # start|stop PipeWire for every logged-in user, the way test4.sh did (user's own bus)
+  mkdir -p "$state"
   loginctl list-users --no-legend | while read -r uid u _rest; do
     [ -S "/run/user/$uid/bus" ] || continue
-    if [ "$1" = stop ]; then units="pipewire-pulse.socket pipewire.socket pipewire-pulse.service wireplumber.service pipewire.service"
-    else units="pipewire.socket pipewire-pulse.socket wireplumber.service"; fi
-    runuser -u "$u" -- env XDG_RUNTIME_DIR="/run/user/$uid" DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/$uid/bus" \
-      systemctl --user "$1" $units || true
+    us() { runuser -u "$u" -- env XDG_RUNTIME_DIR="/run/user/$uid" \
+             DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/$uid/bus" systemctl --user "$@"; }
+    if [ "$1" = stop ]; then
+      : > "$state/$uid"
+      for c in $CLIENTS; do us -q is-active "$c" && echo "$c" >> "$state/$uid"; done
+      [ -s "$state/$uid" ] && us stop $(cat "$state/$uid")
+      us stop pipewire-pulse.socket pipewire.socket pipewire-pulse.service wireplumber.service pipewire.service || true
+    else
+      us start pipewire.socket pipewire-pulse.socket wireplumber.service || true
+      if [ -s "$state/$uid" ]; then sleep 2; us start $(cat "$state/$uid") || true; fi
+      rm -f "$state/$uid"
+    fi
   done
 }
 load() { modprobe t2bce_vhci; modprobe t2bce_audio; }

@@ -45,6 +45,8 @@ class HibernateTests(unittest.TestCase):
         self.assertNotIn("systemd-suspend.service", unit)
         self.assertIn("systemctl suspend", hook)        # cancelled hibernate falls back to suspend
         self.assertIn("runuser -u", hook)
+        self.assertIn('CLIENTS="easyeffects.service filter-chain.service"', hook)   # stopped before PipeWire
+        self.assertLess(hook.index('us stop $(cat "$state/$uid")'), hook.index("us stop pipewire-pulse.socket"))
         self.assertIn("Before=systemd-hibernate.service", unit)
         self.assertIn("StopWhenUnneeded=yes", unit)
         subprocess.run(["sh", "-n", str(ROOT / "files/desktop/t2-hibernate-bce")], check=True)
