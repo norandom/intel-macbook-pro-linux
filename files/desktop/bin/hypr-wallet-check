@@ -1,0 +1,89 @@
+#!/usr/bin/env python3
+# Managed by t2-mac-kde (desktop). kwalletd6 guard, run at Hyprland login after the wallet
+# is unlocked (hypr-secret-service.service).
+#
+# Browsers started with --password-store=kwallet6 (Vivaldi, Chromium) talk to kwalletd6, which
+# only relays to the Secret Service (ksecretd). Sometimes it loses its session there ("Can't find
+# session /org/freedesktop/secrets/session/1") and answers every read with an empty string. The
+# browser then reports a broken key store and offers to drop its saved logins and cookies.
+#
+# Check: read one existing wallet password both ways. Secret Service non-empty but kwalletd6
+# empty: restart kwalletd6 (it holds no data; D-Bus starts it again) and check again, 3 tries.
+# Secrets are never printed. Exit 0 = healthy or nothing to compare, 1 = still broken.
+import json
+import os
+import subprocess
+import sys
+import time
+
+APP = "t2-wallet-check"
+
+
+def log(msg):
+    print(f"hypr-wallet-check: {msg}", file=sys.stderr, flush=True)
+
+
+def kwallet(method, sig, *args):
+    r = subprocess.run(["busctl", "--user", "--json=short", "call", "org.kde.kwalletd6", "/modules/kwalletd6",
+                        "org.kde.KWallet", method, sig, *map(str, args)], capture_output=True, text=True, timeout=20)
+    if r.returncode:
+        raise RuntimeError(r.stderr.strip() or f"{method} failed")
+    return json.loads(r.stdout)["data"][0]
+
+
+def probe():
+    """(folder, key) of one stored password in the unlocked wallet, or None."""
+    import secretstorage
+    con = secretstorage.dbus_init()
+    for _ in range(20):  # the unlocked ksecretd may take a moment after login
+        try:
+            col = secretstorage.get_default_collection(con)
+            if not col.is_locked():
+                break
+        except Exception:
+            pass
+        time.sleep(0.5)
+    else:
+        log("wallet not unlocked (no Secret Service); nothing to check")
+        return None
+    for item in col.get_all_items():
+        a = item.get_attributes()
+        if a.get("type") == "plaintext" and a.get("server") and a.get("user") and item.get_secret():
+            return a["server"], a["user"]
+    return None
+
+
+def kwalletd6_reads(folder, key):
+    handle = kwallet("open", "sxs", "kdewallet", 0, APP)
+    if handle < 0:
+        return False
+    try:
+        return bool(kwallet("readPassword", "isss", handle, folder, key, APP))
+    finally:
+        try:
+            kwallet("close", "ibs", handle, "false", APP)
+        except Exception:
+            pass
+
+
+def main():
+    entry = probe()
+    if not entry:
+        return 0
+    for attempt in range(1, 4):
+        try:
+            if kwalletd6_reads(*entry):
+                log("kwalletd6 ok" + (f" (after {attempt - 1} restart(s))" if attempt > 1 else ""))
+                return 0
+            log(f"kwalletd6 returns an empty password (try {attempt}); restarting it")
+        except Exception as e:
+            log(f"kwalletd6 not answering (try {attempt}): {e}; restarting it")
+        subprocess.run(["pkill", "-x", "-U", str(os.getuid()), "kwalletd6"])
+        time.sleep(1)
+    log("kwalletd6 still broken after 3 restarts: browsers may report a broken key store; "
+        "do not let them reset it (pkill kwalletd6, then start the browser again)")
+    return 1
+
+
+if __name__ == "__main__":
+    sys.exit(main())
