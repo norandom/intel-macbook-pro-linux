@@ -59,6 +59,8 @@ NATIVE = {
     "edb-debugger": ("edb-debugger", "edb"),
     "heaptrack": ("heaptrack", "heaptrack"),
     "heaptrack-gui": ("heaptrack-gui", "heaptrack_gui"),
+    # Media player (owner request 2026-11-16; Ubuntu .deb, not a snap)
+    "vlc": ("vlc", "vlc"),
 }
 
 # name -> (version, url, sha256), verbatim from source group_data/all.py release_tools.

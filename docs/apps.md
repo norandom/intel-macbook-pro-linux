@@ -26,6 +26,7 @@ package guard ([safety.md](safety.md)). The full inventory, with the reason for 
 | Obsidian, Typora | Notes, Markdown | |
 | qpdfview, xpdf | PDF viewers | |
 | Ristretto | Image viewer | |
+| VLC | Video and audio player | The QuickTime Player replacement |
 
 The Craft apps are young projects, so expect rough edges. LibreOffice Impress isn't installed;
 DeckCraft covers slides. You can change the LibreOffice UI per user in View > User Interface.

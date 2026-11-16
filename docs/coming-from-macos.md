@@ -25,7 +25,8 @@ installs or configures are listed. Where there's no counterpart, the table says 
 | Adobe Acrobat | PdfCraft; qpdfview and xpdf for viewing |
 | Adobe Photoshop | PhotoCraft (Craft suite photo editor) |
 | Adobe Illustrator | Not in the Craft suite; Inkscape is the usual Linux choice ([apps.md](apps.md#add-or-remove-an-app)) |
-| Adobe Premiere, After Effects | No counterpart installed, and no video player either |
+| QuickTime Player | VLC: plays practically any video and audio file, streams and DVDs |
+| Adobe Premiere, After Effects | No counterpart installed |
 | AutoCAD | CADCraft |
 | Preview | qpdfview, xpdf for PDFs; Ristretto for images |
 | OneDrive client | An rclone mount at `~/OneDrive` (see below), plus Rclone UI |
