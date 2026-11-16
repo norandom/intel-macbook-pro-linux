@@ -67,6 +67,7 @@ install_packages(PackageRequest(
         "hyprland-qtutils", "hypridle", "hyprpolkitagent", "grim", "slurp", "playerctl",
         "network-manager-gnome", "blueman", "libnotify-bin",
         "libgtk-4-1", "libadwaita-1-0",  # Satty (screenshot annotation, below)
+        "python3-secretstorage",  # hypr-wallet-check
     ),
     source="ubuntu",
 ))
@@ -143,7 +144,7 @@ HELPERS = (
     "hypr-desktop-state", "hypr-launch", "hypr-deco", "hypr-shadow", "hypr-layout", "hypr-pin",
     "hypr-glass", "hypr-kbd", "hypr-nightmode", "hypr-windows", "hypr-session", "hypr-appmenu",
     "hypr-sparkline", "hypr-agent-quota", "hypr-cliphist", "hypr-clip-bridge", "hypr-termtheme-status",
-    "hypr-brightness", "hypr-screenshot", "hypr-osd", "hypr-volume", "hypr-power-profile", "hypr-findcursor", "hypr-netrate", "hypr-thermal", "hypr-touchpad", "hypr-gpu",
+    "hypr-brightness", "hypr-screenshot", "hypr-osd", "hypr-volume", "hypr-power-profile", "hypr-findcursor", "hypr-netrate", "hypr-thermal", "hypr-touchpad", "hypr-gpu", "hypr-wallet-check",
 )
 helper_ops = [owned_put(f"{SRC}/bin/{h}", f"{bin_dir}/{h}", mode="755") for h in HELPERS]
 
@@ -253,9 +254,26 @@ for mime, app in dict(setting("default_apps", {})).items():
     server.shell(name=f"Default app for {mime}: {app}",
                  commands=[f"[ \"$(xdg-mime query default {mime})\" = '{app}' ] || xdg-mime default '{app}' {mime}"])
 
-# state.conf: layout / title bar style / shadows + the package-owned hyprbars path (dpkg).
+# hyprbars with our input fix (files/desktop/hyprbars): Ubuntu's 0.53.0 lets the focused
+# window's bar take clicks meant for the window above it (no raise) and can miss a release
+# (lost double-click = no unmaximize, window left on the pointer). Built as the user from the
+# pinned upstream tarball against hyprland-dev; rebuilt when Hyprland or the patch changes.
+install_packages(PackageRequest(
+    packages=("hyprland-dev", "libgles-dev", "libpango1.0-dev", "libudev-dev", "libpixman-1-dev", "pkgconf", "g++", "make", "patch"),
+    source="ubuntu",
+))
+bars_dir = f"{home}/.local/share/t2-mac-kde/hyprbars"
+files.put(name="hyprbars: input patch", src=f"{SRC}/hyprbars/hyprbars-0.53.0-t2-input.patch",
+          dest=f"{bars_dir}/hyprbars-0.53.0-t2-input.patch", mode="644", create_remote_dir=True)
+files.put(name="hyprbars: build script", src=f"{SRC}/hyprbars/build-hyprbars",
+          dest=f"{bars_dir}/build-hyprbars", mode="755", create_remote_dir=True)
+server.shell(name="hyprbars 0.53.0 + input patch -> ~/.local/lib/t2-mac-kde/hyprbars (sha256 verified)",
+             commands=[f"{bars_dir}/build-hyprbars {bars_dir}/hyprbars-0.53.0-t2-input.patch"])
+
+# state.conf: layout / title bar style / shadows + the hyprbars path (patched build or dpkg).
+# --reload: a running Hyprland picks up a changed state.conf (e.g. the patched plugin).
 server.shell(name="Hyprland: render state.conf (layout, title bars, shadows, hyprbars path)",
-             commands=[f"{bin_dir}/hypr-desktop-state"])
+             commands=[f"{bin_dir}/hypr-desktop-state --reload"])
 
 # Reload a running Hyprland only when it is the single instance of this user (never "newest").
 server.shell(

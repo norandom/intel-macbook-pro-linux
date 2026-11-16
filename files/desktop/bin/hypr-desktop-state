@@ -4,7 +4,8 @@
 #   ~/.config/hypr/layout-mode          dynamic|golden-h|golden-v|golden-spiral  (hypr-layout)
 #   ~/.config/hypr/decorations-style    mac|win311                               (hypr-deco)
 #   ~/.config/hypr/window-shadows       on|off                                   (hypr-shadow)
-# The hyprbars plugin path comes from the package's own file list (dpkg), never guessed.
+# The hyprbars plugin path comes from the package's own file list (dpkg), never guessed,
+# unless the patched build in ~/.local/lib/t2-mac-kde/hyprbars matches the installed Hyprland.
 #   hypr-desktop-state [--reload]       --reload: hyprctl reload when the file changed
 set -eu
 dir="$HOME/.config/hypr"
@@ -16,6 +17,13 @@ case "$layout" in dynamic|golden-h|golden-v|golden-spiral) ;; *) layout=dynamic 
 case "$style" in mac|win311) ;; *) style=mac ;; esac
 case "$shadow" in on) shadow=$style ;; *) shadow=off ;; esac
 plugin=$(dpkg-query -L hyprland-plugin-hyprbars 2>/dev/null | grep '/libhyprbars\.so$' | head -n 1 || true)
+# Our patched build (build-hyprbars) wins while it was built for the installed Hyprland;
+# after a Hyprland update it would be refused, so the package plugin is used until rebuilt.
+own="$HOME/.local/lib/t2-mac-kde/hyprbars"
+hv=$(dpkg-query -W -f='${Version}' hyprland 2>/dev/null || true)
+if [ -n "$hv" ] && [ -f "$own/libhyprbars.so" ] && grep -qx "hyprland=$hv patch=.*" "$own/stamp" 2>/dev/null; then
+  plugin="$own/libhyprbars.so"
+fi
 
 tmp=$(mktemp "$dir/.state.conf.XXXXXX")
 trap 'rm -f "$tmp"' EXIT

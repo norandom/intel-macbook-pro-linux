@@ -1,0 +1,47 @@
+--- a/hyprbars/barDeco.cpp
++++ b/hyprbars/barDeco.cpp
+@@ -95,7 +95,9 @@
+     auto window = focusState->window();
+     auto monitor = focusState->monitor();
+     
+-    if (WINDOWATCURSOR != m_pWindow && m_pWindow != window)
++    // t2-mac-kde: the focused window's bar can sit under another window, and a
++    // press there belongs to that window (upstream f2747deb / #722).
++    if (WINDOWATCURSOR != m_pWindow && (m_pWindow != window || WINDOWATCURSOR))
+         return false;
+ 
+     // check if input is on top or overlay shell layers
+@@ -119,14 +121,19 @@
+ }
+ 
+ void CHyprBar::onMouseButton(SCallbackInfo& info, IPointer::SButtonEvent e) {
+-    if (!inputIsValid())
+-        return;
+-
++    // t2-mac-kde: a release belongs to the bar that took the press, wherever the
++    // pointer and the focus are by then. Filtered like a press, it could miss that
++    // bar (window minimized, pointer off the bar, focus moved), which then stayed
++    // armed: the window kept following the pointer, and the next click was eaten.
+     if (e.state != WL_POINTER_BUTTON_STATE_PRESSED) {
+-        handleUpEvent(info);
++        if (m_bCancelledDown || m_bDraggingThis || m_bDragPending)
++            handleUpEvent(info);
+         return;
+     }
+ 
++    if (!inputIsValid())
++        return;
++
+     handleDownEvent(info, std::nullopt);
+ }
+ 
+@@ -239,9 +246,6 @@
+ }
+ 
+ void CHyprBar::handleUpEvent(SCallbackInfo& info) {
+-    if (m_pWindow.lock() != Desktop::focusState()->window())
+-        return;
+-
+     if (m_bCancelledDown)
+         info.cancelled = true;
+ 

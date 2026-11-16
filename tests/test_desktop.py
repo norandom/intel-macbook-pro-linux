@@ -187,6 +187,50 @@ class Scripts(unittest.TestCase):
             self.assertIn("layout-dynamic.conf", out)
             self.assertIn("shadow-off.conf", out)
 
+    def test_state_prefers_patched_hyprbars_only_for_installed_hyprland(self):
+        r = subprocess.run(["dpkg-query", "-W", "-f=${Version}", "hyprland"], capture_output=True, text=True)
+        if r.returncode or not r.stdout:
+            self.skipTest("hyprland not installed")
+        with tempfile.TemporaryDirectory() as home:
+            own = Path(home, ".local/lib/t2-mac-kde/hyprbars")
+            own.mkdir(parents=True)
+            (own / "libhyprbars.so").write_bytes(b"")
+            (own / "stamp").write_text(f"hyprland={r.stdout} patch=abc\n")
+            self.assertIn(f"plugin = {own}/libhyprbars.so", self.run_state(home))
+            (own / "stamp").write_text("hyprland=0.0.0-old patch=abc\n")
+            self.assertNotIn(str(own), self.run_state(home))
+
+    def test_wallet_check_restarts_kwalletd6_until_it_reads(self):
+        import importlib.machinery, importlib.util
+        from unittest import mock
+        loader = importlib.machinery.SourceFileLoader("hwc", str(SRC / "bin/hypr-wallet-check"))
+        mod = importlib.util.module_from_spec(importlib.util.spec_from_loader("hwc", loader))
+        loader.exec_module(mod)
+        with mock.patch.object(mod, "probe", return_value=("Chrome Keys", "Chrome Safe Storage")), \
+             mock.patch.object(mod, "kwalletd6_reads", side_effect=[False, True]), \
+             mock.patch.object(mod.subprocess, "run") as run, mock.patch.object(mod.time, "sleep"):
+            self.assertEqual(mod.main(), 0)
+        self.assertEqual(run.call_count, 1)
+        self.assertEqual(run.call_args[0][0][:2], ["pkill", "-x"])
+        with mock.patch.object(mod, "probe", return_value=("f", "k")), \
+             mock.patch.object(mod, "kwalletd6_reads", return_value=False), \
+             mock.patch.object(mod.subprocess, "run") as run, mock.patch.object(mod.time, "sleep"):
+            self.assertEqual(mod.main(), 1)
+        self.assertEqual(run.call_count, 3)
+        with mock.patch.object(mod, "probe", return_value=None):
+            self.assertEqual(mod.main(), 0)
+        unit = (SRC / "systemd/hypr-secret-service.service").read_text()
+        self.assertIn("ExecStart=-%h/.local/bin/hypr-wallet-check", unit)
+
+    def test_hyprbars_patch_wired(self):
+        patch = (SRC / "hyprbars/hyprbars-0.53.0-t2-input.patch").read_text()
+        self.assertIn("(m_pWindow != window || WINDOWATCURSOR)", patch)
+        self.assertIn("-    if (m_pWindow.lock() != Desktop::focusState()->window())", patch)
+        task = (ROOT / "tasks/desktop.py").read_text()
+        self.assertIn("build-hyprbars", task)
+        self.assertIn("\"libgles-dev\"", task)  # GLES3/gl32.h, not pulled in by hyprland-dev
+        self.assertIn("hypr-desktop-state --reload", task)
+
     def test_session_status_requires_explicit_instance(self):
         env = dict(os.environ)
         env.pop("HYPRLAND_INSTANCE_SIGNATURE", None)

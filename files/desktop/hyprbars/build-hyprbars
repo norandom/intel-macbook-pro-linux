@@ -1,0 +1,32 @@
+#!/bin/sh
+# Managed by t2-mac-kde (desktop). Build hyprbars 0.53.0 with our input patch against the
+# installed Hyprland (hyprland-dev), as the user, into ~/.local/lib/t2-mac-kde/hyprbars.
+#   build-hyprbars <patch>      no-op when the stamp matches (Hyprland version + patch sha256)
+# Ubuntu's hyprland-plugin-hyprbars 0.53.0 misroutes title-bar clicks (no raise, missed
+# double-clicks, windows left following the pointer); upstream fixed it only for newer
+# Hyprland. hypr-desktop-state loads this build only while its stamp matches the installed
+# Hyprland, and falls back to the package plugin otherwise.
+set -eu
+patch_file=$(realpath "$1")
+url=https://github.com/hyprwm/hyprland-plugins/archive/refs/tags/v0.53.0.tar.gz
+sha=23c90d35fe81f5f15192704769cda2cf4f349a294d9aa347627dc223f30c6358
+out="$HOME/.local/lib/t2-mac-kde/hyprbars"
+hv=$(dpkg-query -W -f='${Version}' hyprland)
+stamp="hyprland=$hv patch=$(sha256sum "$patch_file" | cut -d' ' -f1)"
+if [ -f "$out/libhyprbars.so" ] && [ "$(cat "$out/stamp" 2>/dev/null)" = "$stamp" ]; then
+  echo "hyprbars: up to date ($stamp)"
+  exit 0
+fi
+t=$(mktemp -d)
+trap 'rm -rf "$t"' EXIT
+curl -fsSL --proto '=https' --tlsv1.2 -o "$t/src.tar.gz" "$url"
+echo "$sha  $t/src.tar.gz" | sha256sum -c --quiet
+tar xzf "$t/src.tar.gz" -C "$t"
+cd "$t/hyprland-plugins-0.53.0"
+patch -p1 --quiet < "$patch_file"
+make -C hyprbars CXX=g++ >"$t/build.log" 2>&1 || { tail -n 30 "$t/build.log" >&2; exit 1; }
+mkdir -p "$out"
+install -m 755 hyprbars/hyprbars.so "$out/.libhyprbars.so.new"
+mv -f "$out/.libhyprbars.so.new" "$out/libhyprbars.so"
+echo "$stamp" > "$out/stamp"
+echo "hyprbars: built ($stamp)"

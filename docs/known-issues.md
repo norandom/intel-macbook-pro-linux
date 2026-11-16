@@ -2,6 +2,24 @@
 
 Defects we know about, with what we saw, the cause as far as we know it, and the sources.
 
+## Title bars: click doesn't raise, double-click doesn't unmaximize - fix pending verification
+
+Status: patched build ready, 2026-11-16, not yet confirmed on the machine (Hyprland 0.53.3, hyprland-plugin-hyprbars 0.53.0-1).
+
+What happens: clicking a window's title bar doesn't bring it to the front, double-clicking the
+bar of a maximized window often does nothing, and a dragged window can stay on the pointer.
+
+Cause: in hyprbars 0.53.0 the focused window's bar accepts any click inside its own area, even
+where another window covers it. Windows open centred, so bars overlap often, and the click goes
+to the window below. A release was only handled while the bar's window had focus, so a missed
+release left the bar armed: the next click was eaten or the drag never ended. Upstream fixed both
+in hyprland-plugins `f2747deb` (#722, 2026-11-15) and earlier commits, but only for newer
+Hyprland. We backport the two fixes as a patch and build the plugin in the deploy
+(`files/desktop/hyprbars/`).
+
+Sources: https://github.com/hyprwm/hyprland-plugins/pull/722,
+https://github.com/hyprwm/hyprland-plugins/commits/main/hyprbars/barDeco.cpp
+
 ## Hibernate hangs the machine (T2 driver limitation) - fixed
 
 Status: fixed, 2026-11-16. A real hibernate and restore worked with keyboard, trackpad and audio

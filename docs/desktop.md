@@ -13,6 +13,12 @@ floats every new window and centres it, and `hypr-windows` remembers where each 
 was and how big. Windows get title bars (the hyprbars plugin) with buttons to close and
 maximise, so the laptop works the way you'd expect without learning a tiling workflow first.
 
+The deploy builds hyprbars itself (pinned upstream 0.53.0 plus
+`files/desktop/hyprbars/hyprbars-0.53.0-t2-input.patch`, against `hyprland-dev`) into
+`~/.local/lib/t2-mac-kde/hyprbars`. Ubuntu's packaged plugin routes some title-bar clicks to the
+wrong window; see `docs/known-issues.md`. After a Hyprland update the package plugin is used
+until the next desktop deploy rebuilds ours.
+
 Tiling is there for the moments it helps, such as a terminal next to an editor, or several
 agent dashboards side by side:
 
@@ -31,7 +37,11 @@ The modes live in `files/desktop/hypr/layout-*.conf`.
 - `~/.config/gtk-3.0/settings.ini` is shared with KDE, so the deploy only writes it when it
   doesn't exist yet.
 - Chromium-based and Electron apps use the same password store in both sessions (KDE Wallet by
-  default, config `password_store`), so saved passwords show up on either side.
+  default, config `password_store`), so saved passwords show up on either side. At login
+  `hypr-wallet-check` makes sure `kwalletd6`, which those apps talk to, really returns stored
+  passwords, and restarts it when it hands back empty ones. Otherwise a browser like Vivaldi
+  reports a broken key store and offers to throw away its saved logins. If that dialog ever
+  shows anyway: choose Quit, run `pkill kwalletd6`, start the browser again.
 - The deploy only rewrites files that carry its `Managed by t2-mac-kde` marker. A file of yours
   at the same path is left alone, with a warning.
 
