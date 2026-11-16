@@ -22,12 +22,17 @@ The top bar, left to right:
 <img src="docs/img/bar-right.png" alt="Right half of the top bar" width="980">
 
 5. **Cl** / **Co**: usage quotas of the AI agents, Claude and Codex.
-6. CPU load. 7. Memory in use. 8. CPU temperature in °C. 9. Network down and up.
+6. CPU load.
+7. Memory in use.
+8. CPU temperature in °C.
+9. Network down and up.
 10. Volume.
 11. Screen brightness (scroll on it to change).
 12. Power profile; the scales mean balanced.
 13. Battery.
-14. Wi-Fi. 15. Tailscale. 16. Bluetooth.
+14. Wi-Fi.
+15. Tailscale.
+16. Bluetooth.
 17. Clipboard history, wiped every night.
 18. Night mode: screen tint, click for the next one (the rabbit).
 19. Terminal theme switcher.
@@ -37,6 +42,11 @@ The top bar, left to right:
 
 I use it daily on a MacBook Pro 16" 2019 (MacBookPro16,1). Other T2 models should mostly work,
 but I haven't tested them.
+
+Sister project: [hyperland-forky-worker-vm](https://github.com/norandom/hyperland-forky-worker-vm),
+a stripped-down Debian Forky VM managed the same way, with the same look and feel. Its goal is
+a Wayland desktop with long-term support. This laptop runs Ubuntu instead of Debian because of the
+software it needs.
 
 ## Why bother
 
