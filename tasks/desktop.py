@@ -156,7 +156,12 @@ if hibernate:
     owned_put(f"{SRC}/bin/hypr-hibernate", f"{bin_dir}/hypr-hibernate", mode="755")
     rule = files.put(name="polkit: allow hibernate for the active local session", src=f"{SRC}/polkit/49-t2-hibernate.rules",
                      dest="/etc/polkit-1/rules.d/49-t2-hibernate.rules", mode="644", _sudo=True)
+    files.put(name="systemd-sleep: HibernateMode=shutdown (no ACPI S4 firmware call)",
+              src=f"{SRC}/systemd-sleep/t2-hibernate.conf", dest="/etc/systemd/sleep.conf.d/t2-hibernate.conf",
+              mode="644", create_remote_dir=True, _sudo=True)
 else:
+    files.file(name="systemd-sleep hibernate mode removed (hibernate off)",
+               path="/etc/systemd/sleep.conf.d/t2-hibernate.conf", present=False, _sudo=True)
     files.file(name="hypr-hibernate removed (hibernate off)", path=f"{bin_dir}/hypr-hibernate", present=False)
     rule = files.file(name="polkit hibernate rule removed (hibernate off)",
                       path="/etc/polkit-1/rules.d/49-t2-hibernate.rules", present=False, _sudo=True)

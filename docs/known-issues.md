@@ -4,7 +4,7 @@ Defects we know about, with what we saw, the cause as far as we know it, and the
 
 ## Hibernate hangs the machine (T2 driver limitation)
 
-Status: open, 2026-11-16. Machine: MacBookPro16,1, Ubuntu 26.04, kernel 7.3.4-3-t2.
+Status: cause found, fix in testing (2026-11-16). Machine: MacBookPro16,1, Ubuntu 26.04, kernel 7.3.4-3-t2.
 
 What happens: after Hibernate the screen locks, then the machine freezes with the display on. It
 never powers off, and a forced power-off is needed. The journal of that boot ends with:
@@ -17,23 +17,24 @@ kernel: Filesystems sync: 0.048 seconds
 Nothing after that point reaches the disk, so the hang is in the next phase: freezing tasks and
 devices to create the memory image.
 
-Cause, as far as known: the T2 bridge drivers (`t2bce_dma`, `t2bce_core`, `t2bce_vhci`,
-`t2bce_audio`; older kernels called this driver `apple-bce`) don't support the hibernation freeze.
-Keyboard, trackpad, Touch Bar and audio all hang off that bridge, so when it stops, the machine
-stops responding. Suspend to RAM works here; it uses different driver callbacks.
+Narrowed down with the kernel's `pm_test` (`~/t2-tests/test3.sh`, 2026-11-16): the `freezer` and
+`devices` stages pass, with and without the Wi-Fi driver, so the T2 bridge (`t2bce_*`), Wi-Fi and
+the AMD GPU all freeze cleanly. The hang is in the `platform` stage, where the kernel calls the
+firmware's ACPI S4 (hibernate) methods. Apple's EFI firmware doesn't implement that for Linux.
 
-The workaround the t2linux community documents for sleep problems is a systemd sleep hook that
-unloads the T2 bridge driver before sleeping and loads it again afterwards. This repository
-doesn't do that: unloading T2 hardware drivers is on the protected list
-([safety.md](safety.md)), and reports exist where the unload fails or the T2 devices don't come
-back.
+So the community workaround (unloading the T2 bridge driver before sleep) isn't needed here, and
+on the current `t2bce` stack it's discouraged anyway: the driver saves and restores its own state,
+and unloading it is what used to break sleep.
 
-What's in place: swap is big enough (80 GiB, [hibernate-swap.md](hibernate-swap.md)) and the
-`hibernate` config flag exists (polkit rule, guarded menu entry), but it stays `false`. Use
-Suspend. Revisit with a newer t2 kernel; the test is one click on Hibernate with
-`hibernate = true`.
+Fix in testing: disk mode `shutdown` instead of `platform` (`HibernateMode=shutdown` in
+`/etc/systemd/sleep.conf.d/t2-hibernate.conf`, set by the `hibernate` config flag). The kernel
+writes the image and powers off without the firmware call; the next boot restores it. Status:
+waiting for `test3.sh shutdown` to pass all stages before `hibernate = true`.
 
 Sources:
+
+- t2-suspend-fix (kernel 7.2, t2bce): the T2 driver is no longer unloaded before sleep; it saves
+  and restores its state natively: https://github.com/cairolidavide/t2-suspend-fix
 
 - t2linux wiki, post-install guide, suspend workaround (unload/reload the T2 bridge driver):
   https://wiki.t2linux.org/guides/postinstall/

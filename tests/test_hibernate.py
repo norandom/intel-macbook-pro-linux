@@ -15,6 +15,15 @@ class HibernateTests(unittest.TestCase):
         self.assertNotIn("multiple-sessions", rule)
         self.assertNotIn("suspend", rule.split("*/")[-1].split("polkit.addRule")[1])
 
+    def test_hibernate_mode_shutdown_not_platform(self):
+        conf = (ROOT / "files/desktop/systemd-sleep/t2-hibernate.conf").read_text()
+        self.assertIn("[Sleep]\nHibernateMode=shutdown\n", conf)
+        task = (ROOT / "tasks/desktop.py").read_text()
+        self.assertIn('dest="/etc/systemd/sleep.conf.d/t2-hibernate.conf"', task)
+        self.assertIn('path="/etc/systemd/sleep.conf.d/t2-hibernate.conf", present=False', task)
+        for bad in ("rmmod", "modprobe -r", "t2bce"):
+            self.assertNotIn(bad, task)   # no driver unloading: pm_test showed devices freeze fine
+
     def test_rule_sorts_before_ubuntus(self):
         self.assertLess("49-t2-hibernate.rules", "com.ubuntu.desktop.rules")
 
