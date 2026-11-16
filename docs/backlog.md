@@ -38,4 +38,5 @@ and configuration tasks, per explicit owner direction.
 ## CPU mitigations off
 
 - Done 2026-11-16: config `cpu_mitigations_off` (tasks/cpu_mitigations.py). Before:
-  `benchmarks/linux.json`; after-reboot run still to do (`docs/cpu-mitigations.md`).
+  `benchmarks/linux.json`, after: `benchmarks/mitigations-off/linux.json` (syscalls +27 %).
+  Kept off; results in `docs/benchmark.md`.

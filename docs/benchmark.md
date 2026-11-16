@@ -1,117 +1,170 @@
-# Benchmark: Linux vs macOS, not chip vs chip
+# How well each OS is optimized for this Mac
 
-`tools/benchmark.sh` runs unchanged on Ubuntu and macOS (bash 3.2, stock perl, openssl, dd,
-gzip; nothing to install). It measures the machine as it is and never changes turbo,
-governors, power profiles or fans. `tools/benchmark-compare.sh` puts two results side by side.
+Same 2019 MacBook Pro, booted once into Linux and once into macOS, same settings. The CPU
+does its own work equally fast under both. Anything that goes through the operating system
+(system calls, starting programs, files) runs 2 to 4 times faster on Linux, and creating
+files about 23 times faster.
+
+This isn't a "which OS is better" test. It measures how much effort each OS still puts into
+running this particular hardware well.
+
+## Why this matters for a 2019 machine
+
+The i9-9980HK in this Mac has 8 cores and 16 threads, and the machine has 64 GB of RAM and a
+2 TB SSD. That's still a capable workstation for professional work by today's standards. But
+Apple has moved on: its engineering goes into Apple Silicon, and Apple said at WWDC 2025 that
+macOS Tahoe (26) is the last release for Intel Macs. The owner's experience is that each recent
+macOS release ran this machine a little worse.
+
+The numbers below can't prove a trend (they're one macOS release). What they do show is that
+the hardware isn't the bottleneck. The same chip delivers the same raw speed under both
+systems, and the gap opens wherever the OS itself does the work.
+
+![Linux vs macOS on the same Mac, per test](img/bench-os.svg)
+
+\* perl: the two systems ship different perl builds (5.40 vs 5.44), so this row measures the
+build as much as the OS.
+\*\* Files: includes the storage stack, ext4 on LUKS/LVM on Linux vs APFS with FileVault on
+macOS. Both are the stock encrypted setups.
+
+## The machine
+
+| | |
+|---|---|
+| Model | MacBook Pro 16" 2019, MacBookPro16,1, T2 chip |
+| CPU | Intel Core i9-9980HK, 8 cores / 16 threads, 2.4 GHz base, 5.0 GHz turbo, 16 MiB L3 |
+| Memory | 64 GB DDR4-2667 |
+| Storage | 2 TB Apple SSD (AP2048N), encrypted on both systems |
+| GPU | Intel UHD 630 + AMD Radeon Pro 5300M/5500M (Navi 14; not tested here) |
+| Linux | Ubuntu 26.04.1, kernel 7.3.4-3-t2, balanced profile, OpenSSL 3.5.5, perl 5.40.1 |
+| macOS | macOS 26.7.3 Tahoe (Darwin 25.6.0), Low Power Mode off, OpenSSL 3.5.9, perl 5.44.0 |
+| Both | on AC, turbo off (Linux: intel_pstate; macOS: Turbo Boost Switcher), idle, 10 runs each |
+
+Turbo was off on both, so both ran at the same 2.4 GHz clock. That's what makes the raw
+numbers comparable.
+
+## The numbers
+
+Medians of 10 runs, higher is better. "Linux / macOS" compares the two systems with their
+standard CPU security mitigations on.
+
+| Test | Linux | macOS | Linux / macOS | Linux, mitigations off |
+|---|---|---|---|---|
+| sha256, one core (MB/s) | 308 | 302 | 1.02 | 308 |
+| sha256, 16 threads (MB/s) | 2,616 | 2,526 | 1.04 | 2,605 |
+| gzip -6 (MB/s) | 20.1 | 18.4 | 1.10 | 20.1 |
+| perl integer loop (M iter/s) | 9.91 | 7.78 | 1.27 | 9.89 |
+| tiny system calls (k/s) | 3,141 | 741 | 4.24 | 4,002 |
+| stat() file lookup (k/s) | 872 | 239 | 3.66 | 949 |
+| start a program (per s) | 651 | 209 | 3.12 | 679 |
+| fork a process (per s) | 1,685 | 850 | 1.98 | 1,704 |
+| pipe ping-pong (k round trips/s) | 137 | 81 | 1.69 | 146 |
+| fresh memory (GiB/s) | 1.8 | 1.4 | 1.29 | 1.8 |
+| kernel zero-fill, dd (GiB/s) | 12.85 | 18.09 | 0.71 | 12.91 |
+| create + delete files (k/s) | 89.5 | 3.9 | 22.95 | 99.1 |
+
+Raw data: `benchmarks/linux.json`, `benchmarks/macos.json`,
+`benchmarks/mitigations-off/linux.json`, each with all 10 values per test and the full log.
+
+What stands out:
+
+- The chip is the same. sha256 is within 2-4 % on both systems. Clock and cores deliver
+  the same speed, so the differences further down come from the OS.
+- Kernel paths are where macOS loses. A system call takes about 0.3 µs on Linux and about
+  1.3 µs on macOS. Starting a program takes 1.5 ms on Linux and 4.8 ms on macOS. You feel this
+  in terminals, builds, git and scripts, which do these things thousands of times.
+- Files are the biggest gap. 23× is mostly APFS and its security checks against ext4, not
+  the kernel alone. Anything that touches many small files (`node_modules`, git checkouts,
+  compilers) feels it.
+- macOS wins one test: zeroing large memory blocks in the kernel is 1.4× faster there.
+- fork is noisy on Linux (48 % spread across runs; see the end of this page). Only the 2×
+  gap is solid; the exact number isn't.
+
+## Turning the CPU mitigations off
+
+The kernel's protections against Spectre/Meltdown-type CPU flaws cost time on every kernel
+entry and exit. This Mac now runs Linux with `mitigations=off` (config flag
+`cpu_mitigations_off`, see `docs/cpu-mitigations.md`). Before and after, same machine and
+settings:
+
+![Mitigations off vs on, change per test](img/bench-mitigations.svg)
+
+- System calls got 27 % faster, files 11 %, stat() 9 %, pipes 7 %. That's the work
+  builds, shells and containers do all the time.
+- CPU work didn't change at all, as expected: the mitigations only cost time at the
+  kernel boundary.
+- Program start and fork moved less than their run-to-run noise. Their cost is dominated
+  by other things (see below).
+- With mitigations off, Linux's lead over macOS on system calls grows from 4.2× to 5.4×.
+
+### Decision: keep them off
+
+For this machine, as used (one person, own code, no untrusted guests), the 7-27 % on kernel
+paths is worth it. What's exposed is code running on this machine reading memory it shouldn't:
+JavaScript in browsers (which keep their own protections), packages you install, and VM guests.
+Nothing becomes reachable from the network.
+
+We're wrong if one of these becomes true: the machine runs VMs with guests you don't control,
+runs code you can't vet (other people's CI jobs, unknown binaries), or gets a second user.
+Then set `cpu_mitigations_off = false`, run `tasks/cpu_mitigations.py` and reboot. For
+adopters the default is off, meaning the mitigations stay on.
+
+## Running it yourself
 
 ```sh
-bash tools/benchmark.sh --runs 10 --json --out benchmarks   # -> benchmarks/linux.json or macos.json
+bash tools/benchmark.sh --runs 10 --json --out benchmarks            # -> linux.json or macos.json
 bash tools/benchmark-compare.sh benchmarks/linux.json benchmarks/macos.json
-bash tools/benchmark.sh --quick                              # short check run
+python3 tools/benchmark-charts.py                                    # redraw docs/img/bench-*.svg
 ```
 
-Each JSON file holds the median, min, max and every run per test, the Mac model, the CPU, and
-the power state (power source, turbo, governor/EPP and profile on Linux; Low Power Mode on
-macOS). Higher is better everywhere.
+The script runs unchanged on Linux and macOS (bash 3.2, stock perl, openssl, dd, gzip; nothing
+to install). It never changes turbo, governors, power profiles or fans, and it records them,
+so you can check two runs were made under the same conditions. Each JSON file holds the
+median, min, max and every run per test, plus the Mac model, CPU and power state.
 
-## How the chip is kept out of the result
+For a fair comparison:
 
-1. **Same Mac, both OSes.** The valid comparison is one machine booted into Linux and into
-   macOS. `benchmark-compare.sh` checks the CPU model and thread count and refuses to compare
-   different CPUs. `--force` shows only the normalized kernel numbers (point 3), with a warning;
-   between different chips they are an estimate at best (cache sizes, microcode and the
-   kernel's CPU-bug mitigations differ per model).
-2. **User-space tests are the baseline, not the verdict.** sha256, the perl loop and gzip run
-   almost entirely in user space. On the same chip they mainly show how each OS runs the CPU:
-   frequency and turbo policy, power limits, and how many cores stay busy. They also include the
-   tool builds (OpenSSL 3.x vs Apple's LibreSSL, different perl and gzip), so treat them as
-   "the CPU as each OS delivers it".
-3. **Kernel tests, also per CPU cycle.** The kernel tests measure what the OS itself does. Each
-   is also reported divided by the single-core perl speed of the same run ("per CPU" in the
-   log, `normalized` in the JSON, "B/A cpu" in the comparison). That cancels clock and turbo
-   differences: if macOS boosts higher than Linux with turbo off, the raw kernel numbers favor
-   macOS, but the normalized ones show whether the kernel code path itself is faster.
+1. Use the same Mac for both systems. `benchmark-compare.sh` refuses to compare different
+   CPUs; between different chips you'd measure the chip, not the OS.
+2. Plug in, close heavy apps, leave the machine idle.
+3. Match turbo. Linux here runs with turbo off by default. macOS has no built-in switch, so
+   turbo off there needs Turbo Boost Switcher; the script detects its kernel extension and
+   records `turbo=off`. Check that line in the log.
+4. macOS: Low Power Mode off.
+5. 10 runs each; compare medians.
 
-## The tests
+Re-running on each macOS update is the only way to see whether the gap actually grows from
+release to release.
 
-| Key | Test | Kind | What it exercises |
-|---|---|---|---|
-| sha1 | sha256, single core (`openssl speed`) | user | integer ALU, clock policy, OpenSSL build |
-| shaN | sha256, all threads (`openssl speed -multi`) | user | scheduler placement over 8 cores / 16 threads, sustained power limit |
-| perl | perl integer loop | user | interpreter / branchy code, clock policy; also the normalization base |
-| gzip | gzip -6, single core | user | compression, clock policy, gzip build |
-| syscall | `dd bs=1`: 1-byte read + write | kernel | raw syscall entry/exit cost (incl. Spectre/Meltdown mitigations) |
-| stat | `stat("/")` in a loop | kernel | syscall plus path lookup in the VFS |
-| pipe | 1-byte ping-pong between two processes | kernel | pipe wakeups and context switches |
-| fork | fork, child exits, parent waits | kernel | process creation, address-space copy |
-| spawn | fork + exec `/usr/bin/true` | kernel | full program start: exec, dynamic loader, teardown |
-| files | create + unlink 5000 empty files | kernel + filesystem | ext4 on LUKS/LVM vs APFS (encrypted); see below |
-| fault | fill a fresh 2 GiB buffer | kernel | page faults on new memory, zeroing; partly user-space fill |
-| zero | `dd /dev/zero → /dev/null`, 1 MiB blocks | kernel | the kernel's in-kernel zero-fill; not DRAM bandwidth |
+## What each test measures
 
-Kernel tests are timed inside perl, so interpreter start-up isn't counted. `spawn` includes
-the dynamic loader of each OS (glibc `ld.so` vs `dyld`), so it measures "start a program" as a
-user sees it. `files` measures the filesystem stack as much as the kernel: ext4 on dm-crypt on
-LVM here, APFS with FileVault on macOS. Both are the stock storage setups, so it's still an OS
-comparison, just not a pure kernel one.
+| Test | Kind | What it exercises |
+|---|---|---|
+| sha256, one core (`openssl speed`) | CPU | integer units and clock; no AES-NI or SHA extensions involved |
+| sha256, all threads (`-multi`) | CPU | the scheduler spreading 16 threads over 8 cores, sustained power limit |
+| gzip -6 | CPU | compression; also the gzip build |
+| perl integer loop | CPU | branchy interpreter code; also the per-cycle baseline below |
+| tiny system calls (`dd bs=1`) | kernel | raw kernel entry and exit, including mitigations |
+| stat() | kernel | a system call plus a path lookup |
+| pipe ping-pong | kernel | waking another process, context switches |
+| fork | kernel | creating a process |
+| start a program (fork + exec `/usr/bin/true`) | kernel | exec, the dynamic loader (glibc vs dyld), teardown |
+| fresh memory | kernel | page faults on new memory, partly the fill itself |
+| kernel zero-fill (`dd /dev/zero`, 1 MiB) | kernel | the kernel filling memory; not DRAM bandwidth |
+| create + delete files | kernel + filesystem | the whole storage stack as each OS ships it |
 
-## What the comparison can and can't tell you
+Kernel tests are timed inside perl, so interpreter start-up isn't counted. The compare script
+also shows each kernel result divided by the single-core perl speed ("per CPU"). That cancels
+clock differences, which matters when turbo differs between two runs.
 
-- It **can** tell you which OS gets more from this Mac: the raw numbers on the same machine
-  under the same power conditions.
-- It **can** tell you which kernel path is leaner per CPU cycle: the normalized kernel numbers.
-- It **can't** separate the kernel from its standard library and loader (`spawn`), or from the
-  filesystem (`files`); those are measured as each OS ships them.
-- It doesn't measure disk throughput, GPU or network.
+The tests can't separate the kernel from its loader (program start) or from the filesystem
+(files); those are measured as each OS ships them. Disk throughput, GPU and network aren't
+measured.
 
-## Fair runs
+## Why fork is slow on Linux here
 
-1. Plugged in, not in the middle of a heavy charge, lid open, machine idle (close heavy apps;
-   a running Claude session costs a few percent in every run).
-2. Linux as is (turbo off). For the maximum, once more after `turbo-on` (`turbo-off` after).
-3. macOS with Low Power Mode off. macOS has no built-in turbo switch: turbo off there needs
-   Turbo Boost Switcher (a kext). The script detects that kext and records `turbo` as `off` or
-   `on`; check that line before comparing raw numbers with Linux turbo off. The normalized
-   kernel numbers are valid either way.
-4. 10 runs each, compare medians; the first run warms caches and the median absorbs that.
-5. On macOS, check the log: if LibreSSL doesn't support `-multi`, the all-threads sha256 value
-   is a single-core value and shouldn't be compared.
-
-## Result: Linux vs macOS (2026-11-16, same MacBookPro16,1, AC, turbo off, 10 runs)
-
-Linux: Ubuntu 26.04.1, kernel 7.3.4-3-t2, balanced profile, mitigations on, perl 5.40.1
-(`benchmarks/linux.json`). macOS: 26.7.3 (Darwin 25.6.0), Turbo Boost Switcher loaded,
-Low Power Mode off, perl 5.44.0 from /usr/local (`benchmarks/macos.json`).
-B/A = macOS / Linux; below 1 means Linux is faster.
-
-| test | Linux | macOS | B/A | B/A per CPU |
-|---|---|---|---|---|
-| sha256 single-core (MB/s) | 308 | 301.5 | 0.98 | |
-| sha256 all 16 threads (MB/s) | 2616 | 2525.5 | 0.97 | |
-| perl integer loop (M iter/s) | 9.91 | 7.78 | 0.78 | |
-| gzip -6 single-core (MB/s) | 20.1 | 18.35 | 0.91 | |
-| tiny syscalls (k calls/s) | 3141 | 741 | 0.24 | 0.30 |
-| stat(/) path lookup (k calls/s) | 872 | 239 | 0.27 | 0.35 |
-| pipe ping-pong (k round trips/s) | 136.6 | 80.9 | 0.59 | 0.75 |
-| fork + exit + wait (forks/s) | 1685 | 850 | 0.50 | 0.64 |
-| fork + exec /usr/bin/true (spawns/s) | 651 | 209 | 0.32 | 0.41 |
-| file create + unlink (k files/s) | 89.5 | 3.9 | 0.04 | 0.06 |
-| fresh memory (GiB/s) | 1.8 | 1.4 | 0.78 | 0.99 |
-| dd /dev/zero -> /dev/null 1 MiB (GiB/s) | 12.85 | 18.09 | 1.41 | 1.79 |
-
-- User space is close to a tie (sha256 within 3 %), so clock and chip match as intended.
-  The perl loop is 22 % slower on macOS, probably because the perl build differs (5.44 vs
-  5.40). That lowers the macOS per-CPU baseline, so the per-CPU column flatters macOS a little.
-- Linux is far ahead on kernel paths: syscalls and stat 3-4×, spawn 3×, fork 2×, pipe 1.7×.
-  macOS fork is steadier (721-868/s across runs) than the Linux 48 % spread.
-- File create + unlink is 23× faster on Linux. That gap is mostly the filesystem
-  (ext4 on LVM vs APFS with FileVault), not the kernel.
-- macOS wins only the 1 MiB `dd` zero copy (1.4×). The page-fault fill is equal per CPU.
-
-## Why fork is slow here (measured 2026-11-16, Linux, turbo off)
-
-The Linux baseline shows about 1,700 forks/s (≈0.6 ms per fork + exit + wait) with a 48 %
-spread across the 10 runs. Measured apart, three effects stack up:
+About 1,700 forks per second (0.6 ms each) with a 48 % spread is slow for Linux. Measured
+apart, with mitigations on:
 
 | Measurement | forks/s | `fork()` call | wait for the child |
 |---|---|---|---|
@@ -120,20 +173,13 @@ spread across the 10 runs. Measured apart, three effects stack up:
 | minimal C program | 3,100-5,600 | 60-110 µs | 115-215 µs |
 | minimal C, one core | 7,590 | 52 µs | 80 µs |
 
-1. **The child wakes a sleeping core** (the biggest share, and the cause of the spread). Linux
-   starts the child on another idle core; on this i9 idle cores sit in deep C-states with long
-   exit latencies (C8 200 µs, C10 890 µs). How deep that core happened to sleep decides the
-   cost. Keeping both on one core makes the minimal case 2.5× faster and nearly removes the
-   variation.
-2. **Turbo off.** The CPU runs at its 2.4 GHz base clock instead of boosting up to 5 GHz.
-3. **perl is a heavier process than minimal C** (more mappings and libraries to copy, its own
-   housekeeping on fork): roughly double the cost. The process's memory size barely matters:
-   0, 64 and 512 MiB touched cost the same, so page-table copying isn't the bottleneck.
+1. The child wakes a sleeping core. That's the biggest share, and the cause of the spread.
+   Linux starts the child on another idle core, and idle cores on this i9 sit in deep sleep
+   states that take long to leave (C8: 200 µs, C10: 890 µs). Keeping both on one core makes the
+   minimal case 2.5× faster and nearly removes the variation.
+2. Turbo is off, so the CPU runs at 2.4 GHz instead of up to 5 GHz.
+3. perl is a heavier process than minimal C, roughly double the cost. Memory size barely
+   matters: 0, 64 and 512 MiB touched cost the same.
 
-The CPU security mitigations are active but aren't the main factor: the syscall test shows
-about 0.16 µs per kernel call (see `docs/cpu-mitigations.md` to measure them directly).
-
-For the comparison: the same Mac has the same C-states under macOS, so the test is fair, but
-with a 48 % spread only differences above about 50 % count. It matters in practice only for
-workloads that start many short processes (configure scripts, shell loops, `make` with many
-small steps); turbo on or the performance profile speeds those up.
+That's also why turning the mitigations off barely moved fork: the time goes into waking
+cores, not into the kernel boundary. Turbo on or the performance profile would help more.

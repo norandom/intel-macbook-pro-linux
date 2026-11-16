@@ -1,0 +1,34 @@
+== benchmark 20261116-102450 (10 run(s))
+os:     Ubuntu 26.04.1 LTS (Linux 7.3.4-3-t2-resolute)
+mac:    MacBookPro16,1
+cpu:    Intel(R) Core(TM) i9-9980HK CPU @ 2.40GHz (8 cores / 16 threads), 62 GiB RAM
+power:  AC  turbo=off governor=powersave epp=balance_performance profile=balanced
+tools:  OpenSSL 3.5.5 27 Jan 2026 (Library: OpenSSL 3.5.5 27 Jan 2026)  perl v5.40.1
+
+run 1/10: sha1=308 shaN=2624 perl=9.89 gzip=20.0 syscall=4002.4 stat=948.1 pipe=144.6 fork=1598.7 spawn=681.6 files=98.6 fault=1.8 zero=12.94
+run 2/10: sha1=308 shaN=2607 perl=9.87 gzip=20.1 syscall=4001.0 stat=954.9 pipe=145.3 fork=2393.1 spawn=679.9 files=104.6 fault=1.8 zero=12.87
+run 3/10: sha1=307 shaN=2563 perl=9.88 gzip=20.1 syscall=3918.8 stat=920.6 pipe=148.7 fork=1867.6 spawn=671.8 files=96.3 fault=1.8 zero=12.91
+run 4/10: sha1=308 shaN=2625 perl=9.92 gzip=20.1 syscall=4004.1 stat=944.2 pipe=141.5 fork=2368.2 spawn=688.7 files=99.2 fault=1.8 zero=12.89
+run 5/10: sha1=308 shaN=2623 perl=9.87 gzip=20.1 syscall=4005.2 stat=952.0 pipe=145.9 fork=1530.4 spawn=683.2 files=100.7 fault=1.8 zero=12.92
+run 6/10: sha1=308 shaN=2624 perl=9.86 gzip=20.1 syscall=4006.5 stat=952.6 pipe=143.1 fork=1573.6 spawn=675.5 files=98.9 fault=1.8 zero=12.91
+run 7/10: sha1=308 shaN=2557 perl=9.87 gzip=20.0 syscall=3994.7 stat=949.6 pipe=147.9 fork=1806.5 spawn=678.7 files=98.7 fault=1.8 zero=12.86
+run 8/10: sha1=306 shaN=2600 perl=9.90 gzip=20.1 syscall=3991.4 stat=946.5 pipe=149.8 fork=1443.7 spawn=554.1 files=96.4 fault=1.8 zero=12.91
+run 9/10: sha1=308 shaN=2603 perl=9.89 gzip=20.0 syscall=4006.0 stat=949.0 pipe=146.0 fork=1601.3 spawn=695.8 files=102.0 fault=1.8 zero=12.92
+run 10/10: sha1=308 shaN=2596 perl=9.91 gzip=20.0 syscall=3974.2 stat=936.9 pipe=147.1 fork=2183.2 spawn=599.4 files=100.2 fault=1.8 zero=12.84
+
+median over 10 run(s); 'per CPU' = kernel result / single-core perl speed
+  cpu    sha256 single-core                                  308 MB/s            
+  cpu    sha256 all 16 threads                              2605 MB/s            
+  cpu    perl integer loop                                 9.885 M iter/s        
+  cpu    gzip -6 single-core                                20.1 MB/s            
+  kernel tiny syscalls (dd 1-byte read+write)             4001.7 k calls/s       per CPU 404.825
+  kernel stat(/) path lookup                              948.55 k calls/s       per CPU 95.959
+  kernel pipe ping-pong (context switches)                145.95 k round trips/s per CPU 14.765
+  kernel fork + exit + wait                               1703.9 forks/s         per CPU 172.372
+  kernel fork + exec /usr/bin/true                         679.3 spawns/s        per CPU 68.720
+  kernel file create + unlink (also the filesystem)        99.05 k files/s       per CPU 10.020
+  kernel fresh memory (page faults + fill)                   1.8 GiB/s           per CPU 0.182
+  kernel dd /dev/zero -> /dev/null 1 MiB                   12.91 GiB/s           per CPU 1.306
+
+== medians saved to benchmarks/mitigations-off/linux.json
+== log saved to benchmarks/mitigations-off/benchmark-linux-20261116-102450.txt

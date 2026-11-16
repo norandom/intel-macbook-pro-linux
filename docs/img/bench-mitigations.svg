@@ -1,0 +1,69 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="780" height="506" viewBox="0 0 780 506" role="img" aria-label="What switching the CPU mitigations off bought">
+<style>
+  svg { --surface:#fcfcfb; --ink:#0b0b0b; --ink2:#52514e; --grid:#e4e3df; --a:#2a78d6; --b:#eb6834; --mid:#a3a29c; }
+  @media (prefers-color-scheme: dark) {
+    svg { --surface:#1a1a19; --ink:#f0efec; --ink2:#c3c2b7; --grid:#383835; --a:#3987e5; --b:#d95926; --mid:#6f6e69; }
+  }
+  .bg { fill: var(--surface); } .t { fill: var(--ink); font: 600 15px system-ui, sans-serif; }
+  .s { fill: var(--ink2); font: 12px system-ui, sans-serif; } .l { fill: var(--ink); font: 13px system-ui, sans-serif; }
+  .g { fill: var(--ink2); font: 600 12px system-ui, sans-serif; } .v { fill: var(--ink); font: 600 12px system-ui, sans-serif; }
+  .grid { stroke: var(--grid); stroke-width: 1; } .axis { stroke: var(--ink2); stroke-width: 1.5; }
+  .a { fill: var(--a); } .b { fill: var(--b); } .mid { fill: var(--mid); }
+</style>
+<rect class="bg" width="780" height="506" rx="8"/>
+<text class="t" x="20" y="28">What switching the CPU mitigations off bought</text>
+<text class="s" x="20" y="47">Linux, same Mac, mitigations off vs on (median of 10 runs each). Gray: smaller than run-to-run noise.</text>
+<line class="axis" x1="250.0" y1="62" x2="250.0" y2="472"/>
+<text class="s" x="250.0" y="488" text-anchor="middle">+0 %</text>
+<line class="grid" x1="323.3" y1="62" x2="323.3" y2="472"/>
+<text class="s" x="323.3" y="488" text-anchor="middle">+5 %</text>
+<line class="grid" x1="396.7" y1="62" x2="396.7" y2="472"/>
+<text class="s" x="396.7" y="488" text-anchor="middle">+10 %</text>
+<line class="grid" x1="470.0" y1="62" x2="470.0" y2="472"/>
+<text class="s" x="470.0" y="488" text-anchor="middle">+15 %</text>
+<line class="grid" x1="543.3" y1="62" x2="543.3" y2="472"/>
+<text class="s" x="543.3" y="488" text-anchor="middle">+20 %</text>
+<line class="grid" x1="616.7" y1="62" x2="616.7" y2="472"/>
+<text class="s" x="616.7" y="488" text-anchor="middle">+25 %</text>
+<line class="grid" x1="690.0" y1="62" x2="690.0" y2="472"/>
+<text class="s" x="690.0" y="488" text-anchor="middle">+30 %</text>
+<text class="g" x="20" y="84">CPU WORK (USER SPACE)</text>
+<text class="l" x="20" y="106">sha256, one core</text>
+<rect class="mid" x="250" y="94" width="2.0" height="16" rx="3"/>
+<text class="v" x="258.0" y="106">0 % (noise)</text>
+<text class="l" x="20" y="132">sha256, all 16 threads</text>
+<rect class="mid" x="250" y="120" width="2.0" height="16" rx="3"/>
+<text class="v" x="258.0" y="132">0 % (noise)</text>
+<text class="l" x="20" y="158">gzip -6, one core</text>
+<rect class="mid" x="250" y="146" width="2.0" height="16" rx="3"/>
+<text class="v" x="258.0" y="158">0 % (noise)</text>
+<text class="l" x="20" y="184">perl integer loop *</text>
+<rect class="mid" x="250" y="172" width="2.0" height="16" rx="3"/>
+<text class="v" x="258.0" y="184">0 % (noise)</text>
+<text class="g" x="20" y="220">OS WORK (KERNEL)</text>
+<text class="l" x="20" y="242">tiny system calls</text>
+<rect class="a" x="250" y="230" width="401.7" height="16" rx="3"/>
+<text class="v" x="657.7" y="242">+27 %</text>
+<text class="l" x="20" y="268">file lookup, stat()</text>
+<rect class="a" x="250" y="256" width="127.9" height="16" rx="3"/>
+<text class="v" x="383.9" y="268">+9 %</text>
+<text class="l" x="20" y="294">start a program</text>
+<rect class="mid" x="250" y="282" width="63.1" height="16" rx="3"/>
+<text class="v" x="319.1" y="294">+4 % (noise)</text>
+<text class="l" x="20" y="320">fork a process</text>
+<rect class="mid" x="250" y="308" width="16.1" height="16" rx="3"/>
+<text class="v" x="272.1" y="320">+1 % (noise)</text>
+<text class="l" x="20" y="346">pipe ping-pong</text>
+<rect class="a" x="250" y="334" width="101.0" height="16" rx="3"/>
+<text class="v" x="357.0" y="346">+7 %</text>
+<text class="l" x="20" y="372">fresh memory (page faults)</text>
+<rect class="mid" x="250" y="360" width="2.0" height="16" rx="3"/>
+<text class="v" x="258.0" y="372">0 % (noise)</text>
+<text class="l" x="20" y="398">kernel zero-fill (dd)</text>
+<rect class="mid" x="250" y="386" width="6.8" height="16" rx="3"/>
+<text class="v" x="262.8" y="398">0 % (noise)</text>
+<text class="g" x="20" y="434">OS + FILESYSTEM</text>
+<text class="l" x="20" y="456">create + delete files **</text>
+<rect class="a" x="250" y="444" width="156.5" height="16" rx="3"/>
+<text class="v" x="412.5" y="456">+11 %</text>
+</svg>

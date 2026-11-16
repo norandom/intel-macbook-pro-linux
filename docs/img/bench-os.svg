@@ -1,0 +1,71 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="780" height="522" viewBox="0 0 780 522" role="img" aria-label="Same MacBook Pro, two operating systems">
+<style>
+  svg { --surface:#fcfcfb; --ink:#0b0b0b; --ink2:#52514e; --grid:#e4e3df; --a:#2a78d6; --b:#eb6834; --mid:#a3a29c; }
+  @media (prefers-color-scheme: dark) {
+    svg { --surface:#1a1a19; --ink:#f0efec; --ink2:#c3c2b7; --grid:#383835; --a:#3987e5; --b:#d95926; --mid:#6f6e69; }
+  }
+  .bg { fill: var(--surface); } .t { fill: var(--ink); font: 600 15px system-ui, sans-serif; }
+  .s { fill: var(--ink2); font: 12px system-ui, sans-serif; } .l { fill: var(--ink); font: 13px system-ui, sans-serif; }
+  .g { fill: var(--ink2); font: 600 12px system-ui, sans-serif; } .v { fill: var(--ink); font: 600 12px system-ui, sans-serif; }
+  .grid { stroke: var(--grid); stroke-width: 1; } .axis { stroke: var(--ink2); stroke-width: 1.5; }
+  .a { fill: var(--a); } .b { fill: var(--b); } .mid { fill: var(--mid); }
+</style>
+<rect class="bg" width="780" height="522" rx="8"/>
+<text class="t" x="20" y="28">Same MacBook Pro, two operating systems</text>
+<text class="s" x="20" y="47">How many times faster one OS runs each test (median of 10 runs, turbo off, on AC). Gray: within run-to-run noise.</text>
+<line class="grid" x1="250.0" y1="62" x2="250.0" y2="472"/>
+<text class="s" x="250.0" y="488" text-anchor="middle">0.5×</text>
+<line class="axis" x1="323.3" y1="62" x2="323.3" y2="472"/>
+<text class="s" x="323.3" y="488" text-anchor="middle">1×</text>
+<line class="grid" x1="396.7" y1="62" x2="396.7" y2="472"/>
+<text class="s" x="396.7" y="488" text-anchor="middle">2×</text>
+<line class="grid" x1="470.0" y1="62" x2="470.0" y2="472"/>
+<text class="s" x="470.0" y="488" text-anchor="middle">4×</text>
+<line class="grid" x1="543.3" y1="62" x2="543.3" y2="472"/>
+<text class="s" x="543.3" y="488" text-anchor="middle">8×</text>
+<line class="grid" x1="616.7" y1="62" x2="616.7" y2="472"/>
+<text class="s" x="616.7" y="488" text-anchor="middle">16×</text>
+<line class="grid" x1="690.0" y1="62" x2="690.0" y2="472"/>
+<text class="s" x="690.0" y="488" text-anchor="middle">32×</text>
+<text class="s" x="254.0" y="506">◀ macOS faster</text>
+<text class="s" x="690.0" y="506" text-anchor="end">Linux faster ▶</text>
+<text class="g" x="20" y="84">CPU WORK (USER SPACE)</text>
+<text class="l" x="20" y="106">sha256, one core</text>
+<rect class="mid" x="323.3" y="94" width="2.3" height="16" rx="3"/>
+<text class="v" x="331.6" y="106" text-anchor="start">about equal</text>
+<text class="l" x="20" y="132">sha256, all 16 threads</text>
+<rect class="mid" x="323.3" y="120" width="3.7" height="16" rx="3"/>
+<text class="v" x="333.1" y="132" text-anchor="start">about equal</text>
+<text class="l" x="20" y="158">gzip -6, one core</text>
+<rect class="mid" x="323.3" y="146" width="9.6" height="16" rx="3"/>
+<text class="v" x="339.0" y="158" text-anchor="start">about equal</text>
+<text class="l" x="20" y="184">perl integer loop *</text>
+<rect class="a" x="323.3" y="172" width="25.7" height="16" rx="3"/>
+<text class="v" x="355.0" y="184" text-anchor="start">1.3× Linux</text>
+<text class="g" x="20" y="220">OS WORK (KERNEL)</text>
+<text class="l" x="20" y="242">tiny system calls</text>
+<rect class="a" x="323.3" y="230" width="152.8" height="16" rx="3"/>
+<text class="v" x="482.1" y="242" text-anchor="start">4.2× Linux</text>
+<text class="l" x="20" y="268">file lookup, stat()</text>
+<rect class="a" x="323.3" y="256" width="137.1" height="16" rx="3"/>
+<text class="v" x="466.5" y="268" text-anchor="start">3.7× Linux</text>
+<text class="l" x="20" y="294">start a program</text>
+<rect class="a" x="323.3" y="282" width="120.4" height="16" rx="3"/>
+<text class="v" x="449.8" y="294" text-anchor="start">3.1× Linux</text>
+<text class="l" x="20" y="320">fork a process</text>
+<rect class="a" x="323.3" y="308" width="72.4" height="16" rx="3"/>
+<text class="v" x="401.7" y="320" text-anchor="start">2.0× Linux</text>
+<text class="l" x="20" y="346">pipe ping-pong</text>
+<rect class="a" x="323.3" y="334" width="55.4" height="16" rx="3"/>
+<text class="v" x="384.8" y="346" text-anchor="start">1.7× Linux</text>
+<text class="l" x="20" y="372">fresh memory (page faults)</text>
+<rect class="a" x="323.3" y="360" width="26.6" height="16" rx="3"/>
+<text class="v" x="355.9" y="372" text-anchor="start">1.3× Linux</text>
+<text class="l" x="20" y="398">kernel zero-fill (dd)</text>
+<rect class="b" x="287.2" y="386" width="36.2" height="16" rx="3"/>
+<text class="v" x="281.2" y="398" text-anchor="end">1.4× macOS</text>
+<text class="g" x="20" y="434">OS + FILESYSTEM</text>
+<text class="l" x="20" y="456">create + delete files **</text>
+<rect class="a" x="323.3" y="444" width="331.5" height="16" rx="3"/>
+<text class="v" x="660.8" y="456" text-anchor="start">22.9× Linux</text>
+</svg>

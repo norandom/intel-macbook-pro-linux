@@ -27,7 +27,7 @@ network by this change.
    turbo off, balanced, 10 runs.
 2. **macOS** (done 2026-11-16) on the same Mac: `benchmarks/macos.json` (turbo off via Turbo Boost Switcher,
    Low Power Mode off). macOS keeps its mitigations on, so this compares against step 1.
-3. **After**: set the flag and deploy (below), reboot, then
+3. **After** (done 2026-11-16): set the flag and deploy (below), reboot, then
    `benchmarks/mitigations-off/linux.json` under the same conditions as step 1.
 
 Three comparisons then come out of `tools/benchmark-compare.sh`:
@@ -37,6 +37,12 @@ bash tools/benchmark-compare.sh benchmarks/linux.json benchmarks/macos.json     
 bash tools/benchmark-compare.sh benchmarks/linux.json benchmarks/mitigations-off/linux.json      # cost of the mitigations
 bash tools/benchmark-compare.sh benchmarks/macos.json benchmarks/mitigations-off/linux.json      # macOS vs tuned Linux
 ```
+
+## Result (2026-11-16)
+
+System calls 27 % faster, file create/delete 11 %, stat() 9 %, pipes 7 %; CPU work unchanged;
+fork and program start within noise. Decision: keep them off on this machine. Charts, numbers
+and the "we're wrong if" conditions are in `docs/benchmark.md`.
 
 ## Do it
 
