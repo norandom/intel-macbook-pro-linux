@@ -61,6 +61,8 @@ NATIVE = {
     "heaptrack-gui": ("heaptrack-gui", "heaptrack_gui"),
     # Media player (owner request 2026-11-16; Ubuntu .deb, not a snap)
     "vlc": ("vlc", "vlc"),
+    # apt rather than Nix: Ubuntu's build finds the system VA-API drivers (Intel/AMD hardware encode)
+    "ffmpeg": ("ffmpeg", "ffmpeg"),
 }
 
 # name -> (version, url, sha256), verbatim from source group_data/all.py release_tools.

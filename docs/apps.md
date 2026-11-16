@@ -27,6 +27,7 @@ package guard ([safety.md](safety.md)). The full inventory, with the reason for 
 | qpdfview, xpdf | PDF viewers | |
 | Ristretto | Image viewer | |
 | VLC | Video and audio player | The QuickTime Player replacement |
+| ffmpeg | Convert, cut and record video and audio (command line) | Ubuntu's build, so hardware encoding through VA-API works |
 
 The Craft apps are young projects, so expect rough edges. LibreOffice Impress isn't installed;
 DeckCraft covers slides. You can change the LibreOffice UI per user in View > User Interface.
