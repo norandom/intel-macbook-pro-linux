@@ -96,6 +96,7 @@ RELEASE_FALLBACK = {
 #   code         BC528686B50D79E339D3721CEB3E94ADBE1229CF (Microsoft Release signing)
 #   typora       4AC441BE68B4ADAB7439FBF9BA300B7755AFCFAE (Typora linux packages)
 #   xtradeb      5301FA4FD93244FBC6F6149982BB6851C64F6880 (Launchpad PPA for xtradeb)
+#   mozilla      35BAA0B33E9EB396F59CA838C0BA5CE6DC6315A3 (Mozilla's documented apt signer)
 #   intel-oneapi E9BF0AFC46D6E8B7DA5882F1BAC6F0C353D04109 (Intel Software Development Products,
 #                current signer; the file also carries Intel's four expired predecessor keys)
 VENDOR_REPOS = {
@@ -110,6 +111,9 @@ VENDOR_REPOS = {
     # icx/icpx; not on PATH (no setvars.sh, no CC/CXX), so the probe is the absolute path.
     "intel-oneapi": ("intel-oneapi", ("intel-oneapi-compiler-dpcpp-cpp",), "/opt/intel/oneapi/compiler/latest/bin/icx",
                      "b64d30657bf1ba91aec0f932910419698047c9ab6387cbbe52430dc59bcf6d86"),
+    # The one Firefox here (web dev); Ubuntu's snap-transitional firefox is pinned to -1.
+    "firefox-devedition": ("mozilla", ("firefox-devedition", "firefox-devedition-l10n-de"), "firefox-devedition",
+                           "a22e1a7885381e4005b61884a5205892c39d15f5c262555e38b4fe5402ca8895"),
 }
 # Pinned vendor .debs: id -> (dpkg package, dpkg Version, url, sha256, executable).
 VENDOR_DEBS = {
@@ -194,6 +198,8 @@ OTHER = {
     "zoom": ("vendor", _VENDOR_OWNER, "zoom", _DEB + " (Wayland portal sharing on)"),
     "slack": ("vendor", _VENDOR_OWNER, "slack", _DEB + " (its cron repo-add disabled)"),
     "discord": ("vendor", _VENDOR_OWNER, "discord", _DEB + " (host self-updates in ~/.config/discord)"),
+    "firefox-devedition": ("vendor", _VENDOR_OWNER, "firefox-devedition",
+                           _REPO + " (Mozilla; pinned to Developer Edition only; not the default browser)"),
     "rclone-ui": ("vendor", _VENDOR_OWNER, "Rclone UI", _DEB + " (Tauri, system WebKitGTK; point it at Nix rclone)"),
     # Its postinst builds and insmods the SEP sampling drivers and installs a boot script
     # (kernel boundary); VTune 2026.6 HW sampling also does not support this i9-9980HK.

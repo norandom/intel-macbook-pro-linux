@@ -2,7 +2,8 @@
 
 Run: .venv/bin/pyinfra @local tasks/vendor_apps.py [--dry] [--use-sudo-password]
 
-- Repos (Sublime Text, VS Code, Typora, XtraDeb Chromium, Intel oneAPI icx/icpx): committed signing key, sha256
+- Repos (Sublime Text, VS Code, Typora, XtraDeb Chromium, Intel oneAPI icx/icpx,
+  Mozilla Firefox Developer Edition): committed signing key, sha256
   checked here before anything; deb line with signed-by; first install refreshes only that
   source and goes through the guarded root helper (manage.packages). Updates via apt.
 - .debs (Obsidian, Bitwarden, Quarto, Positron, Remote Desktop Manager, Zoom, Slack, Discord): pinned version, URL,
@@ -50,6 +51,10 @@ def _refresh(name):
 # XtraDeb carries many apps (firefox, ...): pin it to Chromium only, before its list exists.
 files.put(name="XtraDeb PPA pin (chromium packages only)", src=str(src / "90-t2-xtradeb.pref"),
           dest="/etc/apt/preferences.d/90-t2-xtradeb.pref", mode="0644", _sudo=True)
+# Mozilla's repo carries firefox, nightly, beta, ...: only Developer Edition may come from it,
+# and Ubuntu's snap-transitional firefox can never be chosen.
+files.put(name="Mozilla repo pin (firefox-devedition only)", src=str(src / "90-t2-mozilla.pref"),
+          dest="/etc/apt/preferences.d/90-t2-mozilla.pref", mode="0644", _sudo=True)
 repo_packages, repo_lists, preseed = [], [], ""
 for app_id, (name, packages, exe, _sha) in VENDOR_REPOS.items():
     files.put(name=f"{name} archive key", src=str(src / f"{name}-keyring.gpg"),

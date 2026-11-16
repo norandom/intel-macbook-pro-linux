@@ -1,0 +1,3 @@
+# Mozilla packages (managed by t2-mac-kde). Pinned by /etc/apt/preferences.d/90-t2-mozilla.pref:
+# only Firefox Developer Edition may come from it.
+deb [arch=amd64 signed-by=/usr/share/keyrings/mozilla-archive-keyring.gpg] https://packages.mozilla.org/apt mozilla main

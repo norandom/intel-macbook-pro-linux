@@ -38,6 +38,19 @@ class RepoTests(unittest.TestCase):
         self.assertIn("code code/add-microsoft-repo boolean false", TASK)
         self.assertNotEqual(apps.VENDOR_REPOS["code"][0], "vscode")  # vscode.list would be rewritten by postinst
 
+    def test_mozilla_repo_may_only_supply_devedition(self):
+        text = (SRC / "90-t2-mozilla.pref").read_text()
+        blocks = [dict(l.split(": ", 1) for l in b.splitlines() if not l.startswith("#"))
+                  for b in text.strip().split("\n\n")]
+        self.assertEqual(blocks, [
+            {"Package": "*", "Pin": "origin packages.mozilla.org", "Pin-Priority": "-1"},
+            {"Package": "firefox-devedition firefox-devedition-l10n-*", "Pin": "origin packages.mozilla.org",
+             "Pin-Priority": "1000"},
+            {"Package": "firefox", "Pin": "release o=Ubuntu", "Pin-Priority": "-1"},
+        ])
+        self.assertEqual(apps.VENDOR_REPOS["firefox-devedition"][1], ("firefox-devedition", "firefox-devedition-l10n-de"))
+        self.assertIn("90-t2-mozilla.pref", TASK)
+
     def test_xtradeb_ppa_may_only_supply_chromium(self):
         text = (SRC / "90-t2-xtradeb.pref").read_text()
         blocks = [dict(l.split(": ", 1) for l in b.splitlines() if not l.startswith("#"))

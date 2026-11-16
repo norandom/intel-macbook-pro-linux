@@ -25,7 +25,7 @@ Entry point: `.venv/bin/pyinfra @local tasks/apps.py [--dry]`. Inventory: `manag
       re-probed executables; written only on a real run).
 - [x] No purges, no Snap/Flatpak in tasks/apps.py.
 - [x] tasks/vendor_apps.py (owner-approved): sha-pinned keyring repos sublime-text, code (own repo entry
-      suppressed via debconf), typora, intel-oneapi icx/icpx, chromium + chromium-driver (XtraDeb PPA pinned to chromium only);
+      suppressed via debconf), typora, intel-oneapi icx/icpx, firefox-devedition (Mozilla repo pinned to it), chromium + chromium-driver (XtraDeb PPA pinned to chromium only);
       pinned .debs obsidian, bitwarden, quarto, positron, remotedesktopmanager, zoom, slack, discord, rclone-ui;
       user tarballs zed, zen, podman-desktop in ~/.local/opt (+ userns AppArmor profiles).
 - [x] tasks/office_apps.py: LibreOffice Writer+Calc (de/en-US, Carlito; guarded apt) + Tabbed UI layer
