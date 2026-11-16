@@ -1,0 +1,72 @@
+== test3 hibernate stages (normal)  2026-11-16T12:13:19+01:00  kernel 7.3.4-3-t2-resolute
+pm_test levels: [none] core processors platform devices freezer   disk modes: [platform] shutdown reboot suspend test_resume
+12:13:21 start level=freezer
+12:13:30 PASS  level=freezer
+12:13:33 start level=devices
+12:13:45 PASS  level=devices
+12:13:48 start level=platform
+== test3 hibernate stages (nowifi)  2026-11-16T12:16:44+01:00  kernel 7.3.4-3-t2-resolute
+pm_test levels: [none] core processors platform devices freezer   disk modes: [platform] shutdown reboot suspend test_resume
+12:16:47 brcmfmac unloaded
+12:16:47 start level=freezer
+12:16:56 PASS  level=freezer
+12:16:59 start level=devices
+12:17:10 PASS  level=devices
+12:17:13 start level=platform
+== test3 hibernate stages (shutdown)  2026-11-16T12:21:15+01:00  kernel 7.3.4-3-t2-resolute
+pm_test levels: [none] core processors platform devices freezer   disk modes: [platform] shutdown reboot suspend test_resume
+12:21:17 disk mode: platform [shutdown] reboot suspend test_resume
+12:21:18 start level=freezer
+12:21:26 PASS  level=freezer
+12:21:29 start level=devices
+12:21:41 PASS  level=devices
+12:21:44 start level=platform
+12:21:56 PASS  level=platform
+12:22:00 start level=processors
+12:22:12 PASS  level=processors
+12:22:15 start level=core
+12:22:27 PASS  level=core
+--- kernel messages of this test:
+[  226.573731] amdgpu 0000:03:00.0: ring comp_1.0.0 uses VM inv eng 1 on hub 0
+[  226.573732] amdgpu 0000:03:00.0: ring comp_1.1.0 uses VM inv eng 4 on hub 0
+[  226.573734] amdgpu 0000:03:00.0: ring comp_1.2.0 uses VM inv eng 5 on hub 0
+[  226.573735] amdgpu 0000:03:00.0: ring comp_1.3.0 uses VM inv eng 6 on hub 0
+[  226.573736] amdgpu 0000:03:00.0: ring comp_1.0.1 uses VM inv eng 7 on hub 0
+[  226.573737] amdgpu 0000:03:00.0: ring comp_1.1.1 uses VM inv eng 8 on hub 0
+[  226.573739] amdgpu 0000:03:00.0: ring comp_1.2.1 uses VM inv eng 9 on hub 0
+[  226.573740] amdgpu 0000:03:00.0: ring comp_1.3.1 uses VM inv eng 10 on hub 0
+[  226.573741] amdgpu 0000:03:00.0: ring kiq_0.2.1.0 uses VM inv eng 11 on hub 0
+[  226.573743] amdgpu 0000:03:00.0: ring sdma0 uses VM inv eng 12 on hub 0
+[  226.573744] amdgpu 0000:03:00.0: ring sdma1 uses VM inv eng 13 on hub 0
+[  226.573745] amdgpu 0000:03:00.0: ring vcn_dec uses VM inv eng 0 on hub 8
+[  226.573747] amdgpu 0000:03:00.0: ring vcn_enc0 uses VM inv eng 1 on hub 8
+[  226.573748] amdgpu 0000:03:00.0: ring vcn_enc1 uses VM inv eng 4 on hub 8
+[  226.573749] amdgpu 0000:03:00.0: ring jpeg_dec uses VM inv eng 5 on hub 8
+[  226.578459] amdgpu 0000:03:00.0: [drm] Adding stream 00000000dedb29a3 to context failed with err 28!
+[  226.578643] amdgpu 0000:03:00.0: [drm] Adding stream 00000000dedb29a3 to context failed with err 28!
+[  226.578856] amdgpu 0000:03:00.0: [drm] Adding stream 00000000dedb29a3 to context failed with err 28!
+[  226.579026] amdgpu 0000:03:00.0: [drm] Adding stream 00000000dedb29a3 to context failed with err 28!
+[  226.579193] amdgpu 0000:03:00.0: [drm] Adding stream 00000000dedb29a3 to context failed with err 28!
+[  226.579318] amdgpu 0000:03:00.0: [drm] Cannot find any crtc or sizes
+[  226.579510] amdgpu 0000:03:00.0: [drm] Adding stream 00000000dedb29a3 to context failed with err 28!
+[  226.579731] amdgpu 0000:03:00.0: [drm] Adding stream 00000000dedb29a3 to context failed with err 28!
+[  226.579884] amdgpu 0000:03:00.0: [drm] Adding stream 00000000dedb29a3 to context failed with err 28!
+[  226.580039] amdgpu 0000:03:00.0: [drm] Adding stream 00000000dedb29a3 to context failed with err 28!
+[  226.580220] amdgpu 0000:03:00.0: [drm] Adding stream 00000000dedb29a3 to context failed with err 28!
+[  226.580298] amdgpu 0000:03:00.0: [drm] Cannot find any crtc or sizes
+[  227.200110] t2bce_vhci: bus_resume entry
+[  227.200119] t2bce_vhci: resume of a queue with pending submissions
+[  227.200121] t2bce_vhci: resume of a queue with pending submissions
+[  227.200123] t2bce_vhci: resume of a queue with pending submissions
+[  227.200125] t2bce_vhci: resume of a queue with pending submissions
+[  227.200126] t2bce_vhci: resume of a queue with pending submissions
+[  227.217382] t2bce_vhci: bus_resume exit status=0
+[  227.394862] usb 7-1: reset high-speed USB device number 6 using t2bce_core
+[  227.580775] t2bce_audio: aborted suspend restored
+[  227.581633] PM: hibernation: Basic memory bitmaps freed
+[  227.582779] Restarting tasks: Starting
+[  227.586017] Restarting tasks: Done
+[  228.371927] PM: hibernation: hibernation exit
+== done
+12:22:30 disk mode back to: [platform] shutdown reboot suspend test_resume
+12:22:30 pm_test reset to: [none] core processors platform devices freezer

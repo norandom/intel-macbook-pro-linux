@@ -1,0 +1,27 @@
+== test2 fan control  2026-11-16T08:42:23+01:00  kernel 7.3.4-3-t2-resolute
+labels: Fan 0 / Fan 1; min 1836/1700 max 5616/5200
+before:
+  fan1 1835 rpm (target 1836)  fan2 1701 rpm (target 1700)  cpu 47 C
+set both targets to 3000 rpm:
+/sys/devices/pci0000:00/0000:00:1f.0/APP0001:00/macsmc-hwmon/hwmon/hwmon4/fan1_target: Operation not supported (os error 95)
+  write REFUSED
+ after 4s:
+  fan1 1836 rpm (target 1836)  fan2 1692 rpm (target 1700)  cpu 46 C
+ after 8s:
+  fan1 1829 rpm (target 1836)  fan2 1692 rpm (target 1700)  cpu 46 C
+ after 12s:
+  fan1 1814 rpm (target 1836)  fan2 1699 rpm (target 1700)  cpu 46 C
+set both targets to 4000 rpm:
+/sys/devices/pci0000:00/0000:00:1f.0/APP0001:00/macsmc-hwmon/hwmon/hwmon4/fan1_target: Operation not supported (os error 95)
+  write REFUSED
+ after 4s:
+  fan1 1836 rpm (target 1836)  fan2 1691 rpm (target 1700)  cpu 46 C
+ after 8s:
+  fan1 1835 rpm (target 1836)  fan2 1703 rpm (target 1700)  cpu 46 C
+ after 12s:
+  fan1 1834 rpm (target 1836)  fan2 1687 rpm (target 1700)  cpu 46 C
+== done (restore follows), log: docs/t2-tests/test2.log
+restore minimum targets (1836 / 1700):
+/sys/devices/pci0000:00/0000:00:1f.0/APP0001:00/macsmc-hwmon/hwmon/hwmon4/fan1_target: Operation not supported (os error 95)
+/sys/devices/pci0000:00/0000:00:1f.0/APP0001:00/macsmc-hwmon/hwmon/hwmon4/fan2_target: Operation not supported (os error 95)
+  fan1 1821 rpm (target 1836)  fan2 1711 rpm (target 1700)  cpu 46 C

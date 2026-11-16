@@ -20,6 +20,7 @@
 # crash_upload = true              # false: whoopsie masked, no uploads to errors.ubuntu.com
 
 # hibernate = false               # true: Hibernate in the power menu; needs disk swap >= RAM (docs/hibernate-swap.md)
+# lid_close = "suspend"          # "hibernate": closing the lid hibernates (needs hibernate = true)
 # yubikey_login = false           # true: touch a registered YubiKey instead of the password (docs/security-keys.md)
 # cpu_mitigations_off = false     # true: mitigations=off via a GRUB drop-in, at the next reboot
 # battery_charge_limit = 100      # e.g. 80 when mostly plugged in; t2-battery full|limit|status

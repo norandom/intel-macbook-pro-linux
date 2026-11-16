@@ -165,6 +165,24 @@ else:
     files.file(name="hypr-hibernate removed (hibernate off)", path=f"{bin_dir}/hypr-hibernate", present=False)
     rule = files.file(name="polkit hibernate rule removed (hibernate off)",
                       path="/etc/polkit-1/rules.d/49-t2-hibernate.rules", present=False, _sudo=True)
+# Lid close (config lid_close: "suspend" default | "hibernate"; hibernate needs hibernate = true).
+# HandleLidSwitch also covers external power; docked (external monitor) stays logind's "ignore".
+lid_close = setting("lid_close", "suspend")
+if lid_close not in ("suspend", "hibernate"):
+    raise ValueError('lid_close must be "suspend" or "hibernate"')
+if lid_close == "hibernate" and not hibernate:
+    logger.warning('lid_close = "hibernate" needs hibernate = true; closing the lid keeps suspending')
+    lid_close = "suspend"
+lid = (files.put(name="logind: lid close hibernates", dest="/etc/systemd/logind.conf.d/t2-lid.conf", mode="644",
+                 create_remote_dir=True, _sudo=True,
+                 src=StringIO("# Managed by t2-mac-kde (desktop, config lid_close)\n[Login]\n"
+                              "HandleLidSwitch=hibernate\nHandleLidSwitchExternalPower=hibernate\n"))
+       if lid_close == "hibernate" else
+       files.file(name="logind: lid close back to suspend (default)", path="/etc/systemd/logind.conf.d/t2-lid.conf",
+                  present=False, _sudo=True))
+# logind re-reads its config on SIGHUP; a restart would end the session.
+server.shell(name="logind: reload lid setting (SIGHUP, no restart)", _if=lid.did_change, _sudo=True,
+             commands=["systemctl kill -s HUP --kill-whom=main systemd-logind.service"])
 # polkitd reloads rules on inotify, but it saw the file before its chmod 644 ("Error loading
 # script") and doesn't retry: restart it after a change (agents reconnect by themselves).
 server.shell(name="Restart polkit to load the hibernate rule", _if=rule.did_change, _sudo=True,

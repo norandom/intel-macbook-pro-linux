@@ -5,11 +5,10 @@ Owner-run, not automated. Swap and LVM are on the protected list
 
 ## Status (2026-11-16)
 
-The swap is resized (80 GiB), but hibernate itself doesn't work on this T2 yet: the kernel hangs
-right after it starts hibernating, because the T2 bridge drivers (`t2bce_*`) don't support the
-hibernation freeze. The known workaround unloads those drivers before sleeping, which this
-repository doesn't do (protected boundary). Keep `hibernate = false` and use Suspend. Details and sources:
-[known-issues.md](known-issues.md#hibernate-hangs-the-machine-t2-driver-limitation).
+The swap is resized (80 GiB). With the default disk mode the kernel hangs in Apple's firmware
+(ACPI S4); with `HibernateMode=shutdown`, which `hibernate = true` sets, all test stages pass.
+No drivers are unloaded. `lid_close = "hibernate"` makes closing the lid hibernate. Details and
+sources: [known-issues.md](known-issues.md#hibernate-hangs-the-machine-t2-driver-limitation).
 
 ## Why it's needed
 

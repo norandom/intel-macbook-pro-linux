@@ -128,7 +128,8 @@ Read by `tasks/rdp.py`.
 
 | Key | Default | Effect |
 |---|---|---|
-| `hibernate` | `false` | `true`: Hibernate in the power and Apps menus, allowed by a polkit rule (Ubuntu forbids it by default); needs disk swap at least as big as RAM ([hibernate-swap.md](hibernate-swap.md)). Currently hangs on T2 Macs ([known-issues.md](known-issues.md)), so leave it off |
+| `hibernate` | `false` | `true`: Hibernate in the power and Apps menus, allowed by a polkit rule (Ubuntu forbids it by default); needs disk swap at least as big as RAM ([hibernate-swap.md](hibernate-swap.md)). Uses `HibernateMode=shutdown`, because Apple's firmware hangs in the ACPI S4 call ([known-issues.md](known-issues.md)) |
+| `lid_close` | `"suspend"` | `"hibernate"`: closing the lid hibernates, on battery and on power; only together with `hibernate = true`. With an external monitor attached the lid is ignored, as before |
 | `yubikey_login` | `false` | `true`: touch a registered YubiKey instead of the password for sudo, polkit, login, lock screen ([security-keys.md](security-keys.md)) |
 
 ## Example

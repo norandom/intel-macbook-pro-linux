@@ -24,6 +24,14 @@ class HibernateTests(unittest.TestCase):
         for bad in ("rmmod", "modprobe -r", "t2bce"):
             self.assertNotIn(bad, task)   # no driver unloading: pm_test showed devices freeze fine
 
+    def test_lid_hibernate_needs_hibernate_and_never_restarts_logind(self):
+        task = (ROOT / "tasks/desktop.py").read_text()
+        self.assertIn('setting("lid_close", "suspend")', task)
+        self.assertIn('if lid_close == "hibernate" and not hibernate:', task)
+        self.assertIn("HandleLidSwitch=hibernate", task)
+        self.assertIn("systemctl kill -s HUP --kill-whom=main systemd-logind.service", task)
+        self.assertNotIn("restart systemd-logind", task)
+
     def test_rule_sorts_before_ubuntus(self):
         self.assertLess("49-t2-hibernate.rules", "com.ubuntu.desktop.rules")
 

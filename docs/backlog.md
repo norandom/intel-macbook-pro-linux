@@ -18,13 +18,10 @@ and configuration tasks, per explicit owner direction.
 
 ## Hibernate
 
-- 2026-11-16: swap LV grown to 80 GiB (owner, live USB); config `hibernate` built (polkit rule +
-  guarded menu entry). First test: the kernel hangs right after "PM: hibernation: hibernation
-  entry" / "Filesystems sync" (forced power-off needed). Cause: the T2 bridge drivers (t2bce_*,
-  formerly apple-bce) don't survive the hibernation freeze. The t2linux workaround unloads them
-  before sleep and reloads them after, which the protected boundary forbids (and which can lose
-  keyboard and trackpad). `hibernate = false` again; revisit with a newer t2 kernel. Defect write-up with sources:
-  `docs/known-issues.md`.
+- 2026-11-16: swap 80 GiB; `hibernate = true` (polkit rule, guarded menu entry,
+  HibernateMode=shutdown after pm_test found the ACPI S4 hang); `lid_close = "hibernate"`.
+  pm_test passes all stages (docs/t2-tests/test3.log). Still to do: first real hibernate +
+  restore on the owner's machine. Details: `docs/known-issues.md`.
 
 ## Verbose boot and shutdown
 
@@ -36,7 +33,7 @@ and configuration tasks, per explicit owner direction.
 
 - 2026-11-16: the t2 kernel's macsmc_hwmon driver rejects writes to fan*_target (EOPNOTSUPP),
   and t2fanrd targets the old applesmc files, so custom fan curves aren't possible now.
-  Revisit with a newer t2 kernel / the owner's t2 fork (test: ~/t2-tests/test2.sh).
+  Revisit with a newer t2 kernel / the owner's t2 fork (test: docs/t2-tests/test2.sh).
 
 ## CPU mitigations off
 

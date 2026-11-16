@@ -17,7 +17,7 @@ kernel: Filesystems sync: 0.048 seconds
 Nothing after that point reaches the disk, so the hang is in the next phase: freezing tasks and
 devices to create the memory image.
 
-Narrowed down with the kernel's `pm_test` (`~/t2-tests/test3.sh`, 2026-11-16): the `freezer` and
+Narrowed down with the kernel's `pm_test` ([`t2-tests/test3.sh`](t2-tests/README.md), 2026-11-16): the `freezer` and
 `devices` stages pass, with and without the Wi-Fi driver, so the T2 bridge (`t2bce_*`), Wi-Fi and
 the AMD GPU all freeze cleanly. The hang is in the `platform` stage, where the kernel calls the
 firmware's ACPI S4 (hibernate) methods. Apple's EFI firmware doesn't implement that for Linux.

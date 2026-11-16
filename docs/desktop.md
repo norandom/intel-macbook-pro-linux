@@ -166,7 +166,8 @@ The clipboard history (cliphist) lives in RAM only and is wiped every night at 0
 catches up after resume, so if the machine slept through 01:00 the wipe runs as soon as it
 wakes. Logging out or shutting down clears it as well.
 
-Lid close is still handled by logind, as on a stock install.
+Lid close is handled by logind: it suspends, as on a stock install, or hibernates with
+`lid_close = "hibernate"` and `hibernate = true` ([configuration.md](configuration.md)).
 
 ## Look
 

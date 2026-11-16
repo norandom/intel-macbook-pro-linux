@@ -1,0 +1,18 @@
+== test1 charge limit  2026-11-16T08:41:45+01:00  kernel 7.3.4-3-t2-resolute
+original:
+  threshold=0 status=Charging capacity=73% power=39,3 W
+write 80:
+  write ok
+  threshold=80 status=Charging capacity=73% power=39,2 W
+write 60:
+  write ok
+  threshold=60 status=Not charging capacity=73% power=0,0 W
+write 100:
+  write ok
+  threshold=100 status=Charging capacity=73% power=8,0 W
+write 80 and wait 20 s (does charging stop above 80 %?):
+  threshold=80 status=Charging capacity=73% power=18,7 W
+restore original (0):
+/sys/class/power_supply/macsmc-battery/charge_control_end_threshold: Invalid argument (os error 22)
+  threshold=80 status=Charging capacity=73% power=19,1 W
+== done, log: docs/t2-tests/test1.log
