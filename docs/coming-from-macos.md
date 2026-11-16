@@ -7,7 +7,7 @@ installs or configures are listed. Where there's no counterpart, the table says 
 
 | On macOS you used | Here it is |
 |---|---|
-| iStat Menus | The Waybar modules: CPU, memory, network up/down, battery with watts and time left (tooltip), brightness, power profile. `bar_graphs = true` turns CPU, memory and network into sparklines. Click CPU for btop. No temperature or fan readout by default; Waybar's stock `temperature` module can be added ([forking.md](forking.md#waybar)) |
+| iStat Menus | The Waybar modules: CPU, memory, temperature (CPU package on the bar; hottest core, both fan speeds, AMD GPU and SSD in the tooltip), network up/down, battery with watts and time left, brightness, power profile. `bar_graphs = true` turns CPU, memory and network into sparklines. Click CPU or temperature for btop. Fans are read-only: the SMC controls them |
 | Activity Monitor | btop, htop (sorted by memory), atop |
 | Battery health in System Information | `t2-battery status`: capacity vs design, cycles, health |
 | AlDente, optimized charging | `battery_charge_limit = 80` and `t2-battery full` before a trip ([power.md](power.md#battery-charge-limit)) |
@@ -20,8 +20,8 @@ installs or configures are listed. Where there's no counterpart, the table says 
 | Adobe Lightroom | LightCraft |
 | Adobe InDesign | DesignCraft |
 | Adobe Acrobat | PdfCraft; qpdfview and xpdf for viewing |
-| Adobe Photoshop | No counterpart installed. Windows in a VM, or add an editor yourself ([apps.md](apps.md#add-or-remove-an-app)) |
-| Adobe Illustrator | No counterpart installed |
+| Adobe Photoshop | Not in the Craft suite. The ArtCraft apps cover InDesign, Lightroom, Acrobat, AutoCAD and Office; for pixel editing add GIMP or Krita ([apps.md](apps.md#add-or-remove-an-app)) |
+| Adobe Illustrator | Not in the Craft suite; Inkscape is the usual Linux choice ([apps.md](apps.md#add-or-remove-an-app)) |
 | Adobe Premiere, After Effects | No counterpart installed, and no video player either |
 | AutoCAD | CADCraft |
 | Preview | qpdfview, xpdf for PDFs; Ristretto for images |
@@ -36,7 +36,7 @@ installs or configures are listed. Where there's no counterpart, the table says 
 | Rectangle, Magnet | Hyprland tiling: dynamic and golden-ratio layouts (SUPER+L), snapping for floating windows |
 | A clipboard manager | Clipboard history on SUPER+V, kept in RAM and wiped every night at 01:00 |
 | Keychain | KDE Wallet for Chromium and Electron apps in both sessions; Bitwarden |
-| Safari | Chromium, Firefox Developer Edition, Zen |
+| Safari | Vivaldi (default), Chromium, Firefox Developer Edition, Zen |
 | Notes, Bear | Obsidian, Typora |
 | Homebrew | A pinned Nix profile for CLI tools (`nix_tools_extra`, [nix.md](nix.md)), apt for the rest |
 | Docker Desktop | Rootless Podman with `docker` and `docker compose`, and Podman Desktop |
@@ -45,7 +45,7 @@ installs or configures are listed. Where there's no counterpart, the table says 
 | Microsoft Remote Desktop | Remote Desktop Manager |
 | Remote Login (SSH) | sshd at boot behind fail2ban |
 | Xcode command line tools | GCC and make; optionally Intel's icx/icpx as your default compiler |
-| Time Machine | No counterpart. The repository doesn't set up backups; rsync and rclone are installed if you want to build your own |
+| Time Machine | Coming next: the owner's backup tool will be added. Until then rsync and rclone are installed |
 | Touch ID | Not available on Linux. You type your password |
 
 KDE Plasma is still there, with its own apps (Dolphin, System Settings and so on). The table

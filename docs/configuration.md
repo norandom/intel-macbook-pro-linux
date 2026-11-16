@@ -128,7 +128,6 @@ Read by `tasks/rdp.py`.
 
 | Key | Default | Effect |
 |---|---|---|
-| `tailscale_exit_node` | `""` | Informational only; no task reads it. Pick the exit node in the tray |
 
 ## Example
 

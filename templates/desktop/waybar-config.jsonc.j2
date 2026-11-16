@@ -10,7 +10,7 @@
   "spacing": 6,
   "modules-left": ["custom/menu", "custom/files", "custom/term", "custom/web", "custom/layout", "wlr/taskbar"],
   "modules-center": [],
-  "modules-right": ["custom/quota", {% if bar_graphs %}"custom/cpu", "custom/mem", "custom/net"{% else %}"cpu", "memory", "custom/netrate"{% endif %}, "group/audio", "backlight", "custom/power-profile", "battery", "tray", "hyprland/submap", "custom/cliphist", "custom/nightmode", "custom/termtheme", "custom/kbd", "clock", "custom/power"],
+  "modules-right": ["custom/quota", {% if bar_graphs %}"custom/cpu", "custom/mem", "custom/thermal", "custom/net"{% else %}"cpu", "memory", "custom/thermal", "custom/netrate"{% endif %}, "group/audio", "backlight", "custom/power-profile", "battery", "tray", "hyprland/submap", "custom/cliphist", "custom/nightmode", "custom/termtheme", "custom/kbd", "clock", "custom/power"],
   "custom/menu": {
     "format": "☰ Apps",
     "tooltip-format": "Applications (right-click: search)",
@@ -126,6 +126,9 @@
   // Network: compact "↓69K ↑20K" (hypr-netrate); interface + IP in the tooltip.
   "custom/netrate": { "exec": "$HOME/.local/bin/hypr-netrate", "return-type": "json" },
 {% endif %}
+  // Temperatures + fans (the iStat Menus part): CPU package on the bar, the rest in the tooltip.
+  "custom/thermal": { "exec": "$HOME/.local/bin/hypr-thermal", "return-type": "json", "interval": 5,
+                      "on-click": "$HOME/.local/bin/hypr-launch hypr-term -x btop" },
   // AI agents: weekly quota left (Claude, Codex), every 5 min; click = refresh
   "custom/quota": {
     "exec": "$HOME/.local/bin/hypr-agent-quota",

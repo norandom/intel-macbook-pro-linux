@@ -12,7 +12,8 @@ Installed from Tailscale's own apt repo (the signing key is committed and checks
 sudo tailscale up   # prints a login URL
 ```
 
-Your desktop user is made the Tailscale operator, so the tray icon can switch exit nodes without
+Which exit node you use is your own, private choice, so the repo doesn't configure one: pick it
+in the tray or with `tailscale set --exit-node=<name>`. Your desktop user is made the Tailscale operator, so the tray icon can switch exit nodes without
 sudo. The tray (`tailscale systray`) runs in the Hyprland session. With an exit node on, the LAN
 (printers, NAS, the VM host side) stays reachable.
 

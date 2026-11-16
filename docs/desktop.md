@@ -3,7 +3,8 @@
 `tasks/desktop.py` sets up a Hyprland session using Ubuntu's own packages (Hyprland 0.53 with
 the hyprbars plugin, uwsm, Waybar, mako, fuzzel, hyprlock, hypridle). Pick
 **Hyprland (uwsm-managed)** at the login screen. KDE Plasma stays installed and unchanged, and
-SDDM isn't reconfigured.
+SDDM isn't reconfigured. KDE is dormant: Kubuntu is the base for its support lifetime, and the
+repo puts no work into the KDE session beyond not breaking it.
 
 ## How it lives next to KDE
 
@@ -97,9 +98,8 @@ Right, in order:
 | Clock | weekday and time | date and week number |
 | Power | | lock, suspend, log out, reboot, shut down |
 
-The web launcher starts Vivaldi, which this repository doesn't install (its vendor repo isn't
-an approved route yet). If you don't have Vivaldi, point that button at another browser; see
-[forking.md](forking.md#waybar).
+The web launcher starts Vivaldi, which `tasks/vendor_apps.py` installs from Vivaldi's own repo.
+To use another browser there, see [forking.md](forking.md#waybar).
 
 With `desktop_left_reserve` set, a black strip of that many pixels at the left panel edge is
 kept free of windows. I need it for a few dead pixel columns.

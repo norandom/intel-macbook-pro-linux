@@ -97,6 +97,8 @@ RELEASE_FALLBACK = {
 #   typora       4AC441BE68B4ADAB7439FBF9BA300B7755AFCFAE (Typora linux packages)
 #   xtradeb      5301FA4FD93244FBC6F6149982BB6851C64F6880 (Launchpad PPA for xtradeb)
 #   mozilla      35BAA0B33E9EB396F59CA838C0BA5CE6DC6315A3 (Mozilla's documented apt signer)
+#   vivaldi      8D1FA52AEF58A09D889DD4221256C34716BD9233 (Vivaldi Package Composer KEY11, signs
+#                the stable Release; the file also carries DE785BB96CE4A58D79377D3574CB4872D93D8726)
 #   intel-oneapi E9BF0AFC46D6E8B7DA5882F1BAC6F0C353D04109 (Intel Software Development Products,
 #                current signer; the file also carries Intel's four expired predecessor keys)
 VENDOR_REPOS = {
@@ -112,6 +114,9 @@ VENDOR_REPOS = {
     "intel-oneapi": ("intel-oneapi", ("intel-oneapi-compiler-dpcpp-cpp",), "/opt/intel/oneapi/compiler/latest/bin/icx",
                      "b64d30657bf1ba91aec0f932910419698047c9ab6387cbbe52430dc59bcf6d86"),
     # The one Firefox here (web dev); Ubuntu's snap-transitional firefox is pinned to -1.
+    # The owner's default browser (also x-www-browser); only vivaldi-stable is installed from it.
+    "vivaldi-stable": ("vivaldi", ("vivaldi-stable",), "vivaldi-stable",
+                "63077a16d31c9acaaf425770ba397f78764089f39dccd1f05504f7af692912b5"),
     "firefox-devedition": ("mozilla", ("firefox-devedition", "firefox-devedition-l10n-de"), "firefox-devedition",
                            "a22e1a7885381e4005b61884a5205892c39d15f5c262555e38b4fe5402ca8895"),
 }
@@ -186,7 +191,7 @@ OTHER = {
     "chromium-driver": ("vendor", _VENDOR_OWNER, "chromedriver", "XtraDeb PPA, installed with chromium"),
     "sublime-text": ("vendor", _VENDOR_OWNER, "subl", _REPO + " (stable channel)"),
     "typora": ("vendor", _VENDOR_OWNER, "typora", _REPO),
-    "vivaldi-stable": ("blocked", "application-suite", "vivaldi", _VENDOR + "; an existing install is left untouched"),
+    "vivaldi-stable": ("vendor", _VENDOR_OWNER, "vivaldi-stable", _REPO + " (replaces the package's own vivaldi.sources)"),
     "obsidian": ("vendor", _VENDOR_OWNER, "obsidian", _DEB),
     "bitwarden": ("vendor", _VENDOR_OWNER, "bitwarden", _DEB + " (desktop-v release)"),
     "quarto": ("vendor", _VENDOR_OWNER, "quarto", _DEB),

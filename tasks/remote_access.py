@@ -36,7 +36,19 @@ if not shutil.which('tailscale'):
         _sudo=True,
     )
 systemd.service(name='tailscaled at boot', service='tailscaled.service', running=True, enabled=True, _sudo=True)
-logger.info('Tailscale: log in once with `sudo tailscale up` (prints a login URL).')
+
+
+def _tailscale_state() -> str:
+    import json, subprocess
+    try:
+        out = subprocess.run(["tailscale", "status", "--json"], capture_output=True, text=True, timeout=5).stdout
+        return json.loads(out).get("BackendState", "")
+    except (OSError, ValueError, subprocess.SubprocessError):
+        return ""
+
+
+if _tailscale_state() != "Running":   # NeedsLogin, Stopped, or not installed yet
+    logger.info('Tailscale: log in once with `sudo tailscale up` (prints a login URL).')
 # The desktop's Tailscale tray switches the exit node as this user (no sudo): make the user
 # the operator. With an exit node on, the LAN (printers, NAS, the VMs' host side) stays
 # reachable; with it off, host and VM guests use the normal internet.

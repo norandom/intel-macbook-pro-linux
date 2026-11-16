@@ -1,0 +1,12 @@
+/*
+ * ----------------------------------------------------------------------------
+ * "THE BEER-WARE LICENSE" (Revision 42):
+ * Marius Ciepluch wrote this repository. As long as you retain this notice you
+ * can do whatever you want with this stuff. If we meet some day, and you think
+ * this stuff is worth it, you can buy me a beer in return.
+ * ----------------------------------------------------------------------------
+ */
+
+Third-party parts keep their own licenses (see "Credits" in README.md): the speaker DSP
+(lemmyg/t2-apple-audio-dsp, MIT), AutoEq data (MIT). The ASH Listening Set (CC BY-NC-SA 4.0)
+is downloaded to your machine and not redistributed here.

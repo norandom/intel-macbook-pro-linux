@@ -6,7 +6,8 @@ does its own work equally fast under both. Anything that goes through the operat
 files about 23 times faster.
 
 This isn't a "which OS is better" test. It measures how much effort each OS still puts into
-running this particular hardware well.
+running this particular hardware well, in the setting it's used in every day: quiet and cool,
+turbo off, fans at their minimum.
 
 ## Why this matters for a 2019 machine
 
@@ -42,6 +43,12 @@ macOS. Both are the stock encrypted setups.
 
 Turbo was off on both, so both ran at the same 2.4 GHz clock. That's what makes the raw
 numbers comparable.
+
+Turbo off isn't a handicap set up for the test. It's how this machine is meant to be used: a
+quiet, cool, low-power tool for focused work, fans at their minimum, nothing to listen to while
+you think. The benchmark measures that everyday situation, not the machine flat out. With turbo
+on the i9 is faster in short bursts, but it gets hot and loud quickly, and you'd lose exactly
+the calm this setup is for.
 
 ## The numbers
 

@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+# Managed by t2-mac-kde (desktop). Waybar module: CPU package temperature on the bar; hottest
+# core, fans (Apple SMC), GPU and SSD in the tooltip. Sensors are found by hwmon name, since
+# the hwmonN numbering can change between boots. Read-only: fans stay under SMC control.
+set -u
+hw() { for d in /sys/class/hwmon/hwmon*; do [ "$(cat "$d/name" 2>/dev/null)" = "$1" ] && { echo "$d"; return; }; done; }
+c() { awk '{printf "%d", $1/1000}' "$1" 2>/dev/null; }
+core=$(hw coretemp); smc=$(hw macsmc_hwmon); gpu=$(hw amdgpu); ssd=$(hw nvme)
+pkg=""; hot=0
+if [ -n "$core" ]; then
+  for l in "$core"/temp*_label; do
+    v=$(c "${l%_label}_input")
+    case "$(cat "$l")" in "Package id 0") pkg=$v ;; Core*) [ "$v" -gt "$hot" ] && hot=$v ;; esac
+  done
+fi
+[ -n "$pkg" ] || { echo '{"text":"","tooltip":"no CPU temperature sensor"}'; exit 0; }
+tip="CPU package ${pkg} °C, hottest core ${hot} °C"
+if [ -n "$smc" ]; then
+  for f in "$smc"/fan*_input; do
+    n=${f%_input}; tip="$tip\\n$(cat "${n}_label" 2>/dev/null || basename "$n"): $(cat "$f") rpm (min $(cat "${n}_min" 2>/dev/null), max $(cat "${n}_max" 2>/dev/null))"
+  done
+fi
+[ -n "$gpu" ] && [ -r "$gpu/temp1_input" ] && tip="$tip\\nAMD GPU $(c "$gpu/temp1_input") °C"
+[ -n "$ssd" ] && [ -r "$ssd/temp1_input" ] && tip="$tip\\nSSD $(c "$ssd/temp1_input") °C"
+class=normal; [ "$pkg" -ge 85 ] && class=warning; [ "$pkg" -ge 95 ] && class=critical
+printf '{"text":"󰔏 %s°","tooltip":"%s","class":"%s"}\n' "$pkg" "$tip" "$class"

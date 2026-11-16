@@ -75,6 +75,17 @@ removes the drop-in. Each change restarts WirePlumber, so audio blips once.
 | Speaker DSP on or off | `speaker_dsp` |
 
 Without your own AutoEq file, any headphones in `music_headphones` get the QC35 correction curve.
+That's deliberate: the QC35 and AirPods have a similar enough sound signature that one profile
+serves both for music. To use it with AirPods, add their name to `music_headphones`. They then
+stay in music mode, so calls on them need the internal mic, or leave them out on call days.
+
+## AirPods extras
+
+[LibrePods](https://github.com/kavishdevar/librepods) is a Linux tray app (plus `librepods-ctl`)
+that talks Apple's AirPods protocol: battery for each bud and the case, switching between noise
+cancelling and transparency, ear detection. AirPods Pro 2 are fully supported, older models
+get battery and basic controls. It isn't installed by this repo yet; it's still in active
+development, so check its README for your model first.
 
 Re-run: `.venv/bin/pyinfra @local tasks/audio_effects.py --use-sudo-password` (and
 `tasks/speaker_dsp.py` for the speakers).

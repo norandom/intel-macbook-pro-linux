@@ -1,0 +1,3 @@
+# Vivaldi packages (managed by t2-mac-kde). Replaces the vivaldi.sources the package's postinst
+# writes; /etc/default/vivaldi stops its cron job from re-adding it.
+deb [arch=amd64 signed-by=/usr/share/keyrings/vivaldi-archive-keyring.gpg] https://repo.vivaldi.com/stable/deb/ stable main

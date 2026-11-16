@@ -55,6 +55,13 @@ files.put(name="XtraDeb PPA pin (chromium packages only)", src=str(src / "90-t2-
 # and Ubuntu's snap-transitional firefox can never be chosen.
 files.put(name="Mozilla repo pin (firefox-devedition only)", src=str(src / "90-t2-mozilla.pref"),
           dest="/etc/apt/preferences.d/90-t2-mozilla.pref", mode="0644", _sudo=True)
+# Vivaldi's postinst writes its own vivaldi.sources (other keyring path): two sources for one
+# repo with different Signed-By break apt. Ours replaces it; the cron job must not re-add it.
+files.put(name="Vivaldi: no cron-added apt repo", dest="/etc/default/vivaldi", mode="0644", _sudo=True,
+          src=StringIO('# Managed by t2-mac-kde: the repo comes from /etc/apt/sources.list.d/vivaldi.list\n'
+                       'repo_add_once="false"\nrepo_reenable_on_distupgrade="false"\n'))
+files.file(name="Vivaldi: package-written vivaldi.sources removed (ours is vivaldi.list)",
+           path="/etc/apt/sources.list.d/vivaldi.sources", present=False, _sudo=True)
 repo_packages, repo_lists, preseed = [], [], ""
 for app_id, (name, packages, exe, _sha) in VENDOR_REPOS.items():
     files.put(name=f"{name} archive key", src=str(src / f"{name}-keyring.gpg"),

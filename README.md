@@ -19,20 +19,20 @@ lives inside Apple's Secure Enclave, and Linux has no driver for it, so you type
 
 People who have switched report that Linux runs 20–30% faster than macOS on the same Intel
 hardware. Treat that as a claim and measure your own workload.
-[Linux vs macOS on the same Mac](docs/benchmark.md): how well each OS is optimized for this
-hardware.
+The machine is tuned as a quiet, cool, low-power tool, not a powerhouse: turbo off, fans at
+their minimum, so you can think about the task instead of the noise. In that setting it still
+runs OS work 2-4 times faster than macOS on the same hardware
+([Linux vs macOS on the same Mac](docs/benchmark.md): how well each OS is optimized for this
+hardware).
 
-## Two desktops, one machine
+## The desktop
 
-You pick a desktop at the login screen:
+The desktop is Hyprland: a tiling desktop you drive from the keyboard, set up by this
+repository for code, terminals, containers, AI agents and remote desktop all day.
 
-| | KDE Plasma ("Joe User") | Hyprland ("Joe Developer") |
-|---|---|---|
-| Feels like | A classic desktop with menus and a settings app | A tiling desktop you drive from the keyboard |
-| Good for | Office work, browsing, video calls | Code, terminals, containers, AI agents, remote desktop all day |
-| Set up by | The T2 Ubuntu install, left as it is | This repository |
-
-KDE never gets removed, so going back is always one logout away.
+KDE Plasma stays installed but dormant. Kubuntu is the base because it gives this machine
+Ubuntu's support lifetime; the repo doesn't configure or improve the KDE session, it just
+leaves it working as the T2 install set it up. It's one logout away if you ever need it.
 
 ## What you get
 
@@ -114,3 +114,8 @@ built on Asahi Linux's audio work). Headphone correction: [AutoEq](https://githu
 [ASH Listening Set](https://github.com/ShanonPearce/ASH-Listening-Set) (CC BY-NC-SA 4.0); it's
 downloaded to your machine and not redistributed here. T2 Linux itself is the work of the
 [t2linux](https://wiki.t2linux.org/) community.
+
+## License
+
+[Beerware](LICENSE) (revision 42): do what you want with it; if we meet some day and you think
+it's worth it, you can buy me a beer.

@@ -48,7 +48,7 @@ panel_scale = str(setting("panel_scale", "auto"))
 # Pointer: "t2-highvis" = large white arrow with a red outline (tools/make_cursor.py).
 cursor_theme = str(setting("cursor_theme", "breeze_cursors"))
 cursor_size = int(setting("cursor_size", 24))
-font_rendering = setting("font_rendering", "rgb")
+font_rendering = setting("font_rendering", "grayscale")  # same default as tasks/fonts.py
 
 # --- Native packages (no recommends: Snap/Flatpak-free, guarded by manage.packages) --------
 # Audio (PipeWire/WirePlumber/pipewire-pulse), fonts, terminals and applications belong to
@@ -143,7 +143,7 @@ HELPERS = (
     "hypr-desktop-state", "hypr-launch", "hypr-deco", "hypr-shadow", "hypr-layout", "hypr-pin",
     "hypr-glass", "hypr-kbd", "hypr-nightmode", "hypr-windows", "hypr-session", "hypr-appmenu",
     "hypr-sparkline", "hypr-agent-quota", "hypr-cliphist", "hypr-clip-bridge", "hypr-termtheme-status",
-    "hypr-brightness", "hypr-screenshot", "hypr-osd", "hypr-volume", "hypr-power-profile", "hypr-findcursor", "hypr-netrate", "hypr-gpu",
+    "hypr-brightness", "hypr-screenshot", "hypr-osd", "hypr-volume", "hypr-power-profile", "hypr-findcursor", "hypr-netrate", "hypr-thermal", "hypr-gpu",
 )
 helper_ops = [owned_put(f"{SRC}/bin/{h}", f"{bin_dir}/{h}", mode="755") for h in HELPERS]
 

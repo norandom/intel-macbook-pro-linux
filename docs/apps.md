@@ -36,12 +36,13 @@ Windows in virt-manager for those ([developer-tools.md](developer-tools.md#virtu
 
 | Browser | Route | Notes |
 |---|---|---|
+| Vivaldi | Vivaldi's apt repo, sha256-pinned key (replaces the package's own `vivaldi.sources`) | The owner's default browser; the Waybar web button starts it |
 | Chromium | XtraDeb PPA, pinned to the Chromium packages only | Comes with `chromedriver` of the same major version |
 | Firefox Developer Edition | Mozilla's apt repo, pinned to Developer Edition only | Ubuntu's Snap-transition `firefox` package can't be installed |
 | Zen | Pinned tarball in `~/.local/opt` | Updates itself after the first install |
 
-None of them is made the default browser. Vivaldi isn't installed (no approved route yet), but
-an existing install is left alone, and the Waybar web button launches it.
+The deploy doesn't pick a default browser for you; set one with `[default_apps]` in the config
+(the owner's points http/https/html at `vivaldi-stable.desktop`, see [configuration.md](configuration.md)).
 
 ## Communication and everyday
 

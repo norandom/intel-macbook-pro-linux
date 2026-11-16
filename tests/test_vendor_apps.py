@@ -138,7 +138,12 @@ class CatalogTests(unittest.TestCase):
         for app_id in (*apps.VENDOR_REPOS, *apps.VENDOR_DEBS, *apps.VENDOR_TARBALLS, "chromium-driver"):
             self.assertEqual(cat[app_id][0], "vendor", app_id)
             self.assertEqual(cat[app_id][1], "tasks/vendor_apps.py", app_id)
-        self.assertEqual(cat["vivaldi-stable"][0], "blocked")
+        self.assertEqual(cat["vivaldi-stable"][0], "vendor")  # owner decision 2026-11-16
+
+    def test_vivaldi_replaces_its_own_repo_entry(self):
+        task = (ROOT / "tasks/vendor_apps.py").read_text()
+        self.assertIn('path="/etc/apt/sources.list.d/vivaldi.sources", present=False', task)
+        self.assertIn('repo_add_once="false"', task)
 
 
 if __name__ == "__main__":

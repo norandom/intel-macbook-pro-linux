@@ -89,7 +89,7 @@ class ReportTests(unittest.TestCase):
         self.assertTrue(data["entries"]["btop"]["nix_preferred"])
         self.assertFalse(data["entries"]["upmd"]["nix_preferred"])
         self.assertFalse(data["entries"]["libreoffice-calc"]["selected"])
-        self.assertEqual(data["entries"]["vivaldi-stable"]["disposition"], "blocked")
+        self.assertEqual(data["entries"]["vivaldi-stable"]["disposition"], "vendor")
 
 
 class AssetTests(unittest.TestCase):
