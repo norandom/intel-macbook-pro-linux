@@ -77,6 +77,37 @@ comparison, just not a pure kernel one.
 5. On macOS, check the log: if LibreSSL doesn't support `-multi`, the all-threads sha256 value
    is a single-core value and shouldn't be compared.
 
+## Result: Linux vs macOS (2026-11-16, same MacBookPro16,1, AC, turbo off, 10 runs)
+
+Linux: Ubuntu 26.04.1, kernel 7.3.4-3-t2, balanced profile, mitigations on, perl 5.40.1
+(`benchmarks/linux.json`). macOS: 26.7.3 (Darwin 25.6.0), Turbo Boost Switcher loaded,
+Low Power Mode off, perl 5.44.0 from /usr/local (`benchmarks/macos.json`).
+B/A = macOS / Linux; below 1 means Linux is faster.
+
+| test | Linux | macOS | B/A | B/A per CPU |
+|---|---|---|---|---|
+| sha256 single-core (MB/s) | 308 | 301.5 | 0.98 | |
+| sha256 all 16 threads (MB/s) | 2616 | 2525.5 | 0.97 | |
+| perl integer loop (M iter/s) | 9.91 | 7.78 | 0.78 | |
+| gzip -6 single-core (MB/s) | 20.1 | 18.35 | 0.91 | |
+| tiny syscalls (k calls/s) | 3141 | 741 | 0.24 | 0.30 |
+| stat(/) path lookup (k calls/s) | 872 | 239 | 0.27 | 0.35 |
+| pipe ping-pong (k round trips/s) | 136.6 | 80.9 | 0.59 | 0.75 |
+| fork + exit + wait (forks/s) | 1685 | 850 | 0.50 | 0.64 |
+| fork + exec /usr/bin/true (spawns/s) | 651 | 209 | 0.32 | 0.41 |
+| file create + unlink (k files/s) | 89.5 | 3.9 | 0.04 | 0.06 |
+| fresh memory (GiB/s) | 1.8 | 1.4 | 0.78 | 0.99 |
+| dd /dev/zero -> /dev/null 1 MiB (GiB/s) | 12.85 | 18.09 | 1.41 | 1.79 |
+
+- User space is close to a tie (sha256 within 3 %), so clock and chip match as intended.
+  The perl loop is 22 % slower on macOS, probably because the perl build differs (5.44 vs
+  5.40). That lowers the macOS per-CPU baseline, so the per-CPU column flatters macOS a little.
+- Linux is far ahead on kernel paths: syscalls and stat 3-4×, spawn 3×, fork 2×, pipe 1.7×.
+  macOS fork is steadier (721-868/s across runs) than the Linux 48 % spread.
+- File create + unlink is 23× faster on Linux. That gap is mostly the filesystem
+  (ext4 on LVM vs APFS with FileVault), not the kernel.
+- macOS wins only the 1 MiB `dd` zero copy (1.4×). The page-fault fill is equal per CPU.
+
 ## Why fork is slow here (measured 2026-11-16, Linux, turbo off)
 
 The Linux baseline shows about 1,700 forks/s (≈0.6 ms per fork + exit + wait) with a 48 %

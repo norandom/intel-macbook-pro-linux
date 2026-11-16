@@ -25,7 +25,7 @@ network by this change.
 
 1. **Before** (done 2026-11-16): `benchmarks/linux.json`, Linux with mitigations on, AC,
    turbo off, balanced, 10 runs.
-2. **macOS** on the same Mac: `benchmarks/macos.json` (turbo off via Turbo Boost Switcher,
+2. **macOS** (done 2026-11-16) on the same Mac: `benchmarks/macos.json` (turbo off via Turbo Boost Switcher,
    Low Power Mode off). macOS keeps its mitigations on, so this compares against step 1.
 3. **After**: set the flag and deploy (below), reboot, then
    `benchmarks/mitigations-off/linux.json` under the same conditions as step 1.

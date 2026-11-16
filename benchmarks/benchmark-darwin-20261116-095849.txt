@@ -1,0 +1,34 @@
+== benchmark 20261116-095849 (10 run(s))
+os:     macOS 26.7.3 (Darwin 25.6.0)
+mac:    MacBookPro16,1
+cpu:    Intel(R) Core(TM) i9-9980HK CPU @ 2.40GHz (8 cores / 16 threads), 64 GiB RAM
+power:  AC Power  turbo=off governor=n/a epp=n/a profile=lowpowermode=0
+tools:  OpenSSL 3.5.9 29 Sep 2026 (Library: OpenSSL 3.5.9 29 Sep 2026)  perl v5.44.0
+
+run 1/10: sha1=286 shaN=2340 perl=7.36 gzip=17.3 syscall=692.3 stat=219.1 pipe=70.2 fork=790.0 spawn=192.9 files=3.9 fault=1.4 zero=18.15
+run 2/10: sha1=289 shaN=2411 perl=7.01 gzip=18.2 syscall=744.9 stat=239.1 pipe=79.6 fork=804.9 spawn=197.6 files=4.0 fault=1.5 zero=17.96
+run 3/10: sha1=301 shaN=2524 perl=7.78 gzip=16.8 syscall=731.2 stat=225.8 pipe=77.4 fork=721.1 spawn=148.2 files=3.6 fault=1.4 zero=17.89
+run 4/10: sha1=302 shaN=2538 perl=7.84 gzip=18.6 syscall=736.4 stat=239.2 pipe=76.4 fork=854.5 spawn=213.8 files=3.9 fault=1.4 zero=17.80
+run 5/10: sha1=304 shaN=2549 perl=7.01 gzip=18.5 syscall=750.6 stat=241.8 pipe=82.2 fork=848.4 spawn=209.7 files=3.9 fault=1.4 zero=18.10
+run 6/10: sha1=300 shaN=2527 perl=7.77 gzip=18.3 syscall=743.0 stat=241.3 pipe=82.2 fork=833.2 spawn=208.7 files=4.0 fault=1.4 zero=17.89
+run 7/10: sha1=302 shaN=2554 perl=7.81 gzip=18.4 syscall=743.5 stat=238.3 pipe=81.0 fork=852.1 spawn=208.6 files=3.9 fault=1.4 zero=18.21
+run 8/10: sha1=302 shaN=2494 perl=7.82 gzip=18.6 syscall=745.8 stat=241.8 pipe=83.2 fork=857.8 spawn=209.3 files=4.0 fault=1.4 zero=18.24
+run 9/10: sha1=305 shaN=2532 perl=7.44 gzip=18.5 syscall=716.6 stat=235.9 pipe=80.7 fork=856.8 spawn=206.8 files=3.6 fault=1.4 zero=18.07
+run 10/10: sha1=301 shaN=2444 perl=7.90 gzip=18.3 syscall=739.1 stat=231.1 pipe=82.6 fork=868.0 spawn=212.5 files=4.0 fault=1.4 zero=18.30
+
+median over 10 run(s); 'per CPU' = kernel result / single-core perl speed
+  cpu    sha256 single-core                                301.5 MB/s            
+  cpu    sha256 all 16 threads                            2525.5 MB/s            
+  cpu    perl integer loop                                 7.775 M iter/s        
+  cpu    gzip -6 single-core                               18.35 MB/s            
+  kernel tiny syscalls (dd 1-byte read+write)             741.05 k calls/s       per CPU 95.312
+  kernel stat(/) path lookup                               238.7 k calls/s       per CPU 30.701
+  kernel pipe ping-pong (context switches)                 80.85 k round trips/s per CPU 10.399
+  kernel fork + exit + wait                               850.25 forks/s         per CPU 109.357
+  kernel fork + exec /usr/bin/true                        208.65 spawns/s        per CPU 26.836
+  kernel file create + unlink (also the filesystem)          3.9 k files/s       per CPU 0.502
+  kernel fresh memory (page faults + fill)                   1.4 GiB/s           per CPU 0.180
+  kernel dd /dev/zero -> /dev/null 1 MiB                  18.085 GiB/s           per CPU 2.326
+
+== medians saved to benchmarks/macos.json
+== log saved to benchmarks/benchmark-darwin-20261116-095849.txt
