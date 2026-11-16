@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+# Managed by t2-mac-kde (resource policy). Battery charge limit on the Apple SMC (macsmc):
+#   t2-battery status        limit, state, watts, capacity, cycles, health
+#   t2-battery full          charge to 100 % (until the next `limit` or reboot), e.g. before a trip
+#   t2-battery limit [N]     back to the configured limit (or N %); 100 = no limit
+# Tested 2026-11-16: the SMC accepts 60/80/100; 0 is refused (100 means "no limit").
+set -u
+export LC_NUMERIC=C
+B=/sys/class/power_supply/macsmc-battery
+[ -d "$B" ] || { echo "t2-battery: $B not found" >&2; exit 1; }
+conf=${XDG_CONFIG_HOME:-$HOME/.config}/t2-mac-kde/config.toml
+configured=$(sed -n 's/^battery_charge_limit *= *\([0-9]\+\).*/\1/p' "$conf" 2>/dev/null | head -1)
+configured=${configured:-100}
+set_limit() { echo "$1" | sudo tee "$B/charge_control_end_threshold" >/dev/null && echo "charge limit: $1 %"; }
+case "${1:-status}" in
+  status)
+    full=$(cat $B/energy_full 2>/dev/null); design=${T2_BATTERY_DESIGN_WH:-100}
+    echo "limit:    $(cat $B/charge_control_end_threshold) % (configured $configured %)"
+    echo "state:    $(cat $B/status), $(cat $B/capacity) %, $(awk '{printf "%.1f W", $1/1000000}' $B/power_now)"
+    echo "capacity: $(awk -v f="${full:-0}" -v d="$design" 'BEGIN{printf "%.1f Wh of %d Wh design (%.0f %%)", f/1000000, d, f/10000/d}')"
+    echo "cycles:   $(cat $B/cycle_count), health $(cat $B/health)" ;;
+  full) set_limit 100 ;;
+  limit) set_limit "${2:-$configured}" ;;
+  *) echo "usage: t2-battery status | full | limit [N]" >&2; exit 2 ;;
+esac

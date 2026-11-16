@@ -28,3 +28,9 @@ and configuration tasks, per explicit owner direction.
 - Backlogged by the owner on 2026-11-16. Runbook ready: `docs/verbose-boot.md` (owner-run
   removal of `quiet splash` from GRUB; protected bootloader config). Until then: press Esc
   during boot or shutdown to see the messages.
+
+## Fan curves
+
+- 2026-11-16: the t2 kernel's macsmc_hwmon driver rejects writes to fan*_target (EOPNOTSUPP),
+  and t2fanrd targets the old applesmc files, so custom fan curves aren't possible now.
+  Revisit with a newer t2 kernel / the owner's t2 fork (test: ~/t2-tests/test2.sh).

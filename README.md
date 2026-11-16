@@ -154,6 +154,7 @@ Power and battery:
 | `turbo-on` / `turbo-off` / `turbo-status` | Intel turbo boost on or off (off after every boot) |
 | `hypr-power-profile balanced` | power-saver, balanced or performance; the battery icon has the same menu |
 | `hypr-brightness screen -5` | screen or keyboard light (`kbd`); one step below the minimum turns the panel off |
+| `t2-battery status` / `full` / `limit` | charge limit (config `battery_charge_limit`, e.g. 80 %); `full` before a trip |
 | `hypr-gpu battery` / `external` / `status` | Hyprland on the Intel GPU only, or with the AMD-driven external ports; applies at the next login (`--now` logs out) |
 
 Audio:

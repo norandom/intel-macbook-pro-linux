@@ -176,3 +176,25 @@ server.shell(name="Apply power tuning now (udev + sysctl; reverting needs a rebo
              _if=lambda: pci_rule.did_change() or power_conf.did_change(), _sudo=True,
              commands=["udevadm control --reload", "udevadm trigger --subsystem-match=pci --action=change",
                        "sysctl -p /etc/sysctl.d/62-t2-power.conf 2>/dev/null || true"])
+
+# --- Battery charge limit (config battery_charge_limit; 100 = no limit) -----------------------
+# Tested 2026-11-16 on the macsmc driver: 60/80/100 accepted, 0 refused. udev applies it when the
+# battery appears (the SMC driver may load after tmpfiles). `t2-battery full` lifts it for a trip.
+limit = int(setting("battery_charge_limit", 100))
+if not 50 <= limit <= 100:
+    raise ValueError("battery_charge_limit must be 50..100 (100 = no limit)")
+battery_rule = "/etc/udev/rules.d/63-t2-battery-limit.rules"
+if limit < 100:
+    rule = files.put(name=f"udev: battery charge limit {limit} %", dest=battery_rule, mode="644", _sudo=True,
+                     src=StringIO("# Managed by t2-mac-kde (config battery_charge_limit)\n"
+                                  'SUBSYSTEM=="power_supply", KERNEL=="macsmc-battery", '
+                                  f'ATTR{{charge_control_end_threshold}}="{limit}"\n'))
+else:
+    rule = files.file(name="udev: no battery charge limit", path=battery_rule, present=False, _sudo=True)
+server.shell(name=f"Apply the charge limit now ({limit} %)", _if=rule.did_change, _sudo=True,
+             commands=["udevadm control --reload",
+                       f"[ ! -w /sys/class/power_supply/macsmc-battery/charge_control_end_threshold ] || "
+                       f"echo {limit} > /sys/class/power_supply/macsmc-battery/charge_control_end_threshold"])
+files.put(name="~/.local/bin/t2-battery (status | full | limit)",
+          src=str(Path(__file__).resolve().parents[1] / "files/resource-policy/t2-battery"),
+          dest=os.path.expanduser("~/.local/bin/t2-battery"), mode="755")
