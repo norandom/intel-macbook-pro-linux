@@ -76,3 +76,33 @@ comparison, just not a pure kernel one.
 4. 10 runs each, compare medians; the first run warms caches and the median absorbs that.
 5. On macOS, check the log: if LibreSSL doesn't support `-multi`, the all-threads sha256 value
    is a single-core value and shouldn't be compared.
+
+## Why fork is slow here (measured 2026-11-16, Linux, turbo off)
+
+The Linux baseline shows about 1,700 forks/s (≈0.6 ms per fork + exit + wait) with a 48 %
+spread across the 10 runs. Measured apart, three effects stack up:
+
+| Measurement | forks/s | `fork()` call | wait for the child |
+|---|---|---|---|
+| perl (the benchmark) | 1,800 | 190 µs | 350 µs |
+| perl, parent and child on one core (`taskset`) | 2,860 | 130 µs | 213 µs |
+| minimal C program | 3,100-5,600 | 60-110 µs | 115-215 µs |
+| minimal C, one core | 7,590 | 52 µs | 80 µs |
+
+1. **The child wakes a sleeping core** (the biggest share, and the cause of the spread). Linux
+   starts the child on another idle core; on this i9 idle cores sit in deep C-states with long
+   exit latencies (C8 200 µs, C10 890 µs). How deep that core happened to sleep decides the
+   cost. Keeping both on one core makes the minimal case 2.5× faster and nearly removes the
+   variation.
+2. **Turbo off.** The CPU runs at its 2.4 GHz base clock instead of boosting up to 5 GHz.
+3. **perl is a heavier process than minimal C** (more mappings and libraries to copy, its own
+   housekeeping on fork): roughly double the cost. The process's memory size barely matters:
+   0, 64 and 512 MiB touched cost the same, so page-table copying isn't the bottleneck.
+
+The CPU security mitigations are active but aren't the main factor: the syscall test shows
+about 0.16 µs per kernel call (see `docs/cpu-mitigations.md` to measure them directly).
+
+For the comparison: the same Mac has the same C-states under macOS, so the test is fair, but
+with a 48 % spread only differences above about 50 % count. It matters in practice only for
+workloads that start many short processes (configure scripts, shell loops, `make` with many
+small steps); turbo on or the performance profile speeds those up.
