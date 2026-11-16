@@ -54,6 +54,11 @@ its own keyboard settings in System Settings; this repository doesn't change the
 
 To change the layout for your fork, see [forking.md](forking.md#keyboard-layout).
 
+An external Apple Magic Keyboard works as is (kernel driver `hid_apple`). If you want it to behave
+differently from the built-in one, the safe route is a Hyprland `device { name = ...; kb_options = ... }`
+block for that keyboard only. The driver's module options (`fnmode`, `swap_opt_cmd`) would also
+change the built-in T2 keyboard and need an initramfs rebuild, so this repository doesn't use them.
+
 ## Keys
 
 SUPER is Right Option on the Apple keyboard. On a keyboard without a spare Super key,

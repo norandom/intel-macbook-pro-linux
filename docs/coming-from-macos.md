@@ -13,6 +13,7 @@ installs or configures are listed. Where there's no counterpart, the table says 
 | AlDente, optimized charging | `battery_charge_limit = 80` and `t2-battery full` before a trip ([power.md](power.md#battery-charge-limit)) |
 | Low Power Mode | The power-saver profile (battery icon). Turbo is off by default anyway |
 | AirPods battery and noise control | [LibrePods](https://github.com/kavishdevar/librepods), a tray app; not installed by the repo yet ([audio.md](audio.md#airpods-extras)) |
+| Magic Keyboard | Works out of the box (kernel driver `hid_apple`, battery reported by the kernel). Not set up yet, but possible later: a Hyprland mapping for that keyboard only (e.g. swap Option and Command) and its battery in Waybar, without touching the built-in keyboard or the boot |
 | Trackpad settings | `hypr-touchpad speed +0.1` / `scroll 0.8` / `reset`, remembered ([desktop.md](desktop.md#trackpad)) |
 | Boom3D | EasyEffects presets `plain`, `room`, `stage`, `room+`, `auditorium` for your music headphones; `hypr-3d` switches them live. Hyprland session only ([audio.md](audio.md)) |
 | The speaker processing macOS does for you | The speaker DSP (`speaker_dsp = true`), MacBookPro16,1 only |

@@ -16,19 +16,22 @@ exist. So the only change is a bigger swap LV.
 
 ## The plan
 
-Layout on 2026-11-15: LUKS `cryptlvm` (1112.31 GiB) holds volume group `vg0` with no free space:
+Layout, checked 2026-11-16: partition `nvme0n1p4` (LUKS, opened as `cryptlvm`) holds volume
+group `vg0` with no free space:
 
 | LV | Size | Used |
 |---|---|---|
-| `vg0-swap` | 16 GiB | swap |
-| `vg0-root` | 400 GiB | 9.5 GB |
-| `vg0-home` | 696.31 GiB | 4.6 GB |
+| `vg0-swap` | 16 GiB | swap, UUID `d2e7bb1c-add5-4b87-92ee-6dbb31c9adff` |
+| `vg0-root` | 400 GiB | 31 GB |
+| `vg0-home` | 696.31 GiB | 5.4 GB |
 
 Target: swap **80 GiB** (64 GiB RAM plus headroom), `/home` shrunk by 64 GiB to **632.31 GiB**.
 
 The swap LV keeps its **path and UUID**. That matters: fstab names it as `/dev/mapper/vg0-swap`,
-and the resume setting points at the same LV, so fstab, crypttab, the resume device and the
-initramfs all stay as they are, and nothing gets regenerated.
+and there's no `resume=` on the kernel command line. The initramfs found the swap automatically
+when it was built and recorded it by UUID, which is how `/sys/power/resume` ends up as `252:1`.
+Same UUID, same LV path: fstab, crypttab, the resume device and the initramfs all stay as they
+are, and nothing gets regenerated.
 
 ## Before you start
 
@@ -41,8 +44,8 @@ initramfs all stay as they are, and nothing gets regenerated.
    df -h /home           # used space must be far below 632 GiB
    sudo blkid /dev/vg0/swap    # note the UUID (d2e7bb1c-... on the owner's machine)
    ```
-3. Have a **live USB with T2 support** ready: the t2linux Ubuntu ISO (https://wiki.t2linux.org/), the
-   same kind you installed from. A stock Ubuntu ISO has no T2 drivers, so the internal keyboard and
+3. Have a **live USB with T2 support** ready: a t2linux Ubuntu or Kubuntu ISO
+   (https://wiki.t2linux.org/), the same kind you installed from. A KDE live session works fine. A stock Ubuntu ISO has no T2 drivers, so the internal keyboard and
    trackpad don't work there; with a stock ISO, bring an external USB keyboard. `/home` can't be
    shrunk while it's mounted, and you can't unmount it while logged in.
 4. Have the **LUKS passphrase** at hand.
@@ -50,29 +53,48 @@ initramfs all stay as they are, and nothing gets regenerated.
 ## On the live USB
 
 Boot the live USB (hold Option at power-on and pick "EFI Boot"; external boot is already allowed if
-you installed Linux from USB), choose "Try Ubuntu", and open a terminal:
+you installed Linux from USB), choose "Try" / the live session, and open a terminal (Konsole).
+
+**In a KDE live session, ignore the disk pop-ups.** The device notifier offers to unlock and open
+the encrypted disk. Don't click it: you unlock in the terminal below, and nothing from `vg0` may be
+mounted while you resize. If you already clicked it, step 0 deals with it.
 
 ```sh
+# 0. Tools present, nothing of vg0 mounted or in use.
+command -v lvs cryptsetup mkswap        # lvm2 + cryptsetup; if lvs is missing: sudo apt install lvm2
+lsblk -o NAME,SIZE,TYPE,MOUNTPOINTS /dev/nvme0n1
+#    If nvme0n1p4 is already open (as luks-<uuid>, because KDE unlocked it), use that name below
+#    instead of cryptlvm, and unmount anything of vg0 that shows a mount point:
+#    sudo umount /dev/vg0/home /dev/vg0/root 2>/dev/null
+
+# 1. Unlock and activate (skip the cryptsetup line if it's already open).
 sudo cryptsetup open /dev/nvme0n1p4 cryptlvm      # asks for the LUKS passphrase
 sudo vgchange -ay vg0
-sudo lvs vg0                                       # same three LVs as above
+sudo lvs vg0                                       # swap 16g, root 400g, home 696.31g
+sudo swapoff /dev/vg0/swap 2>/dev/null || true     # in case the live system enabled it
+findmnt -S /dev/mapper/vg0-home || echo "home not mounted: good"
 
-# 1. Shrink /home: lvreduce -r runs e2fsck, then resize2fs, then shrinks the LV, in that order.
-sudo lvreduce -r -L 632.31G vg0/home
+# 2. Shrink /home by 64 GiB: lvreduce -r runs e2fsck, then resize2fs, then shrinks the LV.
+#    Answer y if it asks to confirm.
+sudo lvreduce -r -L -64G vg0/home
+sudo vgs vg0                                       # VFree now 64g
 
-# 2. Grow swap into the freed space and re-create it with the SAME UUID.
-uuid=$(sudo blkid -s UUID -o value /dev/vg0/swap); echo "$uuid"
-sudo lvextend -L 80G vg0/swap
+# 3. Grow swap into all the freed space and re-create it with the SAME UUID.
+uuid=$(sudo blkid -s UUID -o value /dev/vg0/swap); echo "$uuid"   # d2e7bb1c-...
+sudo lvextend -l +100%FREE vg0/swap
 sudo mkswap -U "$uuid" /dev/vg0/swap
 sudo blkid /dev/vg0/swap                           # UUID unchanged
+sudo lvs vg0                                       # swap 80g, home 632.31g
 
-# 3. Close everything cleanly.
+# 4. Close everything cleanly, then reboot without the USB stick.
 sudo vgchange -an vg0
-sudo cryptsetup close cryptlvm
+sudo cryptsetup close cryptlvm                     # or luks-<uuid> if KDE opened it
 ```
 
 `lvreduce -r` refuses to shrink below the used space and stops on filesystem errors, so it can't
-silently cut data off. If it complains, stop and check before trying anything else.
+silently cut data off. If it complains, stop and check before trying anything else. If
+`vgchange -an` says the volume group is in use, something still has it open (a KDE file manager
+window, a mount): close that and run it again.
 
 ## Back in Ubuntu
 
@@ -117,6 +139,6 @@ Bar and audio afterwards; on T2 Macs those are the usual suspects after any slee
 ## Going back
 
 To return to the old layout, reverse the steps on the live USB: `swapoff` isn't needed there;
-`lvreduce -L 16G vg0/swap`, `mkswap -U "$uuid" /dev/vg0/swap`, then `lvextend -r -L +64G vg0/home`
+`lvreduce -L 16G vg0/swap`, `mkswap -U "$uuid" /dev/vg0/swap`, then `lvextend -r -l +100%FREE vg0/home`
 (online growing of ext4 also works from the running system: `sudo lvextend -r -L +64G vg0/home`
 after shrinking swap from the live USB).
