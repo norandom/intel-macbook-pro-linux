@@ -19,8 +19,10 @@ state="${XDG_RUNTIME_DIR:-/tmp}/hypr-brightness-$1.saved"
 raw() { busctl call org.freedesktop.login1 /org/freedesktop/login1/session/auto \
           org.freedesktop.login1.Session SetBrightness ssu "$sub" "$dev" "$1"; }
 case "$step" in
-  dim) [ -e "$state" ] || echo "$cur" > "$state"
-       target=$(( max * ${3:-10} / 100 )); [ "$cur" -gt "$target" ] && raw "$target"; exit 0 ;;
+  dim) target=$(( max * ${3:-10} / 100 ))
+       # already at or below the dim level: leave it alone (undim then does nothing either)
+       [ "$cur" -gt "$target" ] || exit 0
+       [ -e "$state" ] || echo "$cur" > "$state"; raw "$target"; exit 0 ;;
   undim) [ -e "$state" ] || exit 0; saved=$(cat "$state"); rm -f "$state"
          case "$saved" in ''|*[!0-9]*) exit 0 ;; esac
          [ "$saved" -gt "$max" ] && saved=$max; raw "$saved"; exit 0 ;;
