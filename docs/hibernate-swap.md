@@ -5,9 +5,9 @@ Owner-run, not automated. Swap and LVM are on the protected list
 
 ## Status (2026-11-16)
 
-The swap is resized (80 GiB). With the default disk mode the kernel hangs in Apple's firmware
-(ACPI S4); with `HibernateMode=shutdown`, which `hibernate = true` sets, all test stages pass.
-No drivers are unloaded. `lid_close = "hibernate"` makes closing the lid hibernate. Details and
+Hibernate works on the owner's machine. Swap is 80 GiB. `hibernate = true` sets
+`HibernateMode=shutdown` (Apple's firmware hangs in ACPI S4) and reloads the T2 bridge drivers
+around hibernate (the T2 chip is power-cycled while the Mac is off). `lid_close = "hibernate"` makes closing the lid hibernate. Details and
 sources: [known-issues.md](known-issues.md#hibernate-hangs-the-machine-t2-driver-limitation).
 
 ## Why it's needed

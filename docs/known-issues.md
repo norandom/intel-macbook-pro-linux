@@ -2,9 +2,10 @@
 
 Defects we know about, with what we saw, the cause as far as we know it, and the sources.
 
-## Hibernate hangs the machine (T2 driver limitation)
+## Hibernate hangs the machine (T2 driver limitation) - fixed
 
-Status: cause found and fixed in testing; real hibernate/resume test pending (2026-11-16). Machine: MacBookPro16,1, Ubuntu 26.04, kernel 7.3.4-3-t2.
+Status: fixed, 2026-11-16. A real hibernate and restore worked with keyboard, trackpad and audio
+back (T2 drivers unloaded 13:00:57, loaded again after the restore 13:02:02). Machine: MacBookPro16,1, Ubuntu 26.04, kernel 7.3.4-3-t2.
 
 What happens: after Hibernate the screen locks, then the machine freezes with the display on. It
 never powers off, and a forced power-off is needed. The journal of that boot ends with:
@@ -38,7 +39,8 @@ before, which no longer matches. This is the case the community workaround is fo
 Fix, part 2: `t2-hibernate-bce.service` unloads the T2 bridge drivers before hibernate (PipeWire
 stopped first, no force; if they won't unload, hibernate is cancelled) and loads them fresh after
 the restore. `test4.sh` showed the unload and reload work in a running session with every device
-coming back. Status: the next real hibernate test decides.
+coming back. The real hibernate then restored the session with every device working; closing
+the lid now hibernates (`lid_close = "hibernate"`) on the owner's machine.
 
 Sources:
 

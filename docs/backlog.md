@@ -18,10 +18,8 @@ and configuration tasks, per explicit owner direction.
 
 ## Hibernate
 
-- 2026-11-16: swap 80 GiB; `hibernate = true` (polkit rule, guarded menu entry,
-  HibernateMode=shutdown after pm_test found the ACPI S4 hang); `lid_close = "hibernate"`.
-  pm_test passes all stages (docs/t2-tests/test3.log). Still to do: first real hibernate +
-  restore on the owner's machine. Details: `docs/known-issues.md`.
+- Done 2026-11-16: works on the owner's MacBookPro16,1 (swap 80 GiB, HibernateMode=shutdown,
+  T2 driver reload around hibernate, lid closes into hibernate). Details: `docs/known-issues.md`.
 
 ## Verbose boot and shutdown
 
