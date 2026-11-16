@@ -4,7 +4,7 @@ Defects we know about, with what we saw, the cause as far as we know it, and the
 
 ## Hibernate hangs the machine (T2 driver limitation)
 
-Status: cause found, fix in testing (2026-11-16). Machine: MacBookPro16,1, Ubuntu 26.04, kernel 7.3.4-3-t2.
+Status: cause found and fixed in testing; real hibernate/resume test pending (2026-11-16). Machine: MacBookPro16,1, Ubuntu 26.04, kernel 7.3.4-3-t2.
 
 What happens: after Hibernate the screen locks, then the machine freezes with the display on. It
 never powers off, and a forced power-off is needed. The journal of that boot ends with:
@@ -28,8 +28,9 @@ and unloading it is what used to break sleep.
 
 Fix in testing: disk mode `shutdown` instead of `platform` (`HibernateMode=shutdown` in
 `/etc/systemd/sleep.conf.d/t2-hibernate.conf`, set by the `hibernate` config flag). The kernel
-writes the image and powers off without the firmware call; the next boot restores it. Status:
-waiting for `test3.sh shutdown` to pass all stages before `hibernate = true`.
+writes the image and powers off without the firmware call; the next boot restores it.
+`test3.sh shutdown` passed all five stages (freezer, devices, platform, processors, core) on
+2026-11-16; the T2 bridge reported `bus_resume exit status=0`. Next: a real hibernate and restore.
 
 Sources:
 
