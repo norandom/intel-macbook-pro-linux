@@ -1,0 +1,269 @@
+{
+   "cores" : 8,
+   "cpu" : "Intel(R) Core(TM) i9-9980HK CPU @ 2.40GHz",
+   "date" : "20261116-085200",
+   "epp" : "balance_performance",
+   "governor" : "powersave",
+   "mac_model" : "MacBookPro16,1",
+   "metrics" : {
+      "fault" : {
+         "kind" : "kernel",
+         "label" : "fresh memory (page faults + fill)",
+         "max" : 1.8,
+         "median" : 1.8,
+         "min" : 1.8,
+         "normalized" : 0.1816,
+         "runs" : [
+            1.8,
+            1.8,
+            1.8,
+            1.8,
+            1.8,
+            1.8,
+            1.8,
+            1.8,
+            1.8,
+            1.8
+         ],
+         "unit" : "GiB/s"
+      },
+      "files" : {
+         "kind" : "kernel",
+         "label" : "file create + unlink (also the filesystem)",
+         "max" : 91.2,
+         "median" : 89.5,
+         "min" : 85.1,
+         "normalized" : 9.0313,
+         "runs" : [
+            89.3,
+            89.3,
+            89.8,
+            91.2,
+            89.2,
+            90.4,
+            88.8,
+            90.9,
+            85.1,
+            89.7
+         ],
+         "unit" : "k files/s"
+      },
+      "fork" : {
+         "kind" : "kernel",
+         "label" : "fork + exit + wait",
+         "max" : 2294.2,
+         "median" : 1685.45,
+         "min" : 1486.1,
+         "normalized" : 170.0757,
+         "runs" : [
+            1709.9,
+            1987.4,
+            1486.1,
+            2294.2,
+            1591.4,
+            1656.6,
+            1703.7,
+            1600,
+            1667.2,
+            1721.7
+         ],
+         "unit" : "forks/s"
+      },
+      "gzip" : {
+         "kind" : "cpu",
+         "label" : "gzip -6 single-core",
+         "max" : 20.1,
+         "median" : 20.1,
+         "min" : 19.9,
+         "runs" : [
+            20,
+            20,
+            20.1,
+            20,
+            20.1,
+            20.1,
+            20.1,
+            19.9,
+            20.1,
+            20.1
+         ],
+         "unit" : "MB/s"
+      },
+      "perl" : {
+         "kind" : "cpu",
+         "label" : "perl integer loop",
+         "max" : 9.93,
+         "median" : 9.91,
+         "min" : 9.87,
+         "runs" : [
+            9.88,
+            9.91,
+            9.91,
+            9.93,
+            9.92,
+            9.92,
+            9.89,
+            9.9,
+            9.92,
+            9.87
+         ],
+         "unit" : "M iter/s"
+      },
+      "pipe" : {
+         "kind" : "kernel",
+         "label" : "pipe ping-pong (context switches)",
+         "max" : 139.6,
+         "median" : 136.55,
+         "min" : 133.8,
+         "normalized" : 13.779,
+         "runs" : [
+            134.3,
+            133.8,
+            137.5,
+            138,
+            135.5,
+            137,
+            136.1,
+            139.6,
+            138.7,
+            135.3
+         ],
+         "unit" : "k round trips/s"
+      },
+      "sha1" : {
+         "kind" : "cpu",
+         "label" : "sha256 single-core",
+         "max" : 309,
+         "median" : 308,
+         "min" : 307,
+         "runs" : [
+            308,
+            309,
+            307,
+            309,
+            308,
+            308,
+            308,
+            308,
+            308,
+            308
+         ],
+         "unit" : "MB/s"
+      },
+      "shaN" : {
+         "kind" : "cpu",
+         "label" : "sha256 all 16 threads",
+         "max" : 2624,
+         "median" : 2616,
+         "min" : 2586,
+         "runs" : [
+            2599,
+            2586,
+            2622,
+            2609,
+            2623,
+            2610,
+            2622,
+            2608,
+            2624,
+            2624
+         ],
+         "unit" : "MB/s"
+      },
+      "spawn" : {
+         "kind" : "kernel",
+         "label" : "fork + exec /usr/bin/true",
+         "max" : 666.7,
+         "median" : 651.3,
+         "min" : 613.7,
+         "normalized" : 65.7215,
+         "runs" : [
+            613.7,
+            629.7,
+            616.6,
+            628.9,
+            644.4,
+            658.2,
+            666.7,
+            665.9,
+            664.6,
+            659
+         ],
+         "unit" : "spawns/s"
+      },
+      "stat" : {
+         "kind" : "kernel",
+         "label" : "stat(/) path lookup",
+         "max" : 879.6,
+         "median" : 872.45,
+         "min" : 846.6,
+         "normalized" : 88.0373,
+         "runs" : [
+            867.6,
+            846.6,
+            873.7,
+            873.1,
+            871.8,
+            862.6,
+            879.6,
+            871.4,
+            877.2,
+            873.8
+         ],
+         "unit" : "k calls/s"
+      },
+      "syscall" : {
+         "kind" : "kernel",
+         "label" : "tiny syscalls (dd 1-byte read+write)",
+         "max" : 3149.4,
+         "median" : 3141.25,
+         "min" : 3117.3,
+         "normalized" : 316.9778,
+         "runs" : [
+            3140,
+            3139.7,
+            3147.3,
+            3142.5,
+            3148.1,
+            3117.3,
+            3149.4,
+            3134,
+            3144.8,
+            3137.2
+         ],
+         "unit" : "k calls/s"
+      },
+      "zero" : {
+         "kind" : "kernel",
+         "label" : "dd /dev/zero -> /dev/null 1 MiB",
+         "max" : 12.93,
+         "median" : 12.85,
+         "min" : 12.82,
+         "normalized" : 1.2967,
+         "runs" : [
+            12.85,
+            12.82,
+            12.93,
+            12.85,
+            12.84,
+            12.9,
+            12.87,
+            12.83,
+            12.88,
+            12.82
+         ],
+         "unit" : "GiB/s"
+      }
+   },
+   "note" : "higher is better; medians; normalized = kernel median / single-core perl median",
+   "openssl" : "OpenSSL 3.5.5 27 Jan 2026 (Library: OpenSSL 3.5.5 27 Jan 2026)",
+   "os" : "Ubuntu 26.04.1 LTS (Linux 7.3.4-3-t2-resolute)",
+   "perl" : "v5.40.1",
+   "power" : "AC",
+   "profile" : "balanced",
+   "quick" : false,
+   "ram_gib" : 62,
+   "runs" : 10,
+   "threads" : 16,
+   "turbo" : "off"
+}
