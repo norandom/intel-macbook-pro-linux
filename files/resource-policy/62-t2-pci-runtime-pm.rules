@@ -1,0 +1,7 @@
+# Managed by t2-mac-kde (resource policy, config power_tuning): runtime power management for
+# Intel chipset functions that are safe to idle. Deliberately NOT included: the LPC/eSPI bridge
+# 00:1f.0 (the Apple SMC sits behind it: fans, battery, keyboard light), the T2 bridge, Secure
+# Enclave and audio (04:00.x), the Apple NVMe controller, Broadcom Wi-Fi and the AMD GPU.
+SUBSYSTEM=="pci", ATTR{vendor}=="0x8086", ATTR{device}=="0xa379", ATTR{power/control}="auto"
+SUBSYSTEM=="pci", ATTR{vendor}=="0x8086", ATTR{device}=="0xa36d", ATTR{power/control}="auto"
+SUBSYSTEM=="pci", ATTR{vendor}=="0x8086", ATTR{device}=="0xa324", ATTR{power/control}="auto"

@@ -156,3 +156,23 @@ if installed and not upload and any(rp.unit_state(u) != "masked" for u in instal
 elif installed and upload and any(rp.unit_state(u) == "masked" for u in installed):
     server.shell(name=f"Crash upload on: unmask {' '.join(installed)}", _sudo=True, commands=[
         f"systemctl unmask {' '.join(installed)}", "systemctl enable --now whoopsie.path"])
+
+# --- Power tuning (config power_tuning; owner request 2026-11-16, measured with powertop) -----
+# Selective, reversible: three safe Intel chipset functions get runtime PM, two sysctls cut
+# wakeups. T2 devices, Apple NVMe, Wi-Fi, the SMC's LPC bridge and PCIe ASPM stay untouched.
+install_packages(PackageRequest(packages=("powertop",)))
+tuning = bool(setting("power_tuning", False))
+pci_rule = files.put(name=f"udev: PCI runtime PM for 3 Intel chipset functions ({'on' if tuning else 'off'})",
+                     src=str(Path(__file__).resolve().parents[1] / "files/resource-policy/62-t2-pci-runtime-pm.rules"),
+                     dest="/etc/udev/rules.d/62-t2-pci-runtime-pm.rules", mode="644", _sudo=True) \
+    if tuning else files.file(name="udev: PCI runtime PM rule removed (power_tuning off)",
+                              path="/etc/udev/rules.d/62-t2-pci-runtime-pm.rules", present=False, _sudo=True)
+power_conf = files.put(name="sysctl: fewer wakeups (nmi_watchdog off, writeback 15 s)",
+                       src=str(Path(__file__).resolve().parents[1] / "files/resource-policy/62-t2-power.conf"),
+                       dest="/etc/sysctl.d/62-t2-power.conf", mode="644", _sudo=True) \
+    if tuning else files.file(name="sysctl: power tuning removed (power_tuning off)",
+                              path="/etc/sysctl.d/62-t2-power.conf", present=False, _sudo=True)
+server.shell(name="Apply power tuning now (udev + sysctl; reverting needs a reboot for the sysctls)",
+             _if=lambda: pci_rule.did_change() or power_conf.did_change(), _sudo=True,
+             commands=["udevadm control --reload", "udevadm trigger --subsystem-match=pci --action=change",
+                       "sysctl -p /etc/sysctl.d/62-t2-power.conf 2>/dev/null || true"])

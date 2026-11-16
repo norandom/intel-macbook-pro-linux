@@ -49,7 +49,10 @@ render on it (this Mac can't cut its power completely). Before you plug in a mon
 keeps the machine cooler, quieter and longer on battery. Type `turbo-on` in a shell when you
 need the speed. Compressed RAM swap (zram) and an early out-of-memory guard keep things
 responsive when memory runs short, and clicking the battery icon lets you choose power saver,
-balanced or performance.
+balanced or performance. With `power_tuning` on, three Intel chipset functions get runtime
+power management and two kernel settings cut wakeups; the T2 bridge, the Apple SSD controller,
+Wi-Fi and the SMC are left alone on purpose. `sudo powertop` shows where the watts go on
+battery; don't run its `--auto-tune`, which also switches the T2 devices.
 
 ### Audio
 

@@ -19,6 +19,9 @@
 # --- Privacy (tasks/resource_policy.py) ------------------------------------------
 # crash_upload = true              # false: whoopsie masked, no uploads to errors.ubuntu.com
 
+# power_tuning = false            # runtime PM for 3 safe Intel chipset functions, nmi_watchdog off,
+#                                  # writeback 15 s (T2/NVMe/Wi-Fi/SMC/ASPM untouched); powertop installed
+
 # --- Shell (tasks/shell.py) ------------------------------------------------------
 # shell_blesh = false              # ble.sh: Kali/zsh-like inline suggestions, syntax colours,
 #                                  # completion menu (settings: ~/.config/bash/blerc)
