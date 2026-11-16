@@ -94,3 +94,9 @@ Nim (compiler, nimble and nimlangserver) comes from Nix. Compiling with the Inte
   commands need `sg nix-users -c 'nix profile list'` or a fresh login.
 - The first install creates `flake.lock` in `~/.local/share/t2-mac-kde/nix/`. Copy it into the
   repo once and commit it: `cp ~/.local/share/t2-mac-kde/nix/flake.lock nix/`.
+
+## Adding a tool without copying the whole list
+
+Put it in `nix_tools_extra` in `~/.config/t2-mac-kde/config.toml`, e.g.
+`nix_tools_extra = ["nchat", "hyperfine"]`, and run the deploy (or `t2-nix-update`).
+`nix_tools` replaces the default list entirely; use it only if you want to drop defaults.

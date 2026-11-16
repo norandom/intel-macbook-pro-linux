@@ -38,7 +38,8 @@ flake_dir = home / ".local/share/t2-mac-kde/nix"
 stamp_file = home / ".local/state/t2-mac-kde/nix-tools.sha"
 bin_dir = home / ".local/bin"
 units = home / ".config/systemd/user"
-selected = nt.tools(setting("nix_tools"))
+# nix_tools replaces the default list; nix_tools_extra adds to it (the usual way to add a tool)
+selected = nt.tools(list(nt.tools(setting("nix_tools"))) + list(setting("nix_tools_extra", [])))
 
 
 def holds(check):

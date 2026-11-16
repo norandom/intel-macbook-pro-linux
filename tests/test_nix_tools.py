@@ -122,3 +122,12 @@ class MigrationTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class ExtraToolsTests(unittest.TestCase):
+    def test_extras_add_to_defaults_without_duplicates(self):
+        from manage import nix_tools as nt
+        merged = nt.tools(list(nt.tools(None)) + ["nchat", "btop"])
+        self.assertEqual(merged[: len(nt.DEFAULT_TOOLS)], nt.DEFAULT_TOOLS)
+        self.assertEqual(merged.count("btop"), 1)
+        self.assertEqual(merged[-1], "nchat")
