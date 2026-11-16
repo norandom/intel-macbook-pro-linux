@@ -1,5 +1,7 @@
 # Intel MacBook Pro on Linux
 
+<p align="center"><img src="docs/img/above-and-below.png" alt="Above and Below: the T2 Dream. Above: buy a new MacBook every year. Below: keep the 2019 T2 MacBook running fast on Linux." width="560"></p>
+
 Apple is winding down macOS support for Intel Macs. I didn't want to retire a perfectly good
 MacBook Pro over that, so this repository turns an Intel/T2 MacBook Pro into an Ubuntu 26.04
 LTS workstation. Ubuntu supports 26.04 until 2031. The whole setup is one pyinfra deploy you
@@ -10,20 +12,15 @@ but I haven't tested them.
 
 ## Why bother
 
-Ubuntu 26.04 LTS gets security updates until 2031, which is well past the point where Intel
-Macs stop getting macOS updates.
+Ubuntu 26.04 LTS gets security updates until 2031, well past the end of macOS updates for
+Intel Macs. On my machine the hardware works: speakers, microphone, Wi-Fi, Bluetooth,
+keyboard, trackpad, Touch Bar, camera and suspend. Touch ID is the one thing that doesn't. It
+lives inside Apple's Secure Enclave, and Linux has no driver for it, so you type your password.
 
 People who have switched report that Linux runs 20–30% faster than macOS on the same Intel
-hardware. I haven't benchmarked that myself, so treat it as a claim and measure it on your own
-workload.
-
-On my machine the hardware works: speakers, microphone, Wi-Fi, Bluetooth, keyboard, trackpad,
-Touch Bar, camera and suspend. Touch ID is the one thing that doesn't. It lives inside Apple's
-Secure Enclave, and Linux has no driver for it, so you type your password.
-
-The six built-in speakers get a proper crossover and bass processing, similar to what macOS
-does behind the scenes. Without it they sound thin on Linux. Headphones get a 3D preset in the
-spirit of Boom3D.
+hardware. Treat that as a claim and measure your own workload.
+[Linux vs macOS on the same Mac](docs/benchmark.md): how well each OS is optimized for this
+hardware.
 
 ## Two desktops, one machine
 
@@ -39,75 +36,22 @@ KDE never gets removed, so going back is always one logout away.
 
 ## What you get
 
-### Battery and heat
+- [Desktop](docs/desktop.md): Hyprland with Waybar, German Mac and US keyboard, screenshot editor, five themes.
+- [Battery and heat](docs/power.md): turbo off by default, a charge limit, the AMD GPU idle, zram, earlyoom.
+- [Audio](docs/audio.md): a crossover and bass DSP for the six speakers, a Boom3D-style headphone chain.
+- [Developer tools](docs/developer-tools.md): grml Bash, nvm, uv, rootless Podman, KVM, icx, [Nix](docs/nix.md) CLI tools.
+- [Apps](docs/apps.md): the Craft office suite, LibreOffice with the ribbon UI, VS Code, Zed, Chromium, Zoom.
+- [Remote access](docs/remote-access.md): Tailscale, SSH behind fail2ban, RDP into Hyprland over Tailscale only.
 
-The Intel iGPU drives the built-in display. The AMD GPU stays available because the external
-display ports are wired to it, and it's held at its lowest power level. In Hyprland's default
-battery mode nothing renders on it, so it idles at about 3 W instead of 8 W when apps used to
-render on it (this Mac can't cut its power completely). Before you plug in a monitor, run
-`hypr-gpu external`; `hypr-gpu battery` switches back. Turbo boost is off by default, which
-keeps the machine cooler, quieter and longer on battery. Type `turbo-on` in a shell when you
-need the speed. Compressed RAM swap (zram) and an early out-of-memory guard keep things
-responsive when memory runs short, and clicking the battery icon lets you choose power saver,
-balanced or performance. With `power_tuning` on, three Intel chipset functions get runtime
-power management and two kernel settings cut wakeups; the T2 bridge, the Apple SSD controller,
-Wi-Fi and the SMC are left alone on purpose. `sudo powertop` shows where the watts go on
-battery; don't run its `--auto-tune`, which also switches the T2 devices.
-
-### Audio
-
-The MacBookPro16,1 speakers get the t2linux DSP: an FIR crossover, bass enhancement and a
-limiter. It only touches the speakers, and you can switch it off again.
-
-For headphones there's a 3D chain: AutoEq correction for your model, a binaural HRIR or room
-response, and a short "stage" room. I tuned it on Therion and Hans Zimmer, so dense passages
-keep their punch instead of turning into mush. Music headphones stay in stereo music mode, a
-headset (AirPods, for me) takes calls, and the internal mic and speakers work for calls without
-any of it.
-
-### Developer tools
-
-Node comes via nvm and Python tools via uv. You also get rootless Podman with Docker
-compatibility, and virt-manager on KVM with nested virtualization. Chromium ships with a
-matching `chromedriver`, for AI agents that drive a browser. VS Code, Zed, Sublime Text,
-Positron, Quarto, OpenIDEA and the usual CLI tools are included too; the CLI tools (kubectl,
-helm, k9s, zellij, btop, ripgrep, go, rustup, Nim, ...) come from one pinned Nix flake. The terminals and editors
-share five colour themes, and Bash gets a grml-style prompt, a large shared history and
-optional zsh-like suggestions via ble.sh.
-
-### Everyday apps
-
-If you're coming from Microsoft Office and Photoshop, the Craft suite is the part to look at.
-WordCraft, GridCraft and DeckCraft cover documents, spreadsheets and slides, PdfCraft handles
-PDFs, LightCraft is a Lightroom-style photo editor, DesignCraft does page layout and CADCraft
-drawings. They follow the layout of the programs they replace, so Joe User doesn't have to
-relearn much. They're young projects, so expect rough edges. LibreOffice is there too, with the
-ribbon-style interface.
-
-If you live in real Excel macros or a full Photoshop workflow (Joe Excelguru, Joe Artist), the
-Craft apps won't cover everything. Run Windows in virt-manager for those; KVM makes it fast,
-and the virtual TPM covers Windows 11.
-
-The rest: Obsidian, Bitwarden, Slack, Discord, Zoom, Typora, Remote Desktop Manager, and
-classic X apps like Xfe and NEdit.
-
-### Remote access
-
-Tailscale with a tray icon for picking your exit node. SSH starts at boot behind fail2ban. An
-RDP server runs inside the Hyprland session, and it's only reachable over Tailscale.
+Switching from a Mac? [Coming from macOS](docs/coming-from-macos.md) maps the apps you used
+(iStat Menus, Boom3D, Office, Adobe, OneDrive) to what's here.
 
 ## What it never touches
 
 Disk encryption (LUKS/LVM), `fstab`, kernels, the bootloader and the initramfs are on a strict
-no-go list (`.kiro/steering/protected-system-boundary.md`). Every package install goes through
-a guard that blocks Snap/Flatpak, protected packages and removals. It also scans each package
-for boot or encryption hooks before anything gets installed. The changes that need root are
-small, and the dry run lists them first.
-
-Snap and Flatpak are blocked on purpose. They pull in dependencies nobody here controls, and
-some packages are built poorly for this kind of setup; Chromium as a Snap drags in GNOME
-pieces, for example. Everything comes from Ubuntu's archive, a vendor's signed apt repository,
-or a pinned and checksummed upstream release instead.
+no-go list. Every package install goes through a guard that blocks Snap/Flatpak, protected
+packages and removals, and scans each package for boot or encryption hooks first. The one
+exception is an opt-in switch for CPU mitigations. Details: [docs/safety.md](docs/safety.md).
 
 ## Quick start
 
@@ -124,80 +68,26 @@ Then log out and choose Hyprland at the login screen, or stay on KDE. Each part 
 its own, for example `.venv/bin/pyinfra @local tasks/speaker_dsp.py --use-sudo-password`. Run
 everything as your normal user; only the system changes ask for your sudo password.
 
-## Make it yours: one config file
+## Make it yours
 
 Your own settings go in `~/.config/t2-mac-kde/config.toml`, never in the repository. The deploy
-keeps a commented `config.example.toml` next to it with every option. Mine looks roughly like
-this:
-
-```toml
-panel_scale = 1.6              # internal panel scale
-desktop_left_reserve = 15      # my panel has dead pixel columns at the left edge
-music_headphones = ["My QC35"] # Bluetooth name or MAC: these get the 3D preset
-music_preset = "stage"         # plain | room | stage | room+ | auditorium
-speaker_dsp = true             # false + re-run = plain speakers again
-shell_blesh = true             # zsh-like suggestions in Bash
-crash_upload = false           # no crash reports to Ubuntu
-```
-
-A one-off `--data key=value` on the command line overrides the file.
+keeps a commented `config.example.toml` next to it. Every key, its default and the task that
+reads it: [docs/configuration.md](docs/configuration.md). For changes beyond the config, such as
+another keyboard layout, other key bindings, apps or bar modules, see
+[docs/forking.md](docs/forking.md).
 
 ## Handy commands
 
-These land in `~/.local/bin` or your shell. Most of the desktop ones are also on a key or a
-bar button, so the command line is just the second way in.
-
-Power and battery:
-
 | Command | What it does |
 |---|---|
-| `turbo-on` / `turbo-off` / `turbo-status` | Intel turbo boost on or off (off after every boot) |
-| `hypr-power-profile balanced` | power-saver, balanced or performance; the battery icon has the same menu |
-| `hypr-brightness screen -5` | screen or keyboard light (`kbd`); one step below the minimum turns the panel off |
-| `t2-battery status` / `full` / `limit` | charge limit (config `battery_charge_limit`, e.g. 80 %); `full` before a trip |
-| `hypr-gpu battery` / `external` / `status` | Hyprland on the Intel GPU only, or with the AMD-driven external ports; applies at the next login (`--now` logs out) |
+| `turbo-on` / `turbo-off` | Intel turbo boost on or off (off after every boot) |
+| `t2-battery status` / `full` | battery health and charge limit; `full` before a trip |
+| `hypr-gpu external` / `battery` | use the external display ports, or the Intel GPU only |
+| `hypr-3d stage` / `off` | headphone 3D preset, or effects off for an A/B comparison |
+| `hypr-termtheme next` | next terminal and editor theme (SUPER+Y) |
+| `t2-nix-update` | update every Nix tool at once |
 
-Audio:
-
-| Command | What it does |
-|---|---|
-| `hypr-3d stage` | headphone preset: `plain`, `room`, `stage`, `plus` or `auditorium` |
-| `hypr-3d off` / `hypr-3d on` | headphone effects off for a straight A/B comparison, and back on |
-| `hypr-volume up` / `down` / `mute` / `micmute` | volume and mic keys with the on-screen popup |
-
-Desktop (Hyprland):
-
-| Command | What it does |
-|---|---|
-| `hypr-screenshot edit` | rectangle to `~/Screenshots`, then the Satty editor (SUPER+SHIFT+4) |
-| `hypr-layout next` | dynamic or golden-ratio tiling (SUPER+L) |
-| `hypr-nightmode next` | night filter: off, green or dark (the rabbit in the bar) |
-| `hypr-deco win311` / `mac` | title bar style; `hypr-shadow on` / `off` for shadows |
-| `hypr-kbd de` / `us` | keyboard layout (aliases `kbde`, `kbus`) |
-| `hypr-findcursor` | flashes a huge pointer so you can find it (SUPER+SHIFT+C) |
-
-Terminal and themes:
-
-| Command | What it does |
-|---|---|
-| `hypr-termtheme next` | next of the five terminal/editor themes (SUPER+Y); or name one, e.g. `navy` |
-| `k` | `kubectl` with completion |
-
-System:
-
-| Command | What it does |
-|---|---|
-| `t2-alerts` / `t2-alerts ack` / `t2-alerts log` | storage and service alerts, acknowledge them, NVMe health history |
-| `hypr-rdp-control status` | the RDP server inside the Hyprland session (`start`, `stop`, `validate`) |
-| `dev-disk-reclaim` | shows what caches and builds could be cleaned; `--apply` cleans them |
-
-Nix tools (`docs/nix.md`):
-
-| Command | What it does |
-|---|---|
-| `t2-nix-update` | updates every Nix tool at once, copies the new `flake.lock` to the repo to commit |
-| `nix profile list` | what the profile holds (one entry, `t2-tools`) |
-| `nix profile rollback` | back to the previous tool set |
+The full list: [docs/commands.md](docs/commands.md).
 
 ## Is it for you?
 
@@ -214,13 +104,7 @@ around anyway, because SSD, T2 and EFI firmware updates only arrive through macO
 
 ## Docs
 
-- Specs and steering: `.kiro/specs/`, `.kiro/steering/`
-- Source port plan: `docs/source-port-plan.md`; backlog: `docs/backlog.md`
-- Hibernate (needs a bigger swap, owner-run): `docs/hibernate-swap.md`
-- Verbose boot and shutdown (backlog; runbook ready): `docs/verbose-boot.md`
-- Nix for user CLI tools (update, add, roll back): `docs/nix.md`
-- Linux vs macOS benchmark on the same Mac: `docs/benchmark.md`
-- CPU security mitigations off for performance (config `cpu_mitigations_off`): `docs/cpu-mitigations.md`
+Everything is mapped in [docs/index.md](docs/index.md); specs and steering are in `.kiro/`.
 
 ## Credits
 

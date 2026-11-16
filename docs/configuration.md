@@ -1,0 +1,148 @@
+# Configuration
+
+Your settings live in `~/.config/t2-mac-kde/config.toml`, never in the repository. The deploy
+keeps a fully commented `config.example.toml` next to it (source: `files/config.example.toml`).
+Every key is optional. The order of precedence is:
+
+1. `--data key=value` on the pyinfra command line;
+2. `config.toml`;
+3. the task's default.
+
+```sh
+mkdir -p ~/.config/t2-mac-kde
+cp files/config.example.toml ~/.config/t2-mac-kde/config.toml   # then uncomment what you need
+```
+
+## Running the deploy, or one task
+
+```sh
+.venv/bin/pyinfra @local deploy.py --dry --use-sudo-password   # preview everything
+.venv/bin/pyinfra @local deploy.py --use-sudo-password         # apply everything
+
+.venv/bin/pyinfra @local tasks/desktop.py --dry                # preview one task
+.venv/bin/pyinfra @local tasks/desktop.py --use-sudo-password  # apply one task
+.venv/bin/pyinfra @local tasks/rdp.py --data rdp_fps=30        # one-off override
+```
+
+Run it as your normal user; only the system parts ask for the sudo password. After changing a
+config key, re-run the task that reads it (listed below). The tasks are idempotent, so a re-run
+only changes what differs.
+
+Tasks with an order: `shell` needs `node` and `tools` first; `themes` should run after
+`vendor_apps`, because it only themes editors that are already installed. `deploy.py` lists them
+in a working order.
+
+To leave a task out for good, see [forking.md](forking.md#disabling-a-whole-task).
+
+## Desktop
+
+Read by `tasks/desktop.py` (fonts: `tasks/fonts.py`).
+
+| Key | Default | Effect |
+|---|---|---|
+| `panel_scale` | `"auto"` | Internal panel (eDP-1) scale, e.g. `1.6` on the 16" Retina panel |
+| `desktop_left_reserve` | `0` | Pixel strip at the panel's left edge kept free of windows |
+| `cursor_theme` | `"breeze_cursors"` | `"t2-highvis"` = large white arrow with a red outline |
+| `cursor_size` | `24` | e.g. `48` for a much bigger pointer |
+| `password_store` | `"kwallet6"` with KDE, else `"gnome-libsecret"` | Password backend for Chromium and Electron apps; `""` = don't set one |
+| `gpu_mode` | `"battery"` | First-run GPU mode; afterwards `hypr-gpu` decides |
+| `bar_graphs` | `false` | CPU, memory and network as sparklines instead of numbers |
+| `decorations_style` | `"win311"` | Initial title bar style (`"win311"` or `"mac"`); afterwards `hypr-deco` |
+| `window_shadows` | `"off"` | Initial shadows (`"off"`, `"mac"`, `"win311"`); afterwards `hypr-shadow` |
+| `fleet_hosts` | `[]` | Hostnames that should get clearly distinct title bar colours |
+| `[decor_colors]` | empty | Per-host colour override, `hostname = "#rrggbb"` |
+| `[default_apps]` | empty | MIME type = desktop file, applied with `xdg-mime` |
+| `font_rendering` | `"grayscale"` | `"rgb"` for subpixel rendering (fontconfig) |
+
+`font_rendering` is also used for the first GTK `settings.ini`, which the desktop task only
+writes if the file doesn't exist; there its default is `"rgb"`.
+
+## Power and privacy
+
+Read by `tasks/resource_policy.py` (mitigations: `tasks/cpu_mitigations.py`).
+
+| Key | Default | Effect |
+|---|---|---|
+| `battery_charge_limit` | `100` | Stop charging at this percentage (50 to 100; 100 = no limit) |
+| `power_tuning` | `false` | Runtime PM for three Intel chipset functions, fewer wakeups |
+| `crash_upload` | `true` | `false` masks whoopsie: no uploads to errors.ubuntu.com |
+| `cpu_mitigations_off` | `false` | `true` adds `mitigations=off` at the next reboot ([cpu-mitigations.md](cpu-mitigations.md)) |
+
+## Shell and developer tools
+
+Read by `tasks/shell.py`.
+
+| Key | Default | Effect |
+|---|---|---|
+| `shell_blesh` | `false` | ble.sh suggestions, syntax colours and completion menu in Bash |
+| `default_cc` | `""` | `"icx"` = Intel icx/icpx as CC/CXX in your interactive shells, and for Nim |
+| `safe_chain` | `false` | Aikido Safe Chain in front of npm, pip, uv and friends |
+| `rclone_mounts` | `{}` | `{ remote = "Dir" }`: mount each rclone remote at `~/Dir` |
+| `rclone_cache_size` | `"10G"` | VFS cache size per mount |
+| `rclone_cache_age` | `"24h"` | How long cached files are kept |
+
+## Nix
+
+Read by `tasks/nix_tools.py` (and `tasks/apps.py`, `tasks/containers.py` to avoid installing a
+tool twice). See [nix.md](nix.md).
+
+| Key | Default | Effect |
+|---|---|---|
+| `nix_tools_extra` | `[]` | nixpkgs attributes added on top of the default set |
+| `nix_tools` | the list in `manage/nix_tools.py` | Replaces the default set. `[]` keeps only apt and release tools; leaving out zellij, kubectl, helm, k9s, ktop, bitwarden-cli, rclone or podman-tui brings back their pinned release binary |
+
+## Themes
+
+Read by `tasks/themes.py`.
+
+| Key | Default | Effect |
+|---|---|---|
+| `themes_chromium_policy` | `false` | Write the Chromium theme policy (needs `/etc/chromium`) |
+
+## Audio
+
+Read by `tasks/audio_effects.py` and `tasks/speaker_dsp.py`.
+
+| Key | Default | Effect |
+|---|---|---|
+| `music_headphones` | every paired Bose device | Bluetooth names or MACs that get the 3D preset and music-only mode |
+| `music_preset` | `"plain"` | `"plain"`, `"room"`, `"stage"`, `"room+"`, `"auditorium"` |
+| `music_codec` | `"sbc"` | `"sbc_xq"` is cleaner but may tick with Wi-Fi on 2.4 GHz |
+| `music_boost_db` | `0` | Extra level for the music headphones |
+| `speaker_dsp` | `false` | Speaker DSP on the MacBookPro16,1; `false` and a re-run removes it |
+
+The older key `qc35_mac` still works as a fallback for `music_headphones`.
+
+## RDP
+
+Read by `tasks/rdp.py`.
+
+| Key | Default | Effect |
+|---|---|---|
+| `rdp_bind` | `"0.0.0.0:3389"` | Listen address; the firewall only lets Tailscale and loopback in |
+| `rdp_egfx_codec` | `"clearcodec"` | `"avc420"` for H.264 |
+| `rdp_fps` | `20` | Frame rate |
+| `rdp_audio_mode` | `"mirror"` | `"mirror"` or `"off"` |
+
+## Remote access
+
+| Key | Default | Effect |
+|---|---|---|
+| `tailscale_exit_node` | `""` | Informational only; no task reads it. Pick the exit node in the tray |
+
+## Example
+
+Mine looks roughly like this:
+
+```toml
+panel_scale = 1.6              # internal panel scale
+desktop_left_reserve = 15      # my panel has dead pixel columns at the left edge
+music_headphones = ["My QC35"] # Bluetooth name or MAC: these get the 3D preset
+music_preset = "stage"
+speaker_dsp = true
+shell_blesh = true
+crash_upload = false
+```
+
+Tables such as `[default_apps]` go after the plain keys, because everything below a table header
+belongs to that table.
