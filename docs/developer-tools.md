@@ -218,7 +218,7 @@ pre-t2 settings backups are retained. No Warp installation or theme target remai
 ## Warpeer
 
 `tasks/warpeer.py` installs our [Warpeer fork](https://github.com/norandom/warpeer)
-from release `desktop-51e9042` under `~/.local/opt/warpeer-51e9042`, with a
+from release `desktop-9ade3d6` under `~/.local/opt/warpeer-9ade3d6`, with a
 `~/.local/bin/warpeer` command and application-menu entry. Both the archive and
 executable are SHA-256 pinned. This task needs no sudo or package changes and is
 included in `deploy.py`. The proprietary Warp cleanup remains separate.
@@ -251,7 +251,7 @@ list in `~/.config/warpeer/settings.toml`. No YAML workflows or cloud sync are e
 The managed Warpeer font is **Fixedsys Excelsior**, installed by `tasks/fonts.py`.
 `warpeer_font` overrides this family. Terminal/editor text, document text and
 menus/tabs use the same family; existing font sizes are preserved. The UI font
-setting needs the toolbar/font build or newer; older builds use their default
+setting needs desktop-9ade3d6 or newer; older builds use their default
 UI font while still applying the terminal/content settings.
 
 The toolbar adds **New Window**, **New Tab**, **New File**, and **CP** before the

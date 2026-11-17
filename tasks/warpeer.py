@@ -12,9 +12,9 @@ from manage.preflight import validate_local_context
 validate_local_context()
 if platform.machine() != "x86_64":
     raise RuntimeError("The pinned Warpeer build requires Linux x86-64.")
-VERSION = "51e9042"
-ARCHIVE_SHA256 = "21189b6429c7b26909eb994dcc07c3434bb9169f5f0448d28c9958a39908c63c"
-BINARY_SHA256 = "f415e4be87be90187e14df54ffe4c5b3cb56b1847da5052c5cb9df6cfde093ea"
+VERSION = "9ade3d6"
+ARCHIVE_SHA256 = "4da7e1ba93b94ab3b1c700b6914085104a14f5e4ebda16f73cb133f13c545966"
+BINARY_SHA256 = "fccd0702665650eb1cbce91a4d2a4c2b247c8890d25008a534aa9538aa9298cb"
 URL = f"https://github.com/norandom/warpeer/releases/download/desktop-{VERSION}/warpeer-linux-x86_64.tar.gz"
 home = Path.home()
 opt = home / ".local/opt"
