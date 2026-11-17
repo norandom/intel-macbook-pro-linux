@@ -152,6 +152,9 @@ Right, in order:
 | Clock | weekday and time | date and week number |
 | Power | | lock, suspend, log out, reboot, shut down |
 
+The battery and power-profile buttons open the overlay picker at the top right.
+Click outside it or press Esc to dismiss; the current profile has a check mark.
+
 The web launcher starts Vivaldi, which `tasks/vendor_apps.py` installs from Vivaldi's own repo.
 To use another browser there, see [forking.md](forking.md#waybar).
 

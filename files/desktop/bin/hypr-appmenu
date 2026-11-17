@@ -3,6 +3,7 @@
 
     hypr-appmenu              recent apps, categories ▸ applications, Run…, Shut down… (top-left)
     hypr-appmenu --at X Y     same, opened at X/Y on the focused monitor (desktop right-click)
+    hypr-appmenu profiles     power-profile picker (top-right, click outside or Esc to close)
     hypr-appmenu power        lock / suspend / [hibernate] / log out / reboot / shut down (fuzzel, SUPER+ESCAPE)
 
 Hibernate only shows when ~/.local/bin/hypr-hibernate exists (config hibernate = true).
@@ -72,6 +73,7 @@ def launch_argv(app_id, commandline):
 
 HIBERNATE = HOME / ".local/bin/hypr-hibernate"   # installed only with config hibernate = true
 args = sys.argv[1:]
+PROFILE_MENU = args == ["profiles"]
 if args[:1] == ["power"]:
     # The power button sits at the right end of the bar: open the menu under it.
     p = subprocess.run(["fuzzel", "--dmenu", "--anchor", "top-right", "--width", "32",
@@ -161,9 +163,26 @@ class Menu:
         self.sub = None
         self.main = self.panel(self.entries())
         self.fixed.put(self.main, X, Y)
+        if PROFILE_MENU:
+            self.profile_x = X
+            self.win.connect("size-allocate", self.position_profiles)
+
+    def position_profiles(self, _win, allocation):
+        x = max(0, allocation.width - self.main.get_preferred_width()[1] - 8)
+        if x != self.profile_x:
+            self.profile_x = x
+            self.fixed.move(self.main, x, Y)
 
     def entries(self):
         """[(label, icon, action or None, submenu entries or None)]; None = separator"""
+        if PROFILE_MENU:
+            current = subprocess.run(["powerprofilesctl", "get"], capture_output=True,
+                                     text=True).stdout.strip()
+            return [(label + (" ✓" if profile == current else ""), image(),
+                     self.cmd([str(HOME / ".local/bin/hypr-power-profile"), profile]), None)
+                    for profile, label in (("power-saver", "󰌪  Power saver"),
+                                           ("balanced", "󰗑  Balanced"),
+                                           ("performance", "󰉁  Performance"))]
         by_cat, by_id = apps()
         recent = [i for i in (RECENT.read_text().splitlines() if RECENT.exists() else []) if i in by_id][:NRECENT]
         out = [(by_id[i][0], app_icon(by_id[i][1]), self.launcher(i, by_id[i][1]), None) for i in recent]

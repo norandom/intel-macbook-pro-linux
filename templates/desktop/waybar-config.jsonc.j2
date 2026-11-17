@@ -107,31 +107,15 @@
     "states": { "warning": 25, "critical": 10 },
     "format": "{icon} {capacity}%", "format-charging": "󰂄 {capacity}%", "format-plugged": "{icon} {capacity}%", "format-full": "{icon} {capacity}%",
     "format-icons": ["󰂎", "󰁻", "󰁽", "󰁿", "󰂁", "󰁹"], "tooltip-format": "{timeTo} ({power} W)\nclick: power profile",
-    // Open after release so the popup cannot steal the button-up event.
-    // Waybar 0.15 requires this string to register its release handler.
-    "on-click-release": "",
-    "menu": "on-click-release",
-    "menu-file": "$HOME/.config/waybar/power-profile-menu.xml",
-    "menu-actions": {
-      "power-saver": "$HOME/.local/bin/hypr-power-profile power-saver",
-      "balanced": "$HOME/.local/bin/hypr-power-profile balanced",
-      "performance": "$HOME/.local/bin/hypr-power-profile performance"
-    }
+    // Layer-shell picker explicitly consumes outside clicks and closes.
+    "on-click-release": "$HOME/.local/bin/hypr-launch $HOME/.local/bin/hypr-appmenu profiles"
   },
   // Power profile (power-profiles-daemon): icon shows the current one; click = drop-down.
   "custom/power-profile": {
     "exec": "$HOME/.local/bin/hypr-power-profile waybar",
     "return-type": "json", "interval": 30, "signal": 12,
-    // Open after release so the popup cannot steal the button-up event.
-    // Waybar 0.15 requires this string to register its release handler.
-    "on-click-release": "",
-    "menu": "on-click-release",
-    "menu-file": "$HOME/.config/waybar/power-profile-menu.xml",
-    "menu-actions": {
-      "power-saver": "$HOME/.local/bin/hypr-power-profile power-saver",
-      "balanced": "$HOME/.local/bin/hypr-power-profile balanced",
-      "performance": "$HOME/.local/bin/hypr-power-profile performance"
-    }
+    // Layer-shell picker explicitly consumes outside clicks and closes.
+    "on-click-release": "$HOME/.local/bin/hypr-launch $HOME/.local/bin/hypr-appmenu profiles"
   },
   "clock": { "format": "{:%a %H:%M}", "format-alt": "{:%d %B %Y  W%V}", "tooltip": false },
 {% if bar_graphs %}
