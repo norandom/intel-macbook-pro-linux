@@ -9,10 +9,11 @@ void main() {
     vec4 px = texture(tex, v_texcoord);
     float brightest = max(px.r, max(px.g, px.b));
     float darkest = min(px.r, min(px.g, px.b));
-    // A broad highlight shoulder lowers glare without an abrupt near-white cutoff.
-    // Saturated colours remain unchanged; pure white becomes muted warm cream.
-    float highlight = smoothstep(0.70, 1.0, darkest);
-    float neutral = 1.0 - smoothstep(0.03, 0.12, brightest - darkest);
-    vec3 cream = px.rgb * vec3(0.90, 0.84, 0.72);
-    fragColor = vec4(mix(px.rgb, cream, highlight * neutral), px.a);
+    // Compress highlights above 0.60; pure white reaches 0.78 instead of 1.0.
+    // Include tinted off-white backgrounds, but leave saturated colours alone.
+    float neutral = 1.0 - smoothstep(0.08, 0.32, brightest - darkest);
+    vec3 compressed = min(px.rgb, vec3(0.60)) + max(px.rgb - 0.60, vec3(0.0)) * 0.45;
+    float highlight = smoothstep(0.60, 1.0, brightest);
+    vec3 paper = compressed * mix(vec3(1.0), vec3(1.0, 0.96, 0.88), highlight);
+    fragColor = vec4(mix(px.rgb, paper, neutral), px.a);
 }

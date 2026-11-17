@@ -13,5 +13,8 @@ float gray(vec3 rgb) {
 
 void main() {
     vec4 px = texture(tex, v_texcoord);
-    fragColor = vec4(vec3(gray(px.rgb)), px.a);
+    float value = gray(px.rgb);
+    // Preserve dark/mid tones, compress highlights to a soft gray-white ceiling.
+    value = min(value, 0.60) + max(value - 0.60, 0.0) * 0.45;
+    fragColor = vec4(vec3(value), px.a);
 }

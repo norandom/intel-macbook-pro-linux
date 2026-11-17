@@ -209,13 +209,13 @@ Lid close is handled by logind: it suspends, as on a stock install, or hibernate
   the commands decide.
 - Screen filter: click the rabbit for a centered picker (current mode marked),
   or use `hypr-nightmode next` (off, green, dark, grayscale, monochrome, warmwhite).
-  Grayscale keeps smooth shades; monochrome uses four charcoal-to-gray-green shades for a 1990s LCD look,
+  Grayscale keeps smooth shades and caps white at approximately RGB 199/199/199; monochrome uses four charcoal-to-gray-green shades for a 1990s LCD look,
   with subtle static dithering only around shade boundaries.
   Right-click the rabbit to turn filters off; `hypr-nightmode grayscale` and
   `hypr-nightmode monochrome` select either directly.
   `hypr-nightmode warmwhite` dims and warms bright neutral highlights toward muted cream (white becomes
-  approximately RGB 230/214/184),
-  preserving darker tones and saturated colors. This is selective highlight warming,
+  approximately RGB 199/191/175),
+  including tinted near-white backgrounds while preserving darker tones and saturated colors. This is selective highlight warming,
   rather than an overall color-temperature shift.
 - Night shift, like f.lux: with `night_shift = true`, gammastep warms the screen after sunset
   and back after sunrise, fading through dusk and dawn. It follows the sun at a fixed place:
