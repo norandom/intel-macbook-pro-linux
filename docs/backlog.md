@@ -45,3 +45,21 @@ and configuration tasks, per explicit owner direction.
   Ubuntu .debs on GitHub (contour-terminal/contour). When reopened: a pinned, sha256-checked
   .deb through the vendor-apps path, plus a palette for each of the five themes so
   hypr-termtheme switches it like foot and Ghostty. It's in the app inventory as `backlog`.
+
+## ICC display profiling on Wayland
+
+- Backlogged by the owner on 2026-11-17; documentation only, no deployment changes.
+- Idea: use a panel-specific ICC profile for the built-in Apple Color LCD. Start
+  with the profile from this same Mac's macOS installation, or measure this panel
+  with a colorimeter and DisplayCAL/ArgyllCMS for a profile reflecting its current condition.
+- Current Hyprland 0.53.3 uses the sRGB preset and has no native ICC-file monitor
+  option. Revisit native ICC support with a planned update of the pinned Hyprland
+  stack; do not upgrade it just for this backlog item. Plasma Wayland offers an
+  alternative through its display configuration.
+- Importing a profile into colord alone does not apply desktop-wide correction:
+  the active compositor must use it. Keep the profile specific to the physical
+  panel, not the virtual RDP output. Disable rabbit filters and night shift when
+  measuring or checking color accuracy.
+- References: [Hyprland 0.53 monitor settings](https://wiki.hypr.land/0.53.0/Configuring/Monitors/),
+  [newer Hyprland ICC support](https://wiki.hypr.land/0.55.0/Configuring/Basics/Monitors/),
+  [Plasma Wayland profiling guide](https://zamundaaa.github.io/wayland/2024/07/16/how-to-profile.html).
