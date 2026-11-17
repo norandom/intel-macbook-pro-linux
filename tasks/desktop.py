@@ -141,7 +141,7 @@ hypr_ops.append(owned_put(
 conf_names = sorted(p.name for p in Path(SRC, "hypr").glob("*.conf") if p.name != "hyprland.conf")
 hypr_ops += [owned_put(f"{SRC}/hypr/{n}", f"{hypr}/{n}") for n in conf_names]
 hypr_ops.append(owned_put(f"{TPL}/bindings.conf.j2", f"{hypr}/bindings.conf", template=True))
-for shader in ("night-green.glsl", "night-dark.glsl"):
+for shader in ("night-green.glsl", "night-dark.glsl", "night-grayscale.glsl", "night-monochrome.glsl", "night-warmwhite.glsl"):
     hypr_ops.append(owned_put(f"{SRC}/hypr/shaders/{shader}", f"{hypr}/shaders/{shader}"))
 hypr_ops.append(owned_put(f"{SRC}/hypr/hyprland.conf", f"{hypr}/hyprland.conf"))
 

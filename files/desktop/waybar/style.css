@@ -82,3 +82,7 @@ tooltip label { color: #fff8f0; font-family: "JetBrainsMono Nerd Font", monospac
 /* Left reserve strip over the panel's defective edge (see waybar config). */
 window#waybar.leftstrip { background: #000000; border: none; }
 window#waybar.leftstrip * { min-width: 0; padding: 0; margin: 0; }
+
+#custom-nightmode.grayscale { color: #444444; background: #dddddd; }
+#custom-nightmode.monochrome { color: #000000; background: #ffffff; border-bottom: 2px solid #000000; }
+#custom-nightmode.warmwhite { color: #79522b; background: #fff2d6; }

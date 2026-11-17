@@ -148,7 +148,7 @@ Right, in order:
 | Tray | Wi-Fi, Bluetooth, Tailscale, other apps | |
 | Clipboard | history | pick; right-click wipes it |
 | Moon / sun | night shift (`night_shift = true`): warm after sunset, period and temperature in the tooltip | pause / resume |
-| Rabbit | night filter | off, green, dark |
+| Rabbit | night filter | off, green, dark, grayscale, monochrome, warmwhite; right-click off |
 | Theme | terminal theme | next; right-click previous |
 | `⌨ DE` | keyboard layout | switch DE and US |
 | Coffee cup | keep awake (highlighted = on) | toggle automatic dim / lock / screen off |
@@ -207,7 +207,13 @@ Lid close is handled by logind: it suspends, as on a stock install, or hibernate
 - Title bars: `hypr-deco win311` or `hypr-deco mac`; shadows: `hypr-shadow on` / `off`.
   The config keys `decorations_style` and `window_shadows` only set the first value; after that
   the commands decide.
-- Night filter: `hypr-nightmode next` (off, green, dark).
+- Night filter: `hypr-nightmode next` (off, green, dark, grayscale, monochrome, warmwhite).
+  Grayscale keeps smooth shades; monochrome uses static black/white dithering.
+  Right-click the rabbit to turn filters off; `hypr-nightmode grayscale` and
+  `hypr-nightmode monochrome` select either directly.
+  `hypr-nightmode warmwhite` warms only bright neutral highlights toward cream,
+  preserving darker tones and saturated colors. This is selective highlight warming,
+  rather than an overall color-temperature shift.
 - Night shift, like f.lux: with `night_shift = true`, gammastep warms the screen after sunset
   and back after sunrise, fading through dusk and dawn. It follows the sun at a fixed place:
   `night_shift_location = "lat:lon"`, or by default the city of your timezone (Europe/Berlin:
