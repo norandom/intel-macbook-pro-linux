@@ -85,13 +85,14 @@ avoids.
 
 ## Fans
 
-The default `fan_curve = true` enables the runtime SMC fan controller. It requests
-35% of each fan's maximum at 55°C, 45% at 65°C, 65% at 75°C and full speed at
-85°C, interpolating between points and respecting each fan's minimum RPM.
-It uses the hottest CPU/GPU sensor and returns to firmware control at 50°C.
-The moderate-temperature speeds are relaxed for quieter everyday use; 90°C is a
-cooling target, not a guaranteed temperature cap. Set `fan_curve = false` to
-restore firmware cooling. Deployment restarts the service when the curve changes.
+The default `fan_curve = true` leaves firmware cooling in charge at everyday temperatures
+(including 55–65°C). At 70°C the controller takes over with discrete steps: 40% of
+maximum, 55% at 75°C, 75% at 80°C, and full speed at 85°C. It does not interpolate.
+It monitors the hottest CPU/GPU sensor, respects hardware minimums and the firmware
+target at takeover, and uses 2°C hysteresis when stepping down. At 65°C it returns
+to firmware control. 90°C is a cooling target, not a guaranteed temperature cap.
+Set `fan_curve = false` to restore firmware cooling throughout. Deployment restarts
+the service when the curve changes.
 
 ## Other services
 

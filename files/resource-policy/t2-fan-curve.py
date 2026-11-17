@@ -11,17 +11,17 @@ import time
 HWMON = Path('/sys/class/hwmon')
 CONTROL = Path('/sys/module/macsmc_hwmon/parameters/fan_control')
 RUNTIME = Path('/run/t2-fan-curve')
-CURVE = ((55, .35), (65, .45), (75, .65), (85, 1.0))
+CURVE = ((70, .40), (75, .55), (80, .75), (85, 1.0))
+RELEASE_TEMPERATURE = 65
+STEP_HYSTERESIS = 2
 
 
 def fan_target(temperature, minimum, maximum):
-    fraction = CURVE[0][1]
-    for (low, start), (high, end) in zip(CURVE, CURVE[1:]):
-        if temperature >= high:
-            fraction = end
-        elif temperature >= low:
-            fraction = start + (end - start) * (temperature - low) / (high - low)
+    fraction = 0.0
+    for threshold, speed in CURVE:
+        if temperature < threshold:
             break
+        fraction = speed
     return max(minimum, min(maximum, round(maximum * fraction)))
 
 
@@ -34,6 +34,7 @@ class Controller:
         self.hwmon, self.parameter = hwmon, parameter
         self.marker = runtime / 'original-control'
         self.manual = False
+        self.level = 0
         self.floors = {}
         self.sensors = []
         matches = [p for p in hwmon.glob('hwmon*')
@@ -83,9 +84,9 @@ class Controller:
 
     def step(self):
         temperature = self.temperature()
-        if not self.manual and temperature < 55:
+        if not self.manual and temperature < CURVE[0][0]:
             return temperature
-        if self.manual and temperature <= 50:
+        if self.manual and temperature <= RELEASE_TEMPERATURE:
             for target in self.fans:
                 write(target, 0)  # Driver's documented return to SMC automatic mode.
             self.manual = False
@@ -95,9 +96,14 @@ class Controller:
             # Do not undercut the firmware request when taking control.
             self.floors = {p: int(p.read_text()) for p in self.fans}
             self.manual = True
+            self.level = 0
+        while self.level + 1 < len(CURVE) and temperature >= CURVE[self.level + 1][0]:
+            self.level += 1
+        while self.level > 0 and temperature <= CURVE[self.level][0] - STEP_HYSTERESIS:
+            self.level -= 1
         for target in self.fans:
             minimum, maximum = self.bounds[target]
-            rpm = max(fan_target(temperature, minimum, maximum), self.floors[target])
+            rpm = max(fan_target(CURVE[self.level][0], minimum, maximum), self.floors[target])
             write(target, min(maximum, rpm))
         return temperature
 

@@ -171,12 +171,12 @@ reporting controls. No live reporting-setting changes are made by a dry run.
 ### Earlier cooling
 
 The default `t2-fan-curve.service` monitors the hottest Intel CPU or AMD GPU
-edge/junction sensor every second. It takes manual fan control from 55°C,
-requests 35% of each fan’s maximum there, 45% at 65°C, 65% at 75°C, and 100%
-at 85°C, interpolating between points. Each fan respects its hardware minimum.
-It never undercuts the firmware target observed when taking control. Below 50°C
-it returns to automatic SMC control. This is earlier cooling, not a guaranteed
-90°C ceiling; CPU frequency and power settings are untouched.
+edge/junction sensor every second. It leaves firmware cooling in charge below 70°C,
+then requests stepped speeds: 40% at 70°C, 55% at 75°C, 75% at 80°C and 100%
+at 85°C. There is no interpolation. Cooling down requires 2°C below a step's
+threshold before dropping a level; at 65°C it returns to automatic SMC control.
+Each fan respects its hardware minimum and the firmware target observed on takeover.
+90°C is a cooling target, not a guaranteed ceiling; CPU power settings are unchanged.
 
 The helper temporarily enables the existing `macsmc_hwmon` runtime `fan_control`
 parameter. This is the kernel’s explicitly manual/unsafe interface, so recovery

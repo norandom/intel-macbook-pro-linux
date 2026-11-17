@@ -50,13 +50,27 @@ class FanCurveTests(unittest.TestCase):
         self.assertEqual((self.smc / 'fan1_target').read_text(), '2000')
         (self.cpu / 'temp1_input').write_text('75000')
         self.control.step()
-        self.assertEqual((self.smc / 'fan1_target').read_text(), '3640\n')
-        (self.cpu / 'temp1_input').write_text('52000')
+        self.assertEqual((self.smc / 'fan1_target').read_text(), '3080\n')
+        (self.cpu / 'temp1_input').write_text('67000')
         self.control.step()
         self.assertNotEqual((self.smc / 'fan1_target').read_text(), '0\n')
-        (self.cpu / 'temp1_input').write_text('49000')
+        (self.cpu / 'temp1_input').write_text('65000')
         self.control.step()
         self.assertEqual((self.smc / 'fan1_target').read_text(), '0\n')
+
+    def test_firmware_quiet_band_and_stepped_ramp_with_hysteresis(self):
+        self.control.start()
+        for temp in (55, 60, 65, 69):
+            (self.cpu / 'temp1_input').write_text(str(temp * 1000))
+            self.control.step()
+            self.assertFalse(self.control.manual)
+            self.assertEqual((self.smc / 'fan1_target').read_text(), '2000')
+        for temp, rpm in ((70, 2240), (74, 2240), (75, 3080), (74, 3080),
+                          (73, 2240), (85, 5600), (84, 5600), (83, 4200),
+                          (76, 3080), (66, 2240), (65, 0)):
+            (self.cpu / 'temp1_input').write_text(str(temp * 1000))
+            self.control.step()
+            self.assertEqual(int((self.smc / 'fan1_target').read_text()), rpm)
 
     def test_missing_sensor_fails_and_separate_cleanup_restores(self):
         self.control.start()
@@ -80,7 +94,7 @@ class FanCurveTests(unittest.TestCase):
     def test_cooling_never_below_initial_firmware_request(self):
         (self.smc / 'fan1_target').write_text('4800')
         self.control.start()
-        (self.cpu / 'temp1_input').write_text('60000')
+        (self.cpu / 'temp1_input').write_text('70000')
         self.control.step()
         self.assertEqual((self.smc / 'fan1_target').read_text(), '4800\n')
 
