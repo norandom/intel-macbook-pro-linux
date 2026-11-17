@@ -66,17 +66,18 @@ files.put(name="Warpeer application menu entry", src=StringIO(entry),
 # prompt discards the Bash hooks after Warpeer has initialized its protocol.
 from manage import fish_shell
 from manage.userconfig import setting
-from manage.warpeer import startup_shell_config, pinned_input_config, font_config
+from manage.warpeer import startup_shell_config, pinned_input_config, font_config, contrast_config
 
 shell = setting("shell_interactive")
 settings = home / ".config/warpeer/settings.toml"
 original = settings.read_text() if settings.exists() else ""
 updated = font_config(pinned_input_config(startup_shell_config(original, shell)),
                       setting("warpeer_font", "Fixedsys Excelsior"))
+updated = contrast_config(updated)
 backup = settings.with_name("settings.toml.pre-t2-native-shell")
 if settings.exists() and original != updated and not backup.exists():
     files.put(name="Back up Warpeer preferences", src=StringIO(original), dest=str(backup), mode="600")
-files.put(name="Warpeer: native shell, pinned input and font", src=StringIO(updated), dest=str(settings),
+files.put(name="Warpeer: native shell, pinned input, font and automatic contrast", src=StringIO(updated), dest=str(settings),
           mode="600", create_remote_dir=True)
 if shell == "fish":
     files.block(name="Keep Warpeer's shell integration intact", path=str(home / ".bashrc"),

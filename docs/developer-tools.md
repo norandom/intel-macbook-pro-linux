@@ -258,3 +258,9 @@ The toolbar adds **New Window**, **New Tab**, **New File**, and **CP** before th
 existing right-side controls. CP opens the command palette (Ctrl+Shift+P), and
 its hover label is **Command Palette**. Save a new Markdown file with Ctrl+S in
 one of your configured runbook folders.
+
+Warpeer's **Settings → Appearance → Text → Enforce minimum contrast** is managed as
+**Always** (`appearance.text.enforce_minimum_contrast = "always"`). This also adjusts
+explicit RGB shell colours in command history against the active background when
+switching between light and dark themes. Underlines remain; low-contrast colours
+may shift for readability. No new Warpeer build is required.

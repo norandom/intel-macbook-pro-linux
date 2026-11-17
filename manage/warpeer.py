@@ -45,3 +45,8 @@ def font_config(text: str, family: str = "Fixedsys Excelsior") -> str:
     for key in ("font_name", "ai_font_name", "ui_font_name"):
         text = _string_setting(text, 'appearance.text', key, family)
     return text
+
+
+def contrast_config(text: str) -> str:
+    """Keep explicit shell RGB colours readable when the terminal theme changes."""
+    return _string_setting(text, 'appearance.text', 'enforce_minimum_contrast', 'always')
