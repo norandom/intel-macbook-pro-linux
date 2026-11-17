@@ -94,3 +94,15 @@ pack"), with .deb backups. Allowed, and only this:
   disables apt-daily, apt-daily-upgrade, update-notifier-download/-motd and
   unattended-upgrades.service. Updates then happen only when the owner runs apt. `true`
   removes the file and re-enables exactly those units.
+
+## Owner-approved exception: earlier fan cooling (2026-11-17)
+
+The owner requested an earlier default fan curve, prioritizing build performance
+and a 90°C cooling target. `tasks/fan_curve.py` may install a userspace systemd
+controller that temporarily writes the existing
+`/sys/module/macsmc_hwmon/parameters/fan_control` parameter and discovered
+`macsmc_hwmon` `fan*_target` sysfs files. Full fan speed is requested by 85°C.
+A watchdog and stop cleanup return each fan to SMC automatic control before
+restoring the runtime parameter. No driver reload, module file/options file,
+kernel, initramfs or bootloader change is authorized. Live deployment remains
+owner-run; `fan_curve = false` restores firmware cooling.

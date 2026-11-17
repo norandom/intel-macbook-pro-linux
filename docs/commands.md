@@ -58,3 +58,14 @@ button, so the command line is just the second way in.
 | `t2-nix-update` | updates every Nix tool at once, copies the new `flake.lock` to the repo to commit |
 | `nix profile list` | what the profile holds (one entry, `t2-tools`) |
 | `nix profile rollback` | back to the previous tool set |
+
+## Full local deployment
+
+Run `./deploy.sh` as the desktop user (without sudo). It invokes the repository's
+`.venv/bin/pyinfra @local deploy.py --use-sudo-password` and forwards extra arguments.
+Use `./deploy.sh --dry` to preview; privileged fact collection may still require sudo authentication.
+
+The resource policy configures open-file limits of 65,536 soft / 1,048,576 hard
+for PAM logins and systemd system/user managers. Reboot after deployment to apply
+them throughout the session; existing processes retain their inherited limits.
+Individual service overrides can still set different limits.

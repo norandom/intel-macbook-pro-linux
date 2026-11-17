@@ -14,7 +14,7 @@ import shlex
 
 MARKER = "# {mark} t2-mac-kde: fish in interactive terminals"
 # Runs at bash's first prompt (PROMPT_COMMAND), i.e. after every other ~/.bashrc block.
-BASHRC = r'''if [[ $- == *i* && -z ${BASH_EXECUTION_STRING-} && -t 0 && -t 1 && ${T2_NO_FISH-} != 1 && -x /usr/bin/fish ]] \
+BASHRC = r'''if [[ $- == *i* && -z ${BASH_EXECUTION_STRING-} && -t 0 && -t 1 && ${TERM_PROGRAM-} != WarpTerminal && ${T2_NO_FISH-} != 1 && -x /usr/bin/fish ]] \
    && [[ $(ps -o comm= -p "$PPID" 2>/dev/null) != fish ]]; then
   __t2_fish() { if shopt -q login_shell; then exec /usr/bin/fish --login; else exec /usr/bin/fish; fi; }
   if [[ "$(declare -p PROMPT_COMMAND 2>/dev/null)" == "declare -a"* ]]; then
@@ -127,6 +127,8 @@ end
 
 # --- fzf: Ctrl+R history, Ctrl+T insert a file, Alt+C cd into a directory ---------------------
 command -q fzf; and fzf --fish | source
+set -l t2_navigation $__fish_config_dir/t2-navigation.fish
+test -r "$t2_navigation"; and source "$t2_navigation"
 
 # --- prompt: user@host cwd (git) $, red user for root, red exit code on failure --------------
 # Colours come from the terminal palette (hypr-termtheme sets fish_color_* / t2_color_*).
@@ -218,6 +220,17 @@ def fish_conf(safe_chain_tools: tuple[str, ...] = (), starship: bool = False) ->
     if safe_chain_tools:
         sc = ("\n# --- Aikido Safe Chain: malware check before package installs (config safe_chain) ----------\n"
               + "\n".join(f"command -q aikido-{t}; and alias {t} aikido-{t}" for t in safe_chain_tools) + "\n")
+    wraps += r"""
+# Nix supplies prefixed Rust utilities: use them only in interactive fish.
+# Keep fish builtins (test, printf, ...) and allow `command cp` to select system cp.
+for tool in $HOME/.nix-profile/bin/uutils-*
+    test -x "$tool"; or continue
+    set -l utility (string replace 'uutils-' '' -- (path basename "$tool"))
+    builtin -q $utility; and continue
+    alias $utility (string escape -- "$tool")
+end
+"""
+    wraps += "\nif command -q eza\n    alias ls 'eza --icons=auto --group-directories-first'\nend"
     return ("# Managed by t2-mac-kde (config shell_interactive = \"fish\"; manage/fish_shell.py).\n"
             "# Your own settings: ~/.config/fish/config.fish or another conf.d file.\n"
             + BODY.replace("{wraps}", wraps).replace("{abbrs}", abbrs).replace("{safe_chain}", sc)

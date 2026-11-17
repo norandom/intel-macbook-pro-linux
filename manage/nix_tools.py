@@ -17,7 +17,8 @@ DEFAULT_TOOLS = (
     "zellij", "kubectl", "kubernetes-helm", "k9s", "ktop", "bitwarden-cli", "rclone", "podman-tui",
     "btop", "ripgrep", "fd", "bat", "jq", "fzf", "lazygit", "glow", "gh", "gdu", "trippy",
     "multitail", "aria2", "rustup", "go", "nim", "nimble", "nimlangserver", "nano-syntax-highlighting",
-    "netcat-openbsd", "gef", "rizin", "valgrind",
+    "netcat-openbsd", "gef", "rizin", "valgrind", "lftp", "byobu", "eza", "uutils-coreutils",
+    "atuin", "delta", "yazi", "zoxide",
 )
 
 # Application-catalog ids that were GitHub-release binaries before -> nixpkgs attribute.

@@ -312,3 +312,22 @@ files.put(name=f"nano: ~/.config/nano/nanorc (syntax from {'Nix' if 'nix' in syn
           src=StringIO(cfg.nanorc(syntax)), dest=str(home / ".config/nano/nanorc"), mode="644",
           create_remote_dir=True)
 files.directory(name="nano backup dir", path=str(home / ".cache/nano/backups"), mode="700")
+
+
+# --- Local history, directory navigation, file browser and Git diffs ----------------------
+atuin_existing = home / ".config/atuin/config.toml"
+if atuin_existing.exists():
+    files.put(name="Atuin: preserve previous settings before local-only policy",
+              src=StringIO(atuin_existing.read_text()),
+              dest=str(atuin_existing.with_suffix(".toml.pre-t2")), mode="600",
+              _if=lambda: not atuin_existing.with_suffix(".toml.pre-t2").exists())
+files.put(name="Atuin: local-only history (no sync or update requests)",
+          src=str(src / "atuin.toml"), dest=str(home / ".config/atuin/config.toml"),
+          mode="600", create_remote_dir=True)
+files.put(name="fish: Atuin, zoxide, Yazi and fzf previews",
+          src=str(src / "navigation.fish"), dest=str(home / ".config/fish/t2-navigation.fish"),
+          mode="644", create_remote_dir=True)
+files.block(name="Git: delta pager", path=str(home / ".gitconfig"),
+            marker="# {mark} t2-mac-kde: delta",
+            content='[core]\n    pager = delta\n[interactive]\n    diffFilter = delta --color-only\n[delta]\n    navigate = true\n    syntax-theme = ansi',
+            backup=True, try_prevent_shell_expansion=True)

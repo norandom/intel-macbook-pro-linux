@@ -66,6 +66,7 @@ Read by `tasks/resource_policy.py` (mitigations: `tasks/cpu_mitigations.py`).
 
 | Key | Default | Effect |
 |---|---|---|
+| `fan_curve` | `true` | Earlier cooling (`tasks/fan_curve.py`): full fans by 85°C; false restores SMC policy |
 | `battery_charge_limit` | `100` | Stop charging at this percentage (50 to 100; 100 = no limit) |
 | `power_tuning` | `false` | Runtime PM for three Intel chipset functions, fewer wakeups |
 | `crash_upload` | `true` | `false` masks whoopsie: no uploads to errors.ubuntu.com |
@@ -156,3 +157,40 @@ crash_upload = false
 
 Tables such as `[default_apps]` go after the plain keys, because everything below a table header
 belongs to that table.
+
+## Ubuntu reporting
+
+Resource policy defaults crash_upload to false (whoopsie stopped/masked), disables
+GNOME technical reports and software-usage statistics, disables/masks MOTD news
+fetches, opts out of popularity-contest when installed and disables ubuntu-report's
+user autostart. Existing explicit crash_upload=true overrides the default; set it
+false for this policy. Local apport diagnostics remain available. Ubuntu Pro,
+security updates and ordinary package-repository traffic are not disabled by these
+reporting controls. No live reporting-setting changes are made by a dry run.
+
+### Earlier cooling
+
+The default `t2-fan-curve.service` monitors the hottest Intel CPU or AMD GPU
+edge/junction sensor every second. It takes manual fan control from 55°C,
+requests 40% of each fan’s maximum there, 55% at 65°C, 75% at 75°C, and 100%
+at 85°C, interpolating between points. Each fan respects its hardware minimum.
+It never undercuts the firmware target observed when taking control. Below 50°C
+it returns to automatic SMC control. This is earlier cooling, not a guaranteed
+90°C ceiling; CPU frequency and power settings are untouched.
+
+The helper temporarily enables the existing `macsmc_hwmon` runtime `fan_control`
+parameter. This is the kernel’s explicitly manual/unsafe interface, so recovery
+is essential: sensor errors stop the controller, a 10-second systemd watchdog
+handles hangs, and `ExecStopPost` returns every fan to automatic mode before
+restoring the parameter. No module is reloaded and no boot configuration is changed.
+An existing manual controller is refused. Set `fan_curve = false` and deploy to
+stop this service and restore firmware cooling.
+
+Deploy: `.venv/bin/pyinfra @local tasks/fan_curve.py --use-sudo-password`.
+Check with `systemctl status t2-fan-curve.service` and `sensors`.
+Live fan response and suspend/resume need owner validation after deployment.
+
+The battery’s 80% charge limit is an upper limit, not a continuously maintained
+setpoint. The macsmc charging logic uses a five-percentage-point restart gap,
+so resting around 75–80% while plugged in is expected. Use `t2-battery status`
+to check the configured/current limit and charging state.

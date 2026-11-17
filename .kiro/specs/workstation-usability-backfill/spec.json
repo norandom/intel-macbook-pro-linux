@@ -1,0 +1,26 @@
+{
+  "feature_name": "workstation-usability-backfill",
+  "created_at": "2026-11-17T06:53:52.630289+00:00",
+  "updated_at": "2026-11-17T06:53:52.630289+00:00",
+  "language": "en",
+  "phase": "design-generated",
+  "approvals": {
+    "requirements": {
+      "generated": true,
+      "approved": false
+    },
+    "design": {
+      "generated": true,
+      "approved": false
+    },
+    "tasks": {
+      "generated": false,
+      "approved": false
+    }
+  },
+  "ready_for_implementation": false,
+  "retrospective": true,
+  "documentation_only": true,
+  "tasks_omitted_reason": "Backfilled after implementation at owner request; no prospective implementation tasks are generated.",
+  "implementation_status": "Code exists; working-tree changes and live validation remain pending."
+}

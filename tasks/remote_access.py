@@ -68,7 +68,7 @@ if not key_only:
 sshd_conf = files.put(
     name='sshd hardening drop-in', dest='/etc/ssh/sshd_config.d/10-t2-mac-kde.conf', mode='0644', _sudo=True,
     src=StringIO(
-        '# Managed by t2-mac-kde\nPermitRootLogin no\nMaxAuthTries 4\nKbdInteractiveAuthentication no\n'
+        '# Managed by t2-mac-kde\nListenAddress 0.0.0.0\nListenAddress ::\nPermitRootLogin no\nMaxAuthTries 4\nKbdInteractiveAuthentication no\n'
         f'PasswordAuthentication {"no" if key_only else "yes"}\n'),
 )
 systemd.service(name='Socket activation off (sshd runs as a normal service)', service='ssh.socket',

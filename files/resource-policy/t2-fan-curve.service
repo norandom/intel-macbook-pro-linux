@@ -1,0 +1,25 @@
+[Unit]
+Description=Earlier T2 Mac cooling without reducing CPU performance
+After=systemd-modules-load.service
+ConditionPathExists=/sys/module/macsmc_hwmon/parameters/fan_control
+StartLimitIntervalSec=60
+StartLimitBurst=3
+
+[Service]
+Type=notify
+ExecStart=/usr/local/libexec/t2-fan-curve
+ExecStopPost=/usr/local/libexec/t2-fan-curve restore
+RuntimeDirectory=t2-fan-curve
+RuntimeDirectoryMode=0700
+RuntimeDirectoryPreserve=yes
+WatchdogSec=10
+TimeoutStartSec=15
+TimeoutStopSec=5
+Restart=on-failure
+RestartSec=5
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+
+[Install]
+WantedBy=multi-user.target

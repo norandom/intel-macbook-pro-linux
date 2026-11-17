@@ -23,3 +23,11 @@ tests `tests/test_resource_policy.py`). Ported from source `tasks/memory.py`, `t
 - [ ] Confirm Avahi stays down after a socket/D-Bus activation attempt; confirm CUPS direct-address printing.
 - [ ] Not implemented (ceremony): snapshot manifests/restore tooling; restore is by deleting the managed drop-ins and running `systemctl unmask avahi-daemon.socket avahi-daemon.service`.
 - [ ] GPU power configuration: out of scope here, pending capture.
+
+- [x] Owner-requested open-file limits: PAM and systemd system/user 65536:1048576; owner deployment and reboot pending.
+
+- [x] Ubuntu reporting opt-outs and crash-upload default off; owner live validation pending.
+
+- [x] Owner-requested default earlier fan cooling: full fans at 85°C, runtime-only control, watchdog/SMC recovery, independent review and 311 tests passed.
+- [x] Owner reported `deploy.sh` completed successfully on 2026-11-17.
+- [ ] Live fan response, watchdog recovery, and suspend/resume checks for `tasks/fan_curve.py`.

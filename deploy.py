@@ -11,6 +11,7 @@ validate_local_context()
 for task in (
     "node",             # nvm + Node/npm (user)
     "tools",            # snap/flatpak pin + core CLI packages
+    "fan_curve",        # earlier cooling: full fans by 85 C; CPU power policy unchanged
     "resource_policy",  # turbo, zram, earlyoom, journald/coredump limits
     "cpu_mitigations",  # config cpu_mitigations_off: GRUB drop-in (owner exception)
     "t2_pack",          # config t2_pack_pin: hold the tested T2/Hyprland versions (owner exception); .deb backup
@@ -25,7 +26,10 @@ for task in (
     "office_apps",      # LibreOffice (tabbed UI), Craft suite, OpenIDEA
     "nix_tools",        # Nix (Ubuntu package) + pinned flake profile for user CLI tools
     "xfe",              # Xfe file manager (unpacked; keeps KDE's im-config)
+    "multiplexers",      # Screen Ctrl+A keys for Zellij and Byobu
     "shell",            # bash/grml, history, nvim-simple, npm/uv user tools
+    "remove_warp",      # remove the retired managed Warp trial
+    "warpeer",          # pinned user-local terminal-only fork (Linux x86-64)
     "themes",           # five palettes + hypr-termtheme
     "desktop",          # Hyprland session, waybar, decorations, night filter
     "audio_effects",    # EasyEffects: QC35 3D preset, speakers bypass, BT device roles

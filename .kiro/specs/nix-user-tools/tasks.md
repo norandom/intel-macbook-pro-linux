@@ -11,3 +11,4 @@
 - [x] 6. Weekly `nix-gc.timer` (user, via sg nix-users) (req 4.1); `nix_tools = []` -> release fallback (tested) (req 4.2)
 - [x] 7. Tests `tests/test_nix_tools.py`, dry run, README handy commands + docs/nix.md, config example
 - [ ] 7b. Owner live check (5.3): deploy, then `type -a btop zellij kubectl` resolve to `~/.nix-profile/bin`
+- [x] Default CLI set extended with lftp, byobu, eza and prefixed uutils-coreutils; live profile update remains owner-run.

@@ -7,6 +7,7 @@ Terminator/foot/Ghostty/...). Run:  .venv/bin/pyinfra @local tasks/themes.py [--
 """
 import os
 import shutil
+from pathlib import Path
 
 from pyinfra import host, logger
 from pyinfra.facts.files import File, FindInFile
@@ -49,6 +50,21 @@ elif not host.get_fact(File, path=term_cfg):
               dest=term_cfg, mode="644")
 files.put(name="Terminator: Theme menu plugin", src=f"{SRC}/terminator/plugins/theme_menu.py",
           dest=f"{cfg}/terminator/plugins/theme_menu.py", mode="644")
+
+# Pinned input prototype is retired from this deployment; keep source for extraction.
+# Remove only its enabled-plugin entry, preserving the user's other plugins.
+import re
+term_source = term_cfg if os.path.isfile(term_cfg) else f"{SRC}/terminator/config"
+term_text = Path(term_source).read_text()
+match = re.search(r"(?m)^([ \t]*)enabled_plugins[ \t]*=[ \t]*(.*)$", term_text)
+if match:
+    plugins = [name.strip() for name in match.group(2).split(",") if name.strip()]
+    if "CommandHeader" in plugins:
+        plugins = [name for name in plugins if name != "CommandHeader"]
+        files.line(name="Terminator: disable pinned command prototype (keep other plugins)",
+                   path=term_cfg, line=r"^[ \t]*enabled_plugins[ \t]*=.*$",
+                   replace=f"{match.group(1)}enabled_plugins = " + ", ".join(plugins) + ("," if plugins else ""),
+                   backup=True)
 
 # Tab styling as its own file, imported first in gtk.css (KDE keeps its own imports there).
 files.put(name="GTK: Terminator tab line CSS", src=f"{SRC}/gtk-3.0/terminator-tabs.css",

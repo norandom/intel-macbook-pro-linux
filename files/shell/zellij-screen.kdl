@@ -1,0 +1,25 @@
+// Managed by t2-mac-kde: Screen prefix; other control keys reach the application.
+keybinds clear-defaults=true {
+    normal {
+        bind "Ctrl a" { SwitchToMode "tmux"; }
+    }
+    tmux {
+        bind "a" "Ctrl a" { Write 1; SwitchToMode "normal"; }
+        bind "c" { NewTab; SwitchToMode "normal"; }
+        bind "n" { GoToNextTab; SwitchToMode "normal"; }
+        bind "p" { GoToPreviousTab; SwitchToMode "normal"; }
+        bind "d" { Detach; }
+        bind "[" { SwitchToMode "scroll"; }
+        bind "s" { NewPane "down"; SwitchToMode "normal"; }
+        bind "v" { NewPane "right"; SwitchToMode "normal"; }
+        bind "Tab" { SwitchFocus; SwitchToMode "normal"; }
+        bind "Esc" "Ctrl g" { SwitchToMode "normal"; }
+    }
+    scroll {
+        bind "Up" "Ctrl p" { ScrollUp; }
+        bind "Down" "Ctrl n" { ScrollDown; }
+        bind "PageUp" "Alt v" { PageScrollUp; }
+        bind "PageDown" "Ctrl v" { PageScrollDown; }
+        bind "Esc" "q" "Ctrl g" { ScrollToBottom; SwitchToMode "normal"; }
+    }
+}

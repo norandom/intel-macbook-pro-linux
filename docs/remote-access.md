@@ -74,3 +74,11 @@ template `templates/rdp/config.toml.j2` or the config keys instead. A running se
 settings until you restart it.
 
 Re-run: `.venv/bin/pyinfra @local tasks/remote_access.py --use-sudo-password` or `tasks/rdp.py`.
+
+## Listener policy
+
+SSH explicitly listens on IPv4 and IPv6 wildcard addresses (port 22), including LAN,
+Wi-Fi and Tailscale. Authentication and fail2ban remain enabled. The RDP firewall
+continues to accept TCP/UDP 3389 only on loopback and tailscale0. Tailscale prefers
+a direct connection, including over the local network; relay fallback is possible,
+so a Tailscale address does not guarantee that traffic stays on the LAN.

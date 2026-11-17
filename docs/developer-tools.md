@@ -159,3 +159,85 @@ shells also print until you `t2-alerts ack`.
 | icx, Safe Chain, ble.sh | `default_cc`, `safe_chain`, `shell_blesh` |
 
 Re-run: `.venv/bin/pyinfra @local tasks/shell.py --use-sudo-password`.
+
+## File icons, Rust utilities and multiplexer keys
+
+The default Nix tools include lftp, byobu, eza and uutils-coreutils. Interactive fish
+uses the prefixed Rust utilities via aliases while keeping fish builtins; `command cp`
+(or `/usr/bin/cp`) bypasses the alias. System scripts keep the distro utilities.
+`ls` uses eza with file icons when installed, including the existing `ll`/`la` abbreviations.
+Use a Nerd Font in the terminal for icons. Starship controls the prompt, not file listings.
+
+`tasks/multiplexers.py` configures Zellij and Byobu's tmux backend with Ctrl+A as the
+prefix: `c` new window/tab, `n`/`p` next/previous, `d` detach, `[` scrollback,
+`s`/`v` split down/right, Tab next pane, `a` send Ctrl+A (beginning of line).
+Zellij scrollback: arrows or Ctrl+P/N, PageUp/Down or Alt+V/Ctrl+V; q/Esc exits.
+Byobu uses Emacs copy-mode keys. Existing config is backed up; start a new session
+after deploying. Other Emacs control keys pass through to applications.
+
+Deploy these changes as the desktop user:
+
+```sh
+.venv/bin/pyinfra @local tasks/nix_tools.py --use-sudo-password
+.venv/bin/pyinfra @local tasks/shell.py --use-sudo-password
+.venv/bin/pyinfra @local tasks/multiplexers.py
+```
+
+## Navigation, local history and command headers
+
+The default Nix profile now includes Atuin, delta, Yazi and zoxide. In a fresh fish
+session, Ctrl+R searches Atuin history, Up keeps fish's normal behavior, `z`/`zi`
+jump to known directories, `y` opens Yazi and follows its selected directory on
+exit, and `ff` searches files with a bat preview. Git uses delta with ANSI colours
+that follow the terminal palette. These integrations are installed by tasks/shell.py.
+
+Atuin is configured with auto_sync=false, update_check=false, daemon disabled,
+and a loopback-only sync address. Fish enforces these through ATUIN environment
+variables before initialization. There is no account creation, login, history import
+or sync operation in deployment. History remains on this laptop. This is an
+application configuration policy, not an OS network sandbox; manually overriding
+it or launching Atuin with other configuration can change the policy.
+
+## Terminator pinned command prototype (disabled)
+
+The owner disabled this prototype to move it into a separate project. Theme deployment
+removes CommandHeader from enabled_plugins while preserving other plugins. Shell deployment
+removes the active command-header hooks and restores ordinary directory titles.
+Restart Terminator/fish after deploying. To disable a currently running instance immediately,
+uncheck CommandHeader in Preferences → Plugins; its unload handler restores terminal input.
+
+The inactive source is retained in files/themes/terminator/plugins/command_header.py and
+command_header.fish for extraction. Neither file is deployed by this project now.
+Previously deployed plugin files may remain on disk but are disabled.
+
+Warp was removed from provisioning at the owner's request. tasks/remove_warp.py,
+included in deploy.py, removes the exact previously managed user-level payload,
+launcher, desktop entry and marked settings/themes. User-created Warp data and
+pre-t2 settings backups are retained. No Warp installation or theme target remains.
+
+## Warpeer
+
+`tasks/warpeer.py` installs our [Warpeer fork](https://github.com/norandom/warpeer)
+from release `desktop-5eec420` under `~/.local/opt/warpeer-5eec420`, with a
+`~/.local/bin/warpeer` command and application-menu entry. Both the archive and
+executable are SHA-256 pinned. This task needs no sudo or package changes and is
+included in `deploy.py`. The proprietary Warp cleanup remains separate.
+
+```sh
+.venv/bin/pyinfra @local tasks/warpeer.py --dry
+.venv/bin/pyinfra @local tasks/warpeer.py
+```
+
+The fork uses the upstream Warpeer terminal-only configuration, with cloud
+services, telemetry, crash reporting and auto-update disabled. Updates are
+explicit changes to the release and hashes in the task. These are experimental
+native desktop builds; the Linux binary requires glibc 2.39 or newer.
+
+Warpeer selects the configured `shell_interactive` as its native startup shell.
+The managed Bash-to-fish prompt handover is disabled when `TERM_PROGRAM` is
+`WarpTerminal`: replacing the shell after bootstrap discards Warpeer's command
+hooks and can hide command output. Existing Warpeer appearance preferences are
+preserved; open a fresh session after changing the startup shell.
+
+Warpeer input is pinned to the top (Reverse mode), with command blocks below it,
+using `appearance.input.input_mode = "pinned_to_top"`.

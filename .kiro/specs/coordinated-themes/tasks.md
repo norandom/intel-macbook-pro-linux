@@ -35,3 +35,5 @@ Assets: `files/themes/` (ported from source a1c09ec). Tests: `tests/test_themes.
 - [ ] Journal/receipt-based scoped restore not implemented (backup of Terminator config only) — speed priority.
 - [ ] Claude Code `custom:<theme>` support depends on the installed Claude release; not verified.
 - [ ] VS Code telemetry/update/titlebar settings from source dropped (not theme-owned).
+
+- [x] Pinned command prototype disabled at owner request for a separate project; inactive source retained; Warp trial retired.

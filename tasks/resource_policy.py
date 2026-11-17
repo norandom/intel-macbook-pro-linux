@@ -2,8 +2,8 @@
 
 Adopted: turbo off at boot + turbo aliases fragment, additive capped zram (disk swap and
 resume untouched), earlyoom aware of KDE and Hyprland, journald/coredump size limits,
-inotify instances floor, Avahi masked. Rejected (see .kiro/specs/laptop-resource-policy/
-design.md): reclaim/dirty/network sysctls, nofile, /tmp size, noatime, watchdog, GRUB
+inotify instances floor, higher open-file limits, Avahi masked. Rejected (see .kiro/specs/laptop-resource-policy/
+design.md): reclaim/dirty/network sysctls, /tmp size, noatime, watchdog, GRUB
 cmdline, serial console, root SSH, module blacklist, qemu agent, away lock, snitch.
 GPU power settings are intentionally not touched here.
 """
@@ -130,6 +130,23 @@ server.shell(name="Apply only the managed sysctl file",
              commands=["sysctl -p /etc/sysctl.d/60-t2-resource-limits.conf"],
              _sudo=True, _if=limits.did_change)
 
+# --- Open files: owner-requested workstation limits (new sessions/services after reboot) ---
+# Keep this separate from sysctls: these are per-process resource limits.
+for scope in ("system", "user"):
+    files.put(
+        name=f"systemd {scope}: open files 65536 soft / 1048576 hard",
+        src=StringIO("# Managed by t2-mac-kde\n[Manager]\nDefaultLimitNOFILE=65536:1048576\n"),
+        dest=f"/etc/systemd/{scope}.conf.d/60-t2-nofile.conf",
+        user="root", group="root", mode="644", create_remote_dir=True, _sudo=True,
+    )
+files.put(
+    name="PAM sessions: open files 65536 soft / 1048576 hard",
+    src=StringIO("# Managed by t2-mac-kde\n* soft nofile 65536\n* hard nofile 1048576\n"),
+    dest="/etc/security/limits.d/60-t2-nofile.conf",
+    user="root", group="root", mode="644", create_remote_dir=True, _sudo=True,
+)
+# Existing processes keep their inherited limits. Reboot applies both manager scopes.
+
 # --- Services: Avahi off (service + socket masked; D-Bus activation routes via the
 #     masked alias). Bluetooth, CUPS, power, ModemManager, audio stay untouched.
 #     Printing still works by direct IP/hostname; mDNS discovery is gone. ---------------------
@@ -147,7 +164,7 @@ if avahi:
 # start-limit failures after crash bursts are cleared. Local capture stays (systemd-coredump /
 # coredumpctl). On again: unmasked. Plain systemctl state, so it is fully revertable.
 WHOOPSIE = ("whoopsie.path", "whoopsie.service")
-upload = bool(setting("crash_upload", True))
+upload = bool(setting("crash_upload", False))
 installed = [u for u in WHOOPSIE if rp.unit_installed(rp.unit_state(u))]
 if installed and not upload and any(rp.unit_state(u) != "masked" for u in installed):
     server.shell(name=f"Crash upload off: stop and mask {' '.join(installed)}", _sudo=True, commands=[
@@ -198,3 +215,27 @@ server.shell(name=f"Apply the charge limit now ({limit} %)", _if=rule.did_change
 files.put(name="~/.local/bin/t2-battery (status | full | limit)",
           src=str(Path(__file__).resolve().parents[1] / "files/resource-policy/t2-battery"),
           dest=os.path.expanduser("~/.local/bin/t2-battery"), mode="755")
+
+# --- Ubuntu reporting: local diagnostics remain, network reporting is disabled -----------
+# GNOME components may run alongside Hyprland/KDE; these are per-user consent settings.
+server.shell(name="Ubuntu privacy: no technical reports or software usage statistics",
+    commands="""if command -v gsettings >/dev/null && gsettings list-schemas | grep -qx org.gnome.desktop.privacy; then
+for key in report-technical-problems send-software-usage-stats; do
+  if gsettings list-keys org.gnome.desktop.privacy | grep -qx "$key"; then
+    gsettings set org.gnome.desktop.privacy "$key" false
+  fi
+done
+fi""")
+for unit in ("motd-news.timer", "motd-news.service", "popularity-contest.timer", "popularity-contest.service"):
+    if rp.unit_installed(rp.unit_state(unit)):
+        server.shell(name=f"Ubuntu reporting: stop and mask {unit}",
+                     commands=f"systemctl disable --now {unit}; systemctl mask {unit}", _sudo=True)
+files.put(name="Ubuntu MOTD news: no network fetch", dest="/etc/default/motd-news",
+          src=StringIO("# Managed by t2-mac-kde\nENABLED=0\n"), mode="644", _sudo=True)
+if Path("/etc/popularity-contest.conf").exists():
+    files.line(name="Ubuntu popularity-contest: opt out", path="/etc/popularity-contest.conf",
+               line=r'^PARTICIPATE=.*', replace='PARTICIPATE="no"', _sudo=True)
+# Prevent an installed or future desktop autostart from running ubuntu-report for this user.
+files.put(name="Ubuntu report: disable desktop autostart", dest=f"{home}/.config/autostart/ubuntu-report.desktop",
+          src=StringIO("[Desktop Entry]\nType=Application\nName=Ubuntu Report\nHidden=true\n"),
+          mode="644", create_remote_dir=True)

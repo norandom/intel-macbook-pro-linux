@@ -51,3 +51,6 @@ Pins/config: `manage/shell_tools.py`. Assets: `files/shell/`. Tests: `tests/test
 - [ ] ax: backlogged by owner (docs/backlog.md); its Go build broke the first live deploy
 - [ ] Restore beyond pyinfra `.bashrc`/`.inputrc` backups and the nvim backup dir: not implemented
 - [ ] Live check by owner: new Konsole terminal (prompt, history, Up/Down), `nvim` menu/F2/F4, `k <Tab>`
+- [x] Fish icon listings/Rust utility aliases and Screen-style Zellij/Byobu configuration; owner deploy and visual check deferred.
+
+- [x] Local-only Atuin, delta, Yazi wrapper, fzf previews and zoxide fish initialization; owner live validation pending.
