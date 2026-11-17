@@ -172,7 +172,7 @@ reporting controls. No live reporting-setting changes are made by a dry run.
 
 The default `t2-fan-curve.service` monitors the hottest Intel CPU or AMD GPU
 edge/junction sensor every second. It takes manual fan control from 55°C,
-requests 40% of each fan’s maximum there, 55% at 65°C, 75% at 75°C, and 100%
+requests 35% of each fan’s maximum there, 45% at 65°C, 65% at 75°C, and 100%
 at 85°C, interpolating between points. Each fan respects its hardware minimum.
 It never undercuts the firmware target observed when taking control. Below 50°C
 it returns to automatic SMC control. This is earlier cooling, not a guaranteed

@@ -50,7 +50,7 @@ class FanCurveTests(unittest.TestCase):
         self.assertEqual((self.smc / 'fan1_target').read_text(), '2000')
         (self.cpu / 'temp1_input').write_text('75000')
         self.control.step()
-        self.assertEqual((self.smc / 'fan1_target').read_text(), '4200\n')
+        self.assertEqual((self.smc / 'fan1_target').read_text(), '3640\n')
         (self.cpu / 'temp1_input').write_text('52000')
         self.control.step()
         self.assertNotEqual((self.smc / 'fan1_target').read_text(), '0\n')

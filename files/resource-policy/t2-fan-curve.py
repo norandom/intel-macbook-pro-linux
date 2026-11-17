@@ -11,7 +11,7 @@ import time
 HWMON = Path('/sys/class/hwmon')
 CONTROL = Path('/sys/module/macsmc_hwmon/parameters/fan_control')
 RUNTIME = Path('/run/t2-fan-curve')
-CURVE = ((55, .40), (65, .55), (75, .75), (85, 1.0))
+CURVE = ((55, .35), (65, .45), (75, .65), (85, 1.0))
 
 
 def fan_target(temperature, minimum, maximum):

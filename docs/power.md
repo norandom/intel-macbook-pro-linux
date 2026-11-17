@@ -85,9 +85,13 @@ avoids.
 
 ## Fans
 
-There's no fan control. The t2 kernel's SMC driver refuses writes to the fan targets, so custom
-fan curves aren't possible right now (see [backlog.md](backlog.md#fan-curves)). Keeping turbo off
-is what keeps the fans quiet.
+The default `fan_curve = true` enables the runtime SMC fan controller. It requests
+35% of each fan's maximum at 55°C, 45% at 65°C, 65% at 75°C and full speed at
+85°C, interpolating between points and respecting each fan's minimum RPM.
+It uses the hottest CPU/GPU sensor and returns to firmware control at 50°C.
+The moderate-temperature speeds are relaxed for quieter everyday use; 90°C is a
+cooling target, not a guaranteed temperature cap. Set `fan_curve = false` to
+restore firmware cooling. Deployment restarts the service when the curve changes.
 
 ## Other services
 
