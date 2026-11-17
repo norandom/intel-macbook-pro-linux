@@ -1,8 +1,8 @@
 #!/bin/sh
 # Managed by t2-mac-kde (desktop). Night filter for the whole screen (screen shader):
-#   hypr-nightmode next|off|green|dark|grayscale|monochrome|warmwhite|apply|status
+#   hypr-nightmode pick|next|off|green|dark|grayscale|monochrome|warmwhite|apply|status
 #   off   = normal (rabbit black), green = mint night filter (rabbit green),
-#   dark = darker, grayscale = neutral gray, monochrome = dithered black/white.
+#   dark = darker, grayscale = neutral gray, monochrome = four-shade gray-green LCD.
 # Cycle: off -> green -> dark -> grayscale -> monochrome -> warmwhite -> off.
 # The choice is kept in ~/.local/state/hypr-nightmode; looknfeel.conf runs "apply" after
 # every config load (a reload resets the shader).
@@ -14,19 +14,30 @@ case "$cur" in off|green|dark|grayscale|monochrome|warmwhite) ;; *) cur=off ;; e
 case "${1:-status}" in
   status)
     case "$cur" in
-      green) tip="Night filter: green (click: dark)" ;;
-      dark)  tip="Screen filter: dark (click: grayscale)" ;;
-      grayscale) tip="Screen filter: grayscale (click: monochrome)" ;;
-      monochrome) tip="Screen filter: monochrome (click: warm white)" ;;
-      warmwhite) tip="Screen filter: warm whites only (click: off)" ;;
-      *)     tip="Follow the white rabbit… (click: green night filter, again: dark)" ;;
+      green) label="Green night filter" ;;
+      dark) label="Dark" ;;
+      grayscale) label="Grayscale" ;;
+      monochrome) label="Retro LCD" ;;
+      warmwhite) label="Warm whites" ;;
+      *) label="Off" ;;
     esac
+    tip="Screen filter: $label (click: choose / right-click: off)"
     printf '{"text":"\363\260\244\207","class":"%s","tooltip":"%s"}\n' "$cur" "$tip"
     exit 0 ;;
+  pick)
+    case "$cur" in off) index=0 ;; green) index=1 ;; dark) index=2 ;; grayscale) index=3 ;; monochrome) index=4 ;; warmwhite) index=5 ;; esac
+    choice=$(
+      i=0
+      for label in "Off — original colors" "Green — night filter" "Dark — reduced glare" "Grayscale — smooth gray" "Retro LCD — charcoal / gray-green" "Warm whites — muted cream"; do
+        if [ "$i" = "$index" ]; then printf '%s ✓\n' "$label"; else printf '%s\n' "$label"; fi
+        i=$((i + 1))
+      done | fuzzel --dmenu --index --anchor center --lines 6 --width 44 --select-index "$index" --prompt 'Screen filter > '
+    ) || exit 0
+    case "$choice" in 0) new=off ;; 1) new=green ;; 2) new=dark ;; 3) new=grayscale ;; 4) new=monochrome ;; 5) new=warmwhite ;; *) exit 0 ;; esac ;;
   next) case "$cur" in off) new=green ;; green) new=dark ;; dark) new=grayscale ;; grayscale) new=monochrome ;; monochrome) new=warmwhite ;; *) new=off ;; esac ;;
   off|green|dark|grayscale|monochrome|warmwhite) new=$1 ;;
   apply) new=$cur ;;
-  *) echo "usage: hypr-nightmode next|off|green|dark|grayscale|monochrome|warmwhite|apply|status" >&2; exit 2 ;;
+  *) echo "usage: hypr-nightmode pick|next|off|green|dark|grayscale|monochrome|warmwhite|apply|status" >&2; exit 2 ;;
 esac
 
 case "$new" in

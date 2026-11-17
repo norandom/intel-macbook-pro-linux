@@ -29,6 +29,7 @@ button, so the command line is just the second way in.
 | `hypr-touchpad speed +0.1` / `scroll 0.8` / `tapdrag on\|off` / `reset` | trackpad feel, remembered |
 | `t2-yubikey register` / `add-spare` / `status` | YubiKeys for sudo and login ([security-keys.md](security-keys.md)) |
 | `hypr-layout next` | dynamic (floating, the default) or golden-ratio tiling (SUPER+L) |
+| `hypr-nightmode pick` | centered screen-filter picker (the rabbit in the bar) |
 | `hypr-nightmode next` | screen filter: off, green, dark, grayscale, monochrome or warmwhite (the rabbit in the bar) |
 | `hypr-nightshift toggle` | pause or resume the night shift (the moon in the bar) |
 | `hypr-deco win311` / `mac` | title bar style; `hypr-shadow on` / `off` for shadows |
