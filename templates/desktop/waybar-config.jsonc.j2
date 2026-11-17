@@ -107,7 +107,10 @@
     "states": { "warning": 25, "critical": 10 },
     "format": "{icon} {capacity}%", "format-charging": "󰂄 {capacity}%", "format-plugged": "{icon} {capacity}%", "format-full": "{icon} {capacity}%",
     "format-icons": ["󰂎", "󰁻", "󰁽", "󰁿", "󰂁", "󰁹"], "tooltip-format": "{timeTo} ({power} W)\nclick: power profile",
-    "menu": "on-click",
+    // Open after release so the popup cannot steal the button-up event.
+    // Waybar 0.15 requires this string to register its release handler.
+    "on-click-release": "",
+    "menu": "on-click-release",
     "menu-file": "$HOME/.config/waybar/power-profile-menu.xml",
     "menu-actions": {
       "power-saver": "$HOME/.local/bin/hypr-power-profile power-saver",
@@ -119,7 +122,10 @@
   "custom/power-profile": {
     "exec": "$HOME/.local/bin/hypr-power-profile waybar",
     "return-type": "json", "interval": 30, "signal": 12,
-    "menu": "on-click",
+    // Open after release so the popup cannot steal the button-up event.
+    // Waybar 0.15 requires this string to register its release handler.
+    "on-click-release": "",
+    "menu": "on-click-release",
     "menu-file": "$HOME/.config/waybar/power-profile-menu.xml",
     "menu-actions": {
       "power-saver": "$HOME/.local/bin/hypr-power-profile power-saver",
