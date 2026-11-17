@@ -247,3 +247,14 @@ the command palette. It searches user-selected folders for Markdown documents;
 opening a document does not execute commands. Use a shell block’s explicit Run
 control. Folders remain local and are stored under `[runbooks]` as a `folders`
 list in `~/.config/warpeer/settings.toml`. No YAML workflows or cloud sync are enabled.
+
+The managed Warpeer font is **Fixedsys Excelsior**, installed by `tasks/fonts.py`.
+`warpeer_font` overrides this family. Terminal/editor text, document text and
+menus/tabs use the same family; existing font sizes are preserved. The UI font
+setting needs the toolbar/font build or newer; older builds use their default
+UI font while still applying the terminal/content settings.
+
+The toolbar adds **New Window**, **New Tab**, **New File**, and **CP** before the
+existing right-side controls. CP opens the command palette (Ctrl+Shift+P), and
+its hover label is **Command Palette**. Save a new Markdown file with Ctrl+S in
+one of your configured runbook folders.

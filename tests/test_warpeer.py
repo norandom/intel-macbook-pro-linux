@@ -7,7 +7,7 @@ import tomllib
 import unittest
 
 from manage import fish_shell
-from manage.warpeer import startup_shell_config
+from manage.warpeer import startup_shell_config, font_config
 
 
 class WarpeerTests(unittest.TestCase):
@@ -19,6 +19,19 @@ class WarpeerTests(unittest.TestCase):
             self.assertEqual(parsed['session']['startup_shell_override'], 'fish')
             self.assertEqual(parsed['appearance']['font_size'], 14)
             self.assertEqual(startup_shell_config(changed, 'fish'), changed)
+
+    def test_font_applies_to_terminal_content_and_ui_preserving_other_settings(self):
+        original = ('[appearance.text]\nfont_size = 16\nfont_name = "Hack"\n'
+                    '[runbooks]\nfolders = ["~/Runbooks"]\n')
+        changed = font_config(original)
+        parsed = tomllib.loads(changed)
+        for key in ("font_name", "ai_font_name", "ui_font_name"):
+            self.assertEqual(parsed['appearance']['text'][key], 'Fixedsys Excelsior')
+        self.assertEqual(parsed['appearance']['text']['font_size'], 16)
+        self.assertEqual(parsed['runbooks']['folders'], ['~/Runbooks'])
+        self.assertEqual(font_config(changed), changed)
+        for family in ('Font "Quoted"', r'Font \ Name'):
+            self.assertEqual(tomllib.loads(font_config(changed, family))['appearance']['text']['font_name'], family)
 
     @unittest.skipUnless(Path('/usr/bin/fish').exists(), 'fish required')
     def test_warp_does_not_replace_its_bootstrapped_bash(self):

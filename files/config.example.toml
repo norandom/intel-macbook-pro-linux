@@ -84,3 +84,5 @@
 # --- Default applications (tasks/desktop.py) -----------------------------------------
 # [default_apps]                   # MIME type = desktop file (see /usr/share/applications)
 # "application/pdf" = "ai.storyteller.pdfcraft.desktop"
+
+# warpeer_font = "Fixedsys Excelsior"  # terminal, editor, Markdown, menus and tabs
