@@ -4,14 +4,15 @@ import re
 import tomllib
 
 
-def _string_setting(text: str, table: str, key: str, value: str) -> str:
+def _literal_setting(text: str, table: str, key: str, literal: str) -> str:
+    value = tomllib.loads(f"value = {literal}")["value"]
     parsed = tomllib.loads(text)
     current = parsed
     for part in table.split('.'):
         current = current.get(part, {})
     if current.get(key) == value:
         return text
-    assignment = f'{key} = {json.dumps(value, ensure_ascii=False)}'
+    assignment = f'{key} = {literal}'
     section = re.search(r'^\[' + re.escape(table) + r'\][ \t]*(?:#.*)?$', text, re.M)
     if section:
         end = re.search(r'^\[', text[section.end():], re.M)
@@ -50,3 +51,32 @@ def font_config(text: str, family: str = "Fixedsys Excelsior") -> str:
 def contrast_config(text: str) -> str:
     """Keep explicit shell RGB colours readable when the terminal theme changes."""
     return _string_setting(text, 'appearance.text', 'enforce_minimum_contrast', 'always')
+
+
+def _string_setting(text: str, table: str, key: str, value: str) -> str:
+    return _literal_setting(text, table, key, json.dumps(value, ensure_ascii=False))
+
+
+def defaults_config(text: str, defaults: str) -> str:
+    """Fill missing preferences from our simple, single-line TOML defaults."""
+    tomllib.loads(defaults)
+    table = ''
+    for line in defaults.splitlines():
+        line = line.strip()
+        if not line or line.startswith('#'):
+            continue
+        if line.startswith('['):
+            table = line[1:-1]
+            continue
+        key, literal = (part.strip() for part in line.split('=', 1))
+        current = tomllib.loads(text)
+        for part in table.split('.'):
+            current = current.get(part, {})
+        if key not in current:
+            text = _literal_setting(text, table, key, literal)
+    return text
+
+
+def opaque_config(text: str) -> str:
+    text = _literal_setting(text, 'appearance.window', 'override_opacity', '100')
+    return _literal_setting(text, 'appearance.window', 'override_blur', '0')

@@ -1,0 +1,70 @@
+# Repository defaults captured from the owner’s preferences; no session state.
+[appearance]
+spacing = "compact"
+
+[appearance.vertical_tabs]
+enabled = true
+hide_title_bar_search_bar = true
+show_panel_in_restored_windows = false
+display_granularity = "tabs"
+view_mode = "compact"
+primary_info = "command"
+compact_subtitle = "branch"
+
+[appearance.tabs]
+preserve_active_tab_color = false
+
+[appearance.text]
+ui_font_name = "Fixedsys Excelsior"
+notebook_font_size = 14.0
+font_size = 16.0
+font_name = "Fixedsys Excelsior"
+ai_font_name = "Fixedsys Excelsior"
+match_ai_font = true
+enforce_minimum_contrast = "always"
+
+[appearance.themes]
+theme = { ghostty = "Neobones Light" }
+system_theme = false
+
+[appearance.cursor]
+cursor_display_type = "block"
+cursor_blink = "disabled"
+
+[appearance.panes]
+show_active_pane_indicator = true
+should_dim_inactive_panes = true
+focus_pane_on_hover = false
+
+[appearance.window]
+override_opacity = 100
+override_blur = 0
+
+[appearance.terminal_visuals]
+enabled = true
+duration_ms = 220.0
+particle_spread = 1.0
+keypress = "rise"
+cursor = "ease"
+material = "flat"
+reduced_motion = "never"
+erase = "shatter"
+scroll_glide = true
+
+[code]
+
+[code.editor]
+show_global_search = true
+
+[session]
+startup_shell_override = "fish"
+
+[general]
+restore_session = false
+show_warning_before_quitting = false
+
+[system]
+force_x11 = false
+
+[appearance.input]
+input_mode = "pinned_to_top"

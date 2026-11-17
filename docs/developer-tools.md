@@ -264,3 +264,10 @@ Warpeer's **Settings → Appearance → Text → Enforce minimum contrast** is m
 explicit RGB shell colours in command history against the active background when
 switching between light and dark themes. Underlines remain; low-contrast colours
 may shift for readability. No new Warpeer build is required.
+
+`files/warpeer/settings.toml` holds the repository defaults captured from the owner's
+preferences: Neobones Light, compact vertical tabs, Fixedsys 16, steady block cursor,
+and terminal animations. Deployment fills missing settings while preserving existing
+choices (including later theme changes and local runbook folders). Shell, font,
+pinned input, automatic contrast and fully opaque windows with no blur remain managed.
+No session history or machine-specific paths are included.

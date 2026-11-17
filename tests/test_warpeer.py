@@ -7,10 +7,22 @@ import tomllib
 import unittest
 
 from manage import fish_shell
-from manage.warpeer import startup_shell_config, font_config
+from manage.warpeer import startup_shell_config, font_config, defaults_config, opaque_config
 
 
 class WarpeerTests(unittest.TestCase):
+    def test_defaults_preserve_choices_and_opaque_overrides_transparency(self):
+        defaults = (Path(__file__).resolve().parents[1] / 'files/warpeer/settings.toml').read_text()
+        original = '[appearance.themes]\ntheme = "custom"\n[appearance.window]\noverride_opacity = 85\n[runbooks]\nfolders = ["~/Notes"]\n'
+        result = opaque_config(defaults_config(original, defaults))
+        parsed = tomllib.loads(result)
+        self.assertEqual(parsed['appearance']['themes']['theme'], 'custom')
+        self.assertEqual(parsed['runbooks']['folders'], ['~/Notes'])
+        self.assertEqual(parsed['appearance']['window']['override_opacity'], 100)
+        self.assertEqual(parsed['appearance']['window']['override_blur'], 0)
+        self.assertEqual(opaque_config(defaults_config(result, defaults)), result)
+        self.assertEqual(tomllib.loads(defaults_config('', defaults)), tomllib.loads(defaults))
+
     def test_native_shell_preserves_preferences_and_is_idempotent(self):
         for original in ('[appearance]\nfont_size = 14\n',
                          '[session]\nstartup_shell_override = "bash" # old\nother = true\n[appearance]\nfont_size = 14\n'):
