@@ -218,7 +218,7 @@ pre-t2 settings backups are retained. No Warp installation or theme target remai
 ## Warpeer
 
 `tasks/warpeer.py` installs our [Warpeer fork](https://github.com/norandom/warpeer)
-from release `desktop-5eec420` under `~/.local/opt/warpeer-5eec420`, with a
+from release `desktop-51e9042` under `~/.local/opt/warpeer-51e9042`, with a
 `~/.local/bin/warpeer` command and application-menu entry. Both the archive and
 executable are SHA-256 pinned. This task needs no sudo or package changes and is
 included in `deploy.py`. The proprietary Warp cleanup remains separate.
@@ -228,7 +228,7 @@ included in `deploy.py`. The proprietary Warp cleanup remains separate.
 .venv/bin/pyinfra @local tasks/warpeer.py
 ```
 
-The fork uses the upstream Warpeer terminal-only configuration, with cloud
+The fork now merges Warp upstream directly while retaining Warpeer’s terminal-only configuration, with cloud
 services, telemetry, crash reporting and auto-update disabled. Updates are
 explicit changes to the release and hashes in the task. These are experimental
 native desktop builds; the Linux binary requires glibc 2.39 or newer.
@@ -241,3 +241,9 @@ preserved; open a fresh session after changing the startup shell.
 
 Warpeer input is pinned to the top (Reverse mode), with command blocks below it,
 using `appearance.input.input_mode = "pinned_to_top"`.
+
+The new build adds **Add local runbook folder** and **Browse local runbooks** to
+the command palette. It searches user-selected folders for Markdown documents;
+opening a document does not execute commands. Use a shell block’s explicit Run
+control. Folders remain local and are stored under `[runbooks]` as a `folders`
+list in `~/.config/warpeer/settings.toml`. No YAML workflows or cloud sync are enabled.
