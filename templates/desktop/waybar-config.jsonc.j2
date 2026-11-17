@@ -87,13 +87,13 @@
     "signal": 8,
     "on-click": "$HOME/.local/bin/hypr-layout next"
   },
-  // Window list: click = bring to front (also un-minimizes), middle-click = close.
+  // Window list: click active = minimize; click other = raise/restore; middle-click = close.
   "wlr/taskbar": {
     "format": "{icon} {title:.18}",
     "icon-size": 16,
     "icon-theme": "Adwaita",
     "tooltip-format": "{title}",
-    "on-click": "activate",
+    "on-click": "minimize-raise",
     "on-click-middle": "close",
     "ignore-list": ["fuzzel"]
   },

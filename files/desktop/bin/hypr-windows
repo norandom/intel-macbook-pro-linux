@@ -456,6 +456,14 @@ class Worker:
                 self.pending["0x" + parts[0]] = (time.monotonic() + 0.08, parts[2])
         elif name == "closewindow":
             self.closed("0x" + data.strip())
+        elif name == "minimized":
+            address, separator, state = data.strip().partition(",")
+            addr = "0x" + address
+            if separator and ADDR_RE.fullmatch(addr):
+                if state == "1":
+                    self.ipc.batch([f"movetoworkspacesilent {MINIMIZED},address:{addr}"])
+                elif state == "0":
+                    self.unminimize(addr)
         elif name == "activewindowv2" and data.strip():
             self.unminimize("0x" + data.strip())
 

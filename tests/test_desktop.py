@@ -77,6 +77,23 @@ class Geometry(unittest.TestCase):
         x3, _, _, _ = hw.placement((0.0, 0.0, 0.5, 0.5), m, "mac", [win(cls="bar", at=(x, y))], "foo")
         self.assertEqual(x3, x)
 
+    def test_taskbar_minimize_events_target_only_the_requested_window(self):
+        from unittest.mock import Mock
+        worker = object.__new__(hw.Worker)
+        worker.ipc = Mock()
+        worker.unminimize = Mock()
+        worker.handle("minimized>>ab,1")
+        worker.ipc.batch.assert_called_once_with([
+            "movetoworkspacesilent special:minimized,address:0xab"])
+        worker.handle("minimized>>ab,0")
+        worker.unminimize.assert_called_once_with("0xab")
+        worker.ipc.reset_mock()
+        worker.unminimize.reset_mock()
+        for event in ("minimized>>ab,2", "minimized>>ab", "minimized>>ab;exec evil,1"):
+            worker.handle(event)
+        worker.ipc.batch.assert_not_called()
+        worker.unminimize.assert_not_called()
+
     def test_minimized_window_restored_on_focus(self):
         mons = [{"id": 0, "focused": True, "activeWorkspace": {"id": 3},
                  "specialWorkspace": {"name": "special:minimized"}}]

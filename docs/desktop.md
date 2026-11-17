@@ -128,6 +128,9 @@ and then leaves to you.
 
 ## Waybar
 
+Click a window in the task list to bring it forward (or restore it). Clicking the
+already-active window minimizes it; middle-click still closes it.
+
 The top bar is rendered from `templates/desktop/waybar-config.jsonc.j2`, styled by
 `files/desktop/waybar/style.css`.
 
