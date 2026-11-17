@@ -10,7 +10,14 @@
   "spacing": 6,
   "modules-left": ["custom/menu", "custom/files", "custom/term", "custom/web", "custom/layout", "wlr/taskbar"],
   "modules-center": [],
-  "modules-right": ["custom/quota", {% if bar_graphs %}"custom/cpu", "custom/mem", "custom/thermal", "custom/net"{% else %}"cpu", "memory", "custom/thermal", "custom/netrate"{% endif %}, "group/audio", "backlight", "custom/power-profile", "battery", "tray", "hyprland/submap", "custom/cliphist", {% if night_shift %}"custom/nightshift", {% endif %}"custom/nightmode", "custom/termtheme", "custom/kbd", "clock", "custom/power"],
+  "modules-right": ["custom/quota", {% if bar_graphs %}"custom/cpu", "custom/mem", "custom/thermal", "custom/net"{% else %}"cpu", "memory", "custom/thermal", "custom/netrate"{% endif %}, "group/audio", "backlight", "custom/power-profile", "battery", "tray", "hyprland/submap", "custom/cliphist", {% if night_shift %}"custom/nightshift", {% endif %}"custom/nightmode", "custom/termtheme", "custom/kbd", "idle_inhibitor", "clock", "custom/power"],
+  // Caffeine: native Wayland inhibitor, off on bar startup; click to toggle.
+  "idle_inhibitor": {
+    "format": "{icon}",
+    "format-icons": { "activated": "󰅶", "deactivated": "󰾪" },
+    "tooltip-format-activated": "Keep awake: ON — click to restore automatic dim / lock / screen off",
+    "tooltip-format-deactivated": "Keep awake: OFF — click to prevent automatic dim / lock / screen off"
+  },
   "custom/menu": {
     "format": "☰ Apps",
     "tooltip-format": "Applications (right-click: search)",

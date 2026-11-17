@@ -148,6 +148,7 @@ Right, in order:
 | Rabbit | night filter | off, green, dark |
 | Theme | terminal theme | next; right-click previous |
 | `⌨ DE` | keyboard layout | switch DE and US |
+| Coffee cup | keep awake (highlighted = on) | toggle automatic dim / lock / screen off |
 | Clock | weekday and time | date and week number |
 | Power | | lock, suspend, log out, reboot, shut down |
 
@@ -182,6 +183,11 @@ From `files/desktop/hypr/hypridle.conf`:
 | 10 min | Lock (hyprlock) |
 | 11 min | Panel off |
 | Before suspend | Always locks first |
+
+Click the coffee cup beside the clock to keep the screen awake; click again to restore
+these idle timers. It uses [Waybar's native idle inhibitor](https://github.com/Alexays/Waybar/wiki/Module:-Idle-Inhibitor),
+which hypridle honors by default. The toggle starts off when Waybar starts or restarts.
+Manual locking and locking before suspend still work; lid-close behavior is unchanged.
 
 The clipboard history (cliphist) lives in RAM only and is wiped every night at 01:00. The timer
 catches up after resume, so if the machine slept through 01:00 the wipe runs as soon as it

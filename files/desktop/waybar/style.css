@@ -13,6 +13,10 @@ menu menuitem:hover { background: #2b4570; color: #fff8f0; }
 #cpu.warning, #memory.warning, #custom-thermal.warning { color: #a87a2f; }
 #cpu.critical, #memory.critical, #custom-thermal.critical { color: #c0605a; }
 #clock { font-weight: bold; }
+/* Caffeine: highlighted while automatic dim / lock / screen off are inhibited. */
+#idle_inhibitor { padding: 0 6px; font-size: 15px; }
+#idle_inhibitor.activated { background: #2b4570; color: #fff8f0; }
+#idle_inhibitor:hover { background: #4a90d9; color: #fff8f0; }
 /* Tooltips: navy with cream text. GTK draws the text in a label, so it needs its
    own colour; weight 600 survives the popup's (transparent) text rendering. */
 tooltip { background-color: #2b4570; border: 1px solid #1a2a3f; border-radius: 0; }
