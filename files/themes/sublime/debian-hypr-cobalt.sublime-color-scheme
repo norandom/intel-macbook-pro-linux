@@ -2,19 +2,19 @@
   "name": "debian-hypr Cobalt (cream-blue)",
   "author": "debian-hypr (matches the Terminator profile)",
   "globals": {
-    "background": "#0049b2",
+    "background": "#003e97",
     "foreground": "#fff8f0",
     "caret": "#f1dc9a",
-    "selection": "#1453af",
-    "selection_border": "#1453af",
+    "selection": "#114695",
+    "selection_border": "#114695",
     "line_highlight": "#0041a0",
-    "gutter": "#0049b2",
+    "gutter": "#003e97",
     "gutter_foreground": "#8bb4e0",
     "line_diff_added": "#7ac48a",
     "line_diff_modified": "#ffe9a8",
     "line_diff_deleted": "#e87a74",
     "find_highlight": "#ffe9a8",
-    "find_highlight_foreground": "#0049b2",
+    "find_highlight_foreground": "#003e97",
     "invisibles": "#8bb4e0",
     "brackets_foreground": "#ffe9a8",
     "bracket_contents_foreground": "#ffe9a8",
@@ -104,7 +104,7 @@
     {
       "name": "Invalid",
       "scope": "invalid",
-      "foreground": "#0049b2",
+      "foreground": "#003e97",
       "background": "#e87a74"
     }
   ]

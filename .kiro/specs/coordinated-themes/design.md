@@ -92,7 +92,7 @@ Inventory every pinned file using `source-assets.json`; manifest contains source
 
 | Profile in cycle order | Asset name | Background / foreground | Font |
 | --- | --- | --- | --- |
-| default | cobalt | #0049b2 / #fff8f0 | FiraCode Nerd Font 13 |
+| default | cobalt | #003e97 / #fff8f0 | FiraCode Nerd Font 13 |
 | navy | navy | #1a2a3f / #fff8f0 | FiraCode Nerd Font 11 |
 | fixedsys | fixedsys | #1f233c / #ffa348 | Berkeley Mono 12; unavailable private family resolves through verified public monospace fallback |
 | cream | cream | #fff8f0 / #2b4570 | FiraCode Nerd Font 13 |

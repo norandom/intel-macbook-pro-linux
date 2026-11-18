@@ -1,12 +1,12 @@
 # Managed by debian-hypr (tools/themegen.py). Ghostty theme = Terminator profile "default"
 # (hypr-termtheme switches it).
-background = #0049b2
+background = #003e97
 foreground = #fff8f0
 cursor-color = #fff8f0
-cursor-text = #0049b2
-selection-background = #1453af
+cursor-text = #003e97
+selection-background = #114695
 selection-foreground = #fff8f0
-palette = 0=#00347d
+palette = 0=#002c6a
 palette = 1=#e87a74
 palette = 2=#7ac48a
 palette = 3=#f1dc9a
@@ -14,7 +14,7 @@ palette = 4=#8bb4e0
 palette = 5=#b89cd9
 palette = 6=#6f88a7
 palette = 7=#e8dfc9
-palette = 8=#1453af
+palette = 8=#114695
 palette = 9=#e87a74
 palette = 10=#7ac48a
 palette = 11=#ffe9a8

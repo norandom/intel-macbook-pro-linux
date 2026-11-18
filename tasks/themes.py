@@ -136,12 +136,12 @@ if present("nvim"):
 # --- xfce4-terminal: source cobalt settings + unsafe-paste review (not cycled) ---------------
 if shutil.which("xfce4-terminal") and shutil.which("xfconf-query"):
     palette = ";".join((
-        "#00347d", "#e87a74", "#7ac48a", "#f1dc9a", "#8bb4e0", "#b89cd9", "#6f88a7", "#e8dfc9",
-        "#1453af", "#e87a74", "#7ac48a", "#ffe9a8", "#8bb4e0", "#d29acb", "#8bb4e0", "#fff8f0",
+        "#002c6a", "#e87a74", "#7ac48a", "#f1dc9a", "#8bb4e0", "#b89cd9", "#6f88a7", "#e8dfc9",
+        "#114695", "#e87a74", "#7ac48a", "#ffe9a8", "#8bb4e0", "#d29acb", "#8bb4e0", "#fff8f0",
     ))
     props = {
         "/misc-show-unsafe-paste-dialog": ("bool", "true"), "/misc-cursor-blinks": ("bool", "false"),
-        "/color-use-theme": ("bool", "false"), "/color-background": ("string", "#0049b2"),
+        "/color-use-theme": ("bool", "false"), "/color-background": ("string", "#003e97"),
         "/color-foreground": ("string", "#fff8f0"), "/color-cursor": ("string", "#f1dc9a"),
         "/color-cursor-use-default": ("bool", "false"), "/color-palette": ("string", palette),
         "/font-use-system": ("bool", "false"), "/font-name": ("string", "FiraCode Nerd Font 11"),

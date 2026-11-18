@@ -19,7 +19,7 @@ CONFIG = os.path.expanduser('~/.config/terminator/config')
 # Tab bar per profile: (bar background, tab text, active tab background, active tab text).
 # Base layout (slim tmux-style tabs) is in ~/.config/gtk-3.0/gtk.css.
 TAB_COLOURS = {
-    'default': ('#00347d', '#8bb4e0', '#f1dc9a', '#00347d'),
+    'default': ('#002c6a', '#8bb4e0', '#f1dc9a', '#002c6a'),
     'navy': ('#243b55', '#7b96b4', '#c4933f', '#1a2a3f'),
     'fixedsys': ('#2a2f4c', '#b07838', '#ffa348', '#1f233c'),
     'cream': ('#ebe3d6', '#5b7fa5', '#2b4570', '#fff8f0'),

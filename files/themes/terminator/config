@@ -10,7 +10,7 @@
 [keybindings]
 [profiles]
   [[default]]
-    background_color = "#0049b2"
+    background_color = "#003e97"
     font = FiraCode Nerd Font 13
     foreground_color = "#fff8f0"
     show_titlebar = False
@@ -18,7 +18,7 @@
     cursor_blink = False
     scrollbar_position = hidden
     disable_mousewheel_zoom = True
-    palette = "#00347d:#e87a74:#7ac48a:#f1dc9a:#8bb4e0:#b89cd9:#6f88a7:#e8dfc9:#1453af:#e87a74:#7ac48a:#ffe9a8:#8bb4e0:#d29acb:#8bb4e0:#fff8f0"
+    palette = "#002c6a:#e87a74:#7ac48a:#f1dc9a:#8bb4e0:#b89cd9:#6f88a7:#e8dfc9:#114695:#e87a74:#7ac48a:#ffe9a8:#8bb4e0:#d29acb:#8bb4e0:#fff8f0"
     use_system_font = False
     copy_on_selection = True
   [[navy]]
