@@ -88,7 +88,7 @@ SHIFT+Print arms a one-shot Super for the next key (the bar shows a `SUPER` badg
 | SUPER+L | Next layout mode (dynamic, golden-h, golden-v, golden-spiral) |
 | SUPER+Tab | Next window, raised |
 | SUPER+arrows | Move focus |
-| SUPER+M | Show minimized windows |
+| SUPER+M | Centered picker: select a minimized window to restore (Esc cancels) |
 | SUPER+G / SUPER+P | Glass window / stay on top |
 | SUPER+Y | Next terminal and editor theme |
 | SUPER+Escape | Power menu (lock, suspend, log out, reboot, shut down) |

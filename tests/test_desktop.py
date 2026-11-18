@@ -94,6 +94,24 @@ class Geometry(unittest.TestCase):
         worker.ipc.batch.assert_not_called()
         worker.unminimize.assert_not_called()
 
+    def test_minimized_picker_restores_by_index_and_cancel_does_nothing(self):
+        from unittest.mock import Mock, patch
+        windows = [{"address": "0xab", "class": "term", "title": "same", "monitor": 0,
+                    "workspace": {"name": "special:minimized"}},
+                   {"address": "0xcd", "class": "term", "title": "same", "monitor": 0,
+                    "workspace": {"name": "special:minimized"}}]
+        mons = [{"id": 0, "activeWorkspace": {"id": 1}, "specialWorkspace": {"name": ""}}]
+        for code, output, expected in ((0, "1", True), (1, "", False), (0, "-1", False), (0, "bad", False)):
+            ipc = Mock()
+            ipc.query.side_effect = lambda kind: windows if kind == "clients" else mons
+            with patch.object(hw.subprocess, "run", return_value=Mock(returncode=code, stdout=output)):
+                hw.pick_minimized(ipc)
+            if expected:
+                ipc.batch.assert_called_once_with(hw.restore_cmds(windows[1], mons))
+                self.assertNotIn("togglespecialworkspace minimized", ipc.batch.call_args.args[0])
+            else:
+                ipc.batch.assert_not_called()
+
     def test_minimized_window_restored_on_focus(self):
         mons = [{"id": 0, "focused": True, "activeWorkspace": {"id": 3},
                  "specialWorkspace": {"name": "special:minimized"}}]

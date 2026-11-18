@@ -7,6 +7,7 @@ Hyprland 0.53 has no Lua, so this one session-scoped process does the same work 
 the IPC sockets of the selected instance (HYPRLAND_INSTANCE_SIGNATURE):
 
     hypr-windows run       the worker (user service hypr-windows, part of hypr-desktop.target)
+    hypr-windows minimized choose a minimized window and restore it
     hypr-windows context   desktop right-click: open hypr-appmenu --at X Y on empty desktop
 
 Worker behaviour (source semantics):
@@ -506,6 +507,35 @@ class Worker:
             self.save()
 
 
+def pick_minimized(ipc=None):
+    ipc = ipc or HyprIPC()
+    windows = [w for w in ipc.query("clients")
+               if w.get("workspace", {}).get("name") == MINIMIZED
+               and ADDR_RE.fullmatch(w.get("address", ""))]
+    if not windows:
+        ipc.request('notify -1 2000 rgb(8bb4e0) No minimized windows')
+        return
+    # Display titles only; selection resolves by index, never by interpolating a title.
+    labels = [" ".join(f"{w.get('class', '')} — {w.get('title', '')}".split()) for w in windows]
+    choice = subprocess.run(["fuzzel", "--dmenu", "--index", "--anchor", "center",
+                             "--prompt", "Restore window > ", "--width", "60",
+                             "--lines", str(min(12, len(windows)))],
+                            input="\n".join(labels) + "\n", capture_output=True, text=True)
+    if choice.returncode != 0:
+        return
+    try:
+        index = int(choice.stdout.strip())
+    except ValueError:
+        return
+    if not 0 <= index < len(windows):
+        return
+    addr = windows[index]["address"]
+    # A window may close or be restored while the picker is open.
+    win = next((w for w in ipc.query("clients") if w.get("address") == addr), None)
+    if win and win.get("workspace", {}).get("name") == MINIMIZED:
+        ipc.batch(restore_cmds(win, ipc.query("monitors")))
+
+
 def context():
     ipc = HyprIPC()
     c = ipc.query("cursorpos")
@@ -520,10 +550,12 @@ def main(argv):
     try:
         if cmd == "run":
             Worker(HyprIPC()).run()
+        elif cmd == "minimized":
+            pick_minimized()
         elif cmd == "context":
             context()
         else:
-            print("usage: hypr-windows run|context", file=sys.stderr)
+            print("usage: hypr-windows run|minimized|context", file=sys.stderr)
             return 2
     except (RuntimeError, OSError, ValueError, ConnectionError) as e:
         print(f"hypr-windows: {e}", file=sys.stderr)

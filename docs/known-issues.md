@@ -16,7 +16,7 @@ pointer-jump behavior, but have not established a fix for this repeated-click is
 Reproduce with consecutive clicks without leaving the entry, both rapid and several
 seconds apart, and correlate Waybar events with compositor focus/workspace events.
 Existing keyboard alternative: SUPER+Tab cycles and raises windows; SUPER+M opens
-the minimized workspace. This defect is separate from the older restore-overlay
+a centered picker to restore a minimized window. This defect is separate from the older restore-overlay
 issue documented below.
 
 ## Overnight deep suspend loses the session — unresolved (2026-11-18)

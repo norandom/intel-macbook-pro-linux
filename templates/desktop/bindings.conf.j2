@@ -30,7 +30,7 @@
   ("", "code:21", "resizeactive", "100 0", "Wider"),
   ("SHIFT", "code:20", "resizeactive", "0 -100", "Shorter"),
   ("SHIFT", "code:21", "resizeactive", "0 100", "Taller"),
-  ("", "M", "togglespecialworkspace", "minimized", "Show minimized windows (point at one to restore it)"),
+  ("", "M", "exec", "~/.local/bin/hypr-windows minimized", "Choose a minimized window to restore"),
 ] %}
 {%- set mouse = [
   ("mouse:272", "movewindow", "Move window"),
