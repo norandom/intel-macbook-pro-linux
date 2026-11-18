@@ -45,3 +45,43 @@
      if (m_bCancelledDown)
          info.cancelled = true;
  
+--- a/hyprbars/main.cpp
++++ b/hyprbars/main.cpp
+@@ -4,6 +4,8 @@
+
+ #include <any>
+ #include <hyprland/src/Compositor.hpp>
++#include <hyprland/src/desktop/Workspace.hpp>
++#include <hyprland/src/desktop/state/FocusState.hpp>
+ #include <hyprland/src/desktop/view/Window.hpp>
+ #include <hyprland/src/config/ConfigManager.hpp>
+ #include <hyprland/src/render/Renderer.hpp>
+@@ -121,6 +123,28 @@
+                                      CHyprColor{1.0, 0.2, 0.2, 1.0}, 5000);
+         throw std::runtime_error("[hb] Version mismatch");
+     }
++
++    // Parking a focused window under a non-interactive Waybar surface can leave
++    // it ACTIVATED in wlr-foreign-toplevel. Release focus explicitly, including
++    // when this is the last window. Never warp the pointer to force a refocus.
++    HyprlandAPI::addDispatcherV2(PHANDLE, "t2:minimize", [](std::string args) -> SDispatchResult {
++        const auto window = args.empty() ? Desktop::focusState()->window() : g_pCompositor->getWindowByRegex(args);
++        if (!window || !window->m_workspace)
++            return {.success = false, .error = "Window not found"};
++        if (window->m_workspace->m_name == "special:minimized")
++            return {};
++        const auto workspace = window->m_workspace;
++        const bool focused = Desktop::focusState()->window() == window;
++        if (focused)
++            Desktop::focusState()->rawWindowFocus(nullptr);
++        HyprlandAPI::invokeHyprctlCommand("dispatch", std::format("movetoworkspacesilent special:minimized,address:0x{:x}", rc<uintptr_t>(window.get())));
++        if (focused) {
++            const auto next = workspace->getFirstWindow();
++            if (next && next != window)
++                Desktop::focusState()->fullWindowFocus(next);
++        }
++        return {};
++    });
+
+     g_pGlobalState                    = makeUnique<SGlobalState>();
+     g_pGlobalState->nobarRuleIdx      = Desktop::Rule::windowEffects()->registerEffect("hyprbars:no_bar");

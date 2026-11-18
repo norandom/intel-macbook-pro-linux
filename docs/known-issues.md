@@ -2,22 +2,30 @@
 
 Defects we know about, with what we saw, the cause as far as we know it, and the sources.
 
-## Waybar repeated window clicks are inconsistent — unresolved (2026-11-18)
+## Waybar minimized windows remain selected — fix prepared, live verification pending (2026-11-18)
 
-The owner reports that repeated clicks on a taskbar entry do not reliably toggle
-foreground/minimized state; moving the pointer away and back seems necessary.
-There is no intentional click cooldown or hover-reset requirement. Waybar's
-`minimize-raise` uses the last compositor-reported state, while `hypr-windows`
-handles minimization via `special:minimized` and restores on activation.
-Stale state or pointer/focus event handling are hypotheses, not confirmed causes.
+The owner observed that a minimized window retains the active rectangle in Waybar.
+Waybar's `minimize-raise` then requests minimization again instead of activation.
+Hyprland 0.53.3's silent workspace move tries to refocus at the pointer when no
+window covers the old window centre. Over a non-interactive Waybar layer that can
+leave the parked window focused. Its foreign-toplevel implementation does not
+publish a minimized state, so Waybar relies on the active flag for this toggle.
 
-Click-to-focus and disabling automatic cursor warps addressed related focus and
-pointer-jump behavior, but have not established a fix for this repeated-click issue.
-Reproduce with consecutive clicks without leaving the entry, both rapid and several
-seconds apart, and correlate Waybar events with compositor focus/workspace events.
-Existing keyboard alternative: SUPER+Tab cycles and raises windows; SUPER+M opens
-a centered picker to restore a minimized window. This defect is separate from the older restore-overlay
-issue documented below.
+The existing Hyprbars patch now supplies `t2:minimize`: explicitly deactivate the
+requested window before parking it, then focus another window from its original
+workspace if available. With no remaining window, focus stays empty. Minimizing
+an inactive window preserves the current focus. Waybar's helper and the Win311
+title-bar minimize button use this dispatcher; no cursor warp is needed.
+
+The plugin compiles against the installed Hyprland headers. Deployment rebuilds
+it; log out and back in after deploying to load the new dispatcher (a config
+reload does not replace an already loaded plugin at the same path). Live checks
+remain: repeated clicks without leaving the entry, minimizing the last window,
+and confirming the active rectangle clears with the pointer stationary.
+Keyboard alternatives: SUPER+Tab cycles windows; SUPER+M opens the restore picker.
+
+Source: [Hyprland 0.53.3 focus and workspace dispatchers](https://github.com/hyprwm/Hyprland/blob/v0.53.3/src/managers/KeybindManager.cpp),
+[Waybar 0.15.0 taskbar state handling](https://github.com/Alexays/Waybar/blob/0.15.0/src/modules/wlr/taskbar.cpp).
 
 ## Overnight deep suspend loses the session — unresolved (2026-11-18)
 

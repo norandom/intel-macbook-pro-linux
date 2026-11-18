@@ -462,7 +462,7 @@ class Worker:
             addr = "0x" + address
             if separator and ADDR_RE.fullmatch(addr):
                 if state == "1":
-                    self.ipc.batch([f"movetoworkspacesilent {MINIMIZED},address:{addr}"])
+                    self.ipc.batch([f"t2:minimize address:{addr}"])
                 elif state == "0":
                     self.unminimize(addr)
         elif name == "activewindowv2" and data.strip():

@@ -84,7 +84,7 @@ class Geometry(unittest.TestCase):
         worker.unminimize = Mock()
         worker.handle("minimized>>ab,1")
         worker.ipc.batch.assert_called_once_with([
-            "movetoworkspacesilent special:minimized,address:0xab"])
+            "t2:minimize address:0xab"])
         worker.handle("minimized>>ab,0")
         worker.unminimize.assert_called_once_with("0xab")
         worker.ipc.reset_mock()
