@@ -161,6 +161,10 @@ VENDOR_DEBS = {
               "c2057f221e41275b7eadc5b658edc00289466b6fb55c912c5894831f6900f969", "slack"),
     "discord": ("discord", "1.0.169", "https://dl.discordapp.net/apps/linux/1.0.169/discord-1.0.169.deb",
                 "64d39ef66390149c09ec7d20759a2e4aa0b93efc071d073e3e72155eb86639df", "discord"),
+    # 1-1: the owner's own RDP client (norandom/1-1); pre-release, Tauri on system WebKitGTK.
+    "1-1": ("1-1", "0.1.0-alpha.5",
+            "https://github.com/norandom/1-1/releases/download/v0.1.0-alpha.5/1-1_0.1.0-alpha.5_amd64.deb",
+            "8f42d952173bca31900f357d4f08e005060d579ff559ced5f3d6e4d1932e2473", "rdp-client"),
     "rclone-ui": ("rclone-ui", "3.7.5", "https://github.com/rclone-ui/rclone-ui/releases/download/v3.7.5/Rclone.UI_amd64.deb",
                   "9abf7db50839350fe336710574232197b87be9204036f94390de458b59ab9faf", "Rclone UI"),
 }
@@ -220,6 +224,7 @@ OTHER = {
     "positron": ("vendor", _VENDOR_OWNER, "positron", _DEB + " (Posit CDN)"),
     "code": ("vendor", _VENDOR_OWNER, "code", _REPO + " (Microsoft; package's own repo entry suppressed)"),
     "remotedesktopmanager": ("vendor", _VENDOR_OWNER, "remotedesktopmanager", _DEB + " (Devolutions CDN)"),
+    "1-1": ("vendor", _VENDOR_OWNER, "rdp-client", _DEB + " (owner's own RDP client, norandom/1-1)"),
     "intel-oneapi": ("vendor", _VENDOR_OWNER, "/opt/intel/oneapi/compiler/latest/bin/icx",
                      _REPO + " (icx/icpx; Intel EULA, no key)"),
     "zoom": ("vendor", _VENDOR_OWNER, "zoom", _DEB + " (Wayland portal sharing on)"),

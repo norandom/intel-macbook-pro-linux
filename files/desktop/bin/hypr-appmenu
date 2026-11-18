@@ -120,6 +120,8 @@ def apps():
             cat = "Editors"
         if "IDE" in cats:   # VS Code, Positron: with the development tools
             cat = "Development"
+        if a.get_id() == "1-1.desktop":   # 1-1 RDP client ships Utility only: with RDM in Internet
+            cat = "Internet"
         by_cat.setdefault(cat, []).append((a.get_display_name(), a))
         by_id[a.get_id()] = (a.get_display_name(), a)
     return by_cat, by_id

@@ -14,9 +14,10 @@ TASK = (ROOT / "tasks/vendor_apps.py").read_text()
 DEB_HOSTS = {"obsidian": "github.com", "bitwarden": "github.com", "quarto": "github.com",
              "positron": "cdn.posit.co", "remotedesktopmanager": "cdn.devolutions.net",
              "zoom": "cdn.zoom.us", "slack": "downloads.slack-edge.com", "discord": "dl.discordapp.net",
-             "rclone-ui": "github.com"}
+             "rclone-ui": "github.com", "1-1": "github.com"}
 DEB_PATHS = {"obsidian": "/obsidianmd/obsidian-releases/", "bitwarden": "/bitwarden/clients/releases/download/desktop-v",
-             "quarto": "/quarto-dev/quarto-cli/", "rclone-ui": "/rclone-ui/rclone-ui/releases/download/v"}
+             "quarto": "/quarto-dev/quarto-cli/", "rclone-ui": "/rclone-ui/rclone-ui/releases/download/v",
+             "1-1": "/norandom/1-1/releases/download/v"}
 TARBALL_PATHS = {"zed": "/zed-industries/zed/", "zen": "/zen-browser/desktop/",
                  "podman-desktop": "/podman-desktop/podman-desktop/", "xtool": "/xtool-org/xtool/"}
 
