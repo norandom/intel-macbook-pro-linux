@@ -13,6 +13,8 @@ first() { v=$(sed -n '1{s/^[[:space:]]*//;s/[[:space:]].*//;p;q}' "$1" 2>/dev/nu
 layout=$(first "$dir/layout-mode" dynamic)
 style=$(first "$dir/decorations-style" mac)
 shadow=$(first "$dir/window-shadows" off)
+night=$(first "$HOME/.local/state/hypr-nightmode" off)
+case "$night" in green|dark|grayscale|monochrome|warmwhite) ;; *) night=off ;; esac
 case "$layout" in dynamic|golden-h|golden-v|golden-spiral) ;; *) layout=dynamic ;; esac
 case "$style" in mac|win311) ;; *) style=mac ;; esac
 case "$shadow" in on) shadow=$style ;; *) shadow=off ;; esac
@@ -38,6 +40,12 @@ trap 'rm -f "$tmp"' EXIT
     echo "# hyprbars not installed (package hyprland-plugin-hyprbars): no title bars"
   fi
   echo "source = $dir/shadow-$shadow.conf"
+  # Parse the saved filter at login/reload, instead of racing an exec callback.
+  if [ "$night" = off ]; then
+    echo "decoration:screen_shader ="
+  else
+    echo "decoration:screen_shader = $dir/shaders/night-$night.glsl"
+  fi
   [ -f "$dir/local.conf" ] && echo "source = $dir/local.conf"
   true
 } > "$tmp"

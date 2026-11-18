@@ -215,6 +215,21 @@ class Scripts(unittest.TestCase):
             self.assertIn("layout-dynamic.conf", out)
             self.assertIn("shadow-off.conf", out)
 
+    def test_saved_rabbit_filter_is_part_of_reloadable_config(self):
+        with tempfile.TemporaryDirectory() as home:
+            state = Path(home, ".local/state/hypr-nightmode")
+            state.parent.mkdir(parents=True)
+            for mode in ("green", "dark", "grayscale", "monochrome", "warmwhite"):
+                state.write_text(mode + "\n")
+                output = self.run_state(home)
+                self.assertIn(f"decoration:screen_shader = {home}/.config/hypr/shaders/night-{mode}.glsl", output)
+                self.assertEqual(self.run_state(home), output)
+            for mode in ("off", "invalid/path"):
+                state.write_text(mode + "\n")
+                output = self.run_state(home)
+                self.assertIn("decoration:screen_shader =\n", output)
+                self.assertNotIn("night-invalid", output)
+
     def test_state_prefers_patched_hyprbars_only_for_installed_hyprland(self):
         r = subprocess.run(["dpkg-query", "-W", "-f=${Version}", "hyprland"], capture_output=True, text=True)
         if r.returncode or not r.stdout:

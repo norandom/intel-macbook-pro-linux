@@ -212,6 +212,8 @@ Lid close is handled by logind: it suspends, as on a stock install, or hibernate
   or use `hypr-nightmode next` (off, green, dark, grayscale, monochrome, warmwhite).
   Grayscale keeps smooth shades and caps white at approximately RGB 199/199/199; monochrome uses four charcoal-to-gray-green shades for a 1990s LCD look,
   with subtle static dithering only around shade boundaries.
+  Your selection persists across login, reboot and config reload through generated
+  `state.conf`; deployment preserves the saved choice.
   Right-click the rabbit to turn filters off; `hypr-nightmode grayscale` and
   `hypr-nightmode monochrome` select either directly.
   `hypr-nightmode warmwhite` dims and warms bright neutral highlights toward muted cream (white becomes
