@@ -96,7 +96,7 @@ SHIFT+Print arms a one-shot Super for the next key (the bar shows a `SUPER` badg
 | SUPER+SHIFT+4 or SUPER+SHIFT+S | Screenshot of a rectangle, then the Satty editor |
 | SUPER+SHIFT+CTRL+S | Screenshot of the screen, then Satty |
 | SUPER+SHIFT+X | Rectangle screenshot, no editor |
-| SUPER+SHIFT+C | Flash a huge pointer so you can find it |
+| SUPER+SHIFT+C | Flash a huge pointer so you can find it (and bring it back from the virtual RDP output) |
 | SUPER+left drag / right drag | Move / resize a window |
 
 The two keys right of `0` resize the active window (narrower, wider; with SHIFT shorter,

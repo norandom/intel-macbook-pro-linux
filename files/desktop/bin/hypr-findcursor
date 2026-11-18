@@ -2,6 +2,8 @@
 # Managed by t2-mac-kde (desktop). "Where is my pointer?": blow the cursor up for a moment
 # (like Windows' "show pointer location"), then restore the configured theme and size.
 set -u
+# A pointer left on the virtual RDP output (kept apart from the screen) comes back first.
+"$HOME/.local/bin/hypr-windows" pointer-home 2>/dev/null || true
 conf=$HOME/.config/hypr/cursor.conf
 theme=$(sed -n 's/^env = XCURSOR_THEME,//p' "$conf" 2>/dev/null); theme=${theme:-breeze_cursors}
 size=$(sed -n 's/^env = XCURSOR_SIZE,//p' "$conf" 2>/dev/null); size=${size:-24}

@@ -2,26 +2,43 @@
 
 Defects we know about, with what we saw, the cause as far as we know it, and the sources.
 
-## Waybar minimized windows remain selected — fix prepared, live verification pending (2026-11-18)
+## Windows dragged or snapped to the right edge disappear - fixed, deploy pending (2026-11-18)
 
-The owner observed that a minimized window retains the active rectangle in Waybar.
-Waybar's `minimize-raise` then requests minimization again instead of activation.
-Hyprland 0.53.3's silent workspace move tries to refocus at the pointer when no
-window covers the old window centre. Over a non-interactive Waybar layer that can
-leave the parked window focused. Its foreign-toplevel implementation does not
-publish a minimized state, so Waybar relies on the active flag for this toggle.
+What happens: snapping a window to the right edge, or dragging it there, makes it vanish.
+The pointer can also leave the screen on the right.
 
-The existing Hyprbars patch now supplies `t2:minimize`: explicitly deactivate the
-requested window before parking it, then focus another window from its original
-workspace if available. With no remaining window, focus stays empty. Minimizing
-an inactive window preserves the current focus. Waybar's helper and the Win311
-title-bar minimize button use this dispatcher; no cursor warp is needed.
+Cause: the RDP server keeps a virtual output (`hypr-rdp`, 1920x1080) for remote clients. With
+automatic placement it sat directly right of the panel, so the desktop continued invisibly
+there. A pointer at the right edge crossed onto it, and the snap then used that output.
 
-The plugin compiles against the installed Hyprland headers. Deployment rebuilds
-it; log out and back in after deploying to load the new dispatcher (a config
-reload does not replace an already loaded plugin at the same path). Live checks
-remain: repeated clicks without leaving the entry, minimizing the last window,
-and confirming the active rectangle clears with the pointer stationary.
+Fix: `monitors.conf` places `hypr-rdp` apart from the panel (`-6000x0`). The pointer cannot
+cross a gap, so the right edge is a real edge again. A negative x is required: automatic
+placement puts the panel right of every explicitly placed output. Because the pointer cannot
+return across the gap either, `hypr-windows` brings a pointer left on the virtual output back
+to the screen once no remote client is connected; SUPER+SHIFT+C does it at any time.
+Checked live: panel stays at 0,0, snap rectangles resolve on the panel, a stranded pointer
+returns. Not checked: a remote session with the new placement.
+
+## Taskbar clicks minimize a window instead of raising it - fixed, re-login pending (2026-11-18)
+
+What happens: after minimizing a window from the taskbar or its title bar, clicking another
+taskbar entry sometimes minimizes that window instead of bringing it forward.
+
+Cause: Hyprland 0.53.3 never publishes a minimized state, so Waybar's `minimize-raise`
+decides by the active flag alone: active entry = minimize, any other = raise. Our
+`t2:minimize` dispatcher (in the patched hyprbars build) gave focus to
+`workspace->getFirstWindow()`, which is the bottom of the window stack, and did not raise it.
+The active window could then be one buried under others; clicking its entry to bring it
+forward minimized it. Replayed with a test client that sends Waybar's requests: the toggle
+itself is reliable down to 50 ms between clicks.
+
+Fix: after parking a focused window, `t2:minimize` focuses the window used last on that
+workspace (focus history, topmost as fallback) and raises it, so the active window is always
+the one on top. With no window left, focus stays empty; minimizing an inactive window keeps
+the current focus. No cursor warp.
+
+The plugin compiles against the installed Hyprland headers. Deployment rebuilds it; log out
+and back in afterwards (a config reload does not replace a loaded plugin at the same path).
 Keyboard alternatives: SUPER+Tab cycles windows; SUPER+M opens the restore picker.
 
 Source: [Hyprland 0.53.3 focus and workspace dispatchers](https://github.com/hyprwm/Hyprland/blob/v0.53.3/src/managers/KeybindManager.cpp),

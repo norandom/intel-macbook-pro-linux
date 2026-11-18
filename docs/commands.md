@@ -34,7 +34,7 @@ button, so the command line is just the second way in.
 | `hypr-nightshift toggle` | pause or resume the night shift (the moon in the bar) |
 | `hypr-deco win311` / `mac` | title bar style; `hypr-shadow on` / `off` for shadows |
 | `hypr-kbd de` / `us` | keyboard layout (aliases `kbde`, `kbus`) |
-| `hypr-findcursor` | flashes a huge pointer so you can find it (SUPER+SHIFT+C) |
+| `hypr-findcursor` | flashes a huge pointer so you can find it, after bringing it back from the virtual RDP output (SUPER+SHIFT+C) |
 
 ## Terminal and themes
 

@@ -123,6 +123,30 @@ class Geometry(unittest.TestCase):
         self.assertNotIn("togglespecialworkspace minimized", hw.restore_cmds(win, mons))
         self.assertEqual(hw.restore_cmds({**win, "workspace": {"name": "3"}}, mons), [])
 
+    def test_pointer_stranded_on_virtual_rdp_output_goes_home(self):
+        panel = mon(name="eDP-1", focused=False)
+        rdp = mon(name="hypr-rdp", x=-6000, width=1920, height=1080, focused=True)
+        self.assertEqual(hw.pointer_home((-5800, 100), [panel, rdp]), (720, 450))
+        self.assertIsNone(hw.pointer_home((700, 450), [panel, rdp]))      # on the real screen
+        self.assertIsNone(hw.pointer_home((-5800, 100), [rdp]))           # nowhere to go
+        with tempfile.TemporaryDirectory() as run:
+            self.assertFalse(hw.rdp_connected(run))
+            state = Path(run, "t2-mac-kde/rdp/session")
+            state.parent.mkdir(parents=True)
+            state.write_text("connected 1 sig\n")
+            self.assertTrue(hw.rdp_connected(run))
+            state.write_text("disconnected 2 sig\n")
+            self.assertFalse(hw.rdp_connected(run))
+
+    def test_virtual_rdp_output_is_not_adjacent_to_the_panel(self):
+        rules = [l.split("=", 1)[1].split(",") for l in (SRC / "hypr/monitors.conf").read_text().splitlines()
+                 if l.startswith("monitor") and "hypr-rdp" in l]
+        self.assertEqual(len(rules), 1)
+        x, y = (int(v) for v in rules[0][2].strip().split("x"))
+        # left of 0 with a gap: the pointer can't cross, and "auto" still puts the panel at 0
+        self.assertLess(x + 1920, 0)
+        self.assertEqual(y, 0)
+
     def test_snap_zones(self):
         m = mon()
         self.assertEqual(hw.snap_zone((0, 450), m), "left")
@@ -198,6 +222,8 @@ class Config(unittest.TestCase):
         for p in list((SRC / "hypr").glob("*.conf")) + [TPL / "bindings.conf.j2", TPL / "waybar-config.jsonc.j2"]:
             text = p.read_text()
             for bad in ("hl.", "LP_NUM_THREADS", "llvmpipe", "hypr-rdp", "Virtual-1", "debian-hypr"):
+                if bad == "hypr-rdp" and p.name == "monitors.conf":
+                    continue   # the one rule that keeps the virtual RDP output apart (tested below)
                 self.assertNotIn(bad, text, f"{p.name}: {bad}")
 
     def test_waybar_template_renders_json_both_branches(self):
@@ -287,6 +313,10 @@ class Scripts(unittest.TestCase):
         patch = (SRC / "hyprbars/hyprbars-0.53.0-t2-input.patch").read_text()
         self.assertIn("(m_pWindow != window || WINDOWATCURSOR)", patch)
         self.assertIn("-    if (m_pWindow.lock() != Desktop::focusState()->window())", patch)
+        # minimize: focus goes to the window used last, raised; never the bottom of the stack
+        self.assertIn("windowTracker()->historyForWorkspace(workspace)", patch)
+        self.assertIn("changeWindowZOrder(next, true)", patch)
+        self.assertNotIn("workspace->getFirstWindow()", patch)
         task = (ROOT / "tasks/desktop.py").read_text()
         self.assertIn("build-hyprbars", task)
         self.assertIn("\"libgles-dev\"", task)  # GLES3/gl32.h, not pulled in by hyprland-dev

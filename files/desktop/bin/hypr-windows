@@ -9,6 +9,7 @@ the IPC sockets of the selected instance (HYPRLAND_INSTANCE_SIGNATURE):
     hypr-windows run       the worker (user service hypr-windows, part of hypr-desktop.target)
     hypr-windows minimized choose a minimized window and restore it
     hypr-windows context   desktop right-click: open hypr-appmenu --at X Y on empty desktop
+    hypr-windows pointer-home  bring a pointer stranded on the virtual RDP output back
 
 Worker behaviour (source semantics):
   * dynamic layout: remembers each application's floating geometry as fractions of its
@@ -21,6 +22,9 @@ Worker behaviour (source semantics):
   * minimized windows (title-bar button -> special:minimized) come back to the normal
     workspace as soon as they get focus (taskbar click, SUPER+M), instead of staying in the
     special workspace overlay above every other window.
+  * the virtual RDP output (hypr-rdp) is kept apart from the screens (monitors.conf), so
+    the pointer cannot leave it by hand: once no remote client is connected, a pointer left
+    there returns to the screen.
   * aero snap: drag a floating window until the cursor touches the left/right edge
     (half), the top edge (maximized area) or a corner (quarter); dragging it away again
     restores its previous size.
@@ -246,6 +250,26 @@ class HyprIPC:
 
 
 MINIMIZED = "special:minimized"
+RDP_OUTPUT = "hypr-rdp"       # headless output of the RDP server (tasks/rdp.py)
+
+
+def rdp_connected(runtime=None):
+    """True while hypr-rdp-session recorded a connected remote client for this session."""
+    runtime = runtime or os.environ.get("XDG_RUNTIME_DIR") or f"/run/user/{os.getuid()}"
+    return read_first(Path(runtime) / "t2-mac-kde/rdp/session", "") == "connected"
+
+
+def pointer_home(cursor, monitors):
+    """Centre of a real screen when the pointer sits on the virtual RDP output, else None."""
+    on = cursor and monitor_at(cursor, monitors)
+    if not on or on.get("name") != RDP_OUTPUT:
+        return None
+    real = [m for m in monitors if m.get("name") != RDP_OUTPUT]
+    mon = next((m for m in real if m.get("focused")), None) or (real[0] if real else None)
+    if not mon:
+        return None
+    mx, my, mw, mh = mon_box(mon)
+    return math.floor(mx + mw / 2), math.floor(my + mh / 2)
 
 
 def restore_cmds(win, monitors):
@@ -364,6 +388,10 @@ class Worker:
             if old and (old[2], old[3]) == (box[2], box[3]):
                 self.snap[w["address"]] = (m["name"],) + fractions(w, m)
         self.seen = now
+        if not rdp_connected():
+            home = pointer_home(self.cursor(), self.monitors)
+            if home:
+                cmds.append(f"movecursor {home[0]} {home[1]}")
         live = {w.get("address") for w in self.clients}
         self.snap = {a: g for a, g in self.snap.items() if a in live}
         if cmds:
@@ -545,6 +573,14 @@ def context():
                          stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
 
+def send_pointer_home():
+    ipc = HyprIPC()
+    c = ipc.query("cursorpos")
+    home = pointer_home((c["x"], c["y"]), ipc.query("monitors"))
+    if home:
+        ipc.batch([f"movecursor {home[0]} {home[1]}"])
+
+
 def main(argv):
     cmd = argv[1] if len(argv) > 1 else ""
     try:
@@ -554,8 +590,10 @@ def main(argv):
             pick_minimized()
         elif cmd == "context":
             context()
+        elif cmd == "pointer-home":
+            send_pointer_home()
         else:
-            print("usage: hypr-windows run|minimized|context", file=sys.stderr)
+            print("usage: hypr-windows run|minimized|context|pointer-home", file=sys.stderr)
             return 2
     except (RuntimeError, OSError, ValueError, ConnectionError) as e:
         print(f"hypr-windows: {e}", file=sys.stderr)

@@ -47,20 +47,20 @@
  
 --- a/hyprbars/main.cpp
 +++ b/hyprbars/main.cpp
-@@ -4,6 +4,8 @@
-
+@@ -4,6 +4,9 @@
+ 
  #include <any>
  #include <hyprland/src/Compositor.hpp>
 +#include <hyprland/src/desktop/Workspace.hpp>
++#include <hyprland/src/desktop/history/WindowHistoryTracker.hpp>
 +#include <hyprland/src/desktop/state/FocusState.hpp>
  #include <hyprland/src/desktop/view/Window.hpp>
  #include <hyprland/src/config/ConfigManager.hpp>
  #include <hyprland/src/render/Renderer.hpp>
-@@ -121,6 +123,28 @@
-                                      CHyprColor{1.0, 0.2, 0.2, 1.0}, 5000);
+@@ -122,6 +125,45 @@
          throw std::runtime_error("[hb] Version mismatch");
      }
-+
+ 
 +    // Parking a focused window under a non-interactive Waybar surface can leave
 +    // it ACTIVATED in wlr-foreign-toplevel. Release focus explicitly, including
 +    // when this is the last window. Never warp the pointer to force a refocus.
@@ -76,12 +76,30 @@
 +            Desktop::focusState()->rawWindowFocus(nullptr);
 +        HyprlandAPI::invokeHyprctlCommand("dispatch", std::format("movetoworkspacesilent special:minimized,address:0x{:x}", rc<uintptr_t>(window.get())));
 +        if (focused) {
-+            const auto next = workspace->getFirstWindow();
-+            if (next && next != window)
++            // Focus the window used last on that workspace and raise it: the active
++            // window must be the one on top, or the next taskbar click on it (which
++            // means "minimize" for the active entry) hits a window buried under others.
++            // (getFirstWindow() returns the bottom of the stack.)
++            const auto usable = [&](const PHLWINDOW& w) { return w && w != window && w->m_workspace == workspace && w->m_isMapped && !w->isHidden(); };
++            PHLWINDOW  next;
++            const auto history = Desktop::History::windowTracker()->historyForWorkspace(workspace);
++            for (auto it = history.rbegin(); it != history.rend() && !next; ++it) {
++                if (const auto w = it->lock(); usable(w))
++                    next = w;
++            }
++            for (auto it = g_pCompositor->m_windows.rbegin(); it != g_pCompositor->m_windows.rend() && !next; ++it) {
++                if (usable(*it))
++                    next = *it;
++            }
++            if (next) {
++                if (next->m_isFloating)
++                    g_pCompositor->changeWindowZOrder(next, true);
 +                Desktop::focusState()->fullWindowFocus(next);
++            }
 +        }
 +        return {};
 +    });
-
++
      g_pGlobalState                    = makeUnique<SGlobalState>();
      g_pGlobalState->nobarRuleIdx      = Desktop::Rule::windowEffects()->registerEffect("hyprbars:no_bar");
+     g_pGlobalState->barColorRuleIdx   = Desktop::Rule::windowEffects()->registerEffect("hyprbars:bar_color");
