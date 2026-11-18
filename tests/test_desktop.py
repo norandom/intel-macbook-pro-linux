@@ -343,6 +343,49 @@ class Boundaries(unittest.TestCase):
             self.assertNotIn("WantedBy=default.target", p.read_text(), p.name)
 
 
+
+class WarmWhiteShader(unittest.TestCase):
+    """Python model of night-warmwhite.glsl, driven by the shader's own constants."""
+
+    def setUp(self):
+        src = (Path(__file__).resolve().parents[1] / "files/desktop/hypr/shaders/night-warmwhite.glsl").read_text()
+        self.c = {k: float(v) for k, v in re.findall(r"const float (\w+) = ([0-9.]+);", src)}
+
+    @staticmethod
+    def smooth(e0, e1, x):
+        t = min(max((x - e0) / (e1 - e0), 0.0), 1.0)
+        return t * t * (3 - 2 * t)
+
+    def shade(self, px, surround):
+        c = self.c
+        white = self.smooth(0.35, 0.80, min(px))
+        top = c["TEXT_WHITE"] + (c["PAGE_WHITE"] - c["TEXT_WHITE"]) * self.smooth(0.35, 0.85, min(surround))
+        hl = self.smooth(c["KNEE"], 1.0, max(px))
+        out = []
+        for v, cream in zip(px, (1.0, 0.96, 0.88)):
+            comp = min(v, c["KNEE"]) + max(v - c["KNEE"], 0.0) * (top - c["KNEE"]) / (1 - c["KNEE"])
+            paper = comp * (1 + (cream - 1) * hl)
+            out.append(v + (paper - v) * white)
+        return out
+
+    def test_terminal_text_dimmed_more_than_page_white(self):
+        fg, bg = (1.0, 0.973, 0.941), (0.0, 0.243, 0.592)  # Terminator #fff8f0 on #003e97
+        text = self.shade(fg, bg)
+        page = self.shade((1.0, 1.0, 1.0), (1.0, 1.0, 1.0))
+        self.assertLess(max(text), 0.72)
+        self.assertGreater(min(page), 0.74)
+        self.assertGreater(page[0], 0.84)
+        self.assertLess(page[0], 0.90)
+
+    def test_antialiased_white_edge_on_blue_is_filtered(self):
+        edge = (0.5, 0.621, 0.796)  # 50 % #fff8f0 over #003e97
+        out = self.shade(edge, (0.0, 0.243, 0.592))
+        self.assertLess(out[2], edge[2] - 0.03)
+
+    def test_saturated_colours_untouched(self):
+        for px in ((1.0, 1.0, 0.0), (0.0, 0.243, 0.592), (1.0, 0.57, 0.11)):
+            self.assertEqual(self.shade(px, (0.0, 0.0, 0.0)), list(px))
+
 if __name__ == "__main__":
     unittest.main()
 

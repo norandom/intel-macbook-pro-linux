@@ -216,10 +216,11 @@ Lid close is handled by logind: it suspends, as on a stock install, or hibernate
   `state.conf`; deployment preserves the saved choice.
   Right-click the rabbit to turn filters off; `hypr-nightmode grayscale` and
   `hypr-nightmode monochrome` select either directly.
-  `hypr-nightmode warmwhite` dims and warms bright neutral highlights toward muted cream (white becomes
-  approximately RGB 199/191/175),
-  including tinted near-white backgrounds while preserving darker tones and saturated colors. This is selective highlight warming,
-  rather than an overall color-temperature shift.
+  `hypr-nightmode warmwhite` dims and warms the white content of each pixel toward muted cream:
+  white inside large white areas (browser pages) becomes approximately RGB 219/211/193, white text
+  and lines on dark or coloured backgrounds (terminals) approximately RGB 173/167/152, including
+  anti-aliased glyph edges. Darker tones and saturated colors are preserved; this is selective
+  highlight warming rather than an overall color-temperature shift.
 - Night shift, like f.lux: with `night_shift = true`, gammastep warms the screen after sunset
   and back after sunrise, fading through dusk and dawn. It follows the sun at a fixed place:
   `night_shift_location = "lat:lon"`, or by default the city of your timezone (Europe/Berlin:
