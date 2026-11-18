@@ -2,6 +2,23 @@
 
 Defects we know about, with what we saw, the cause as far as we know it, and the sources.
 
+## Waybar repeated window clicks are inconsistent — unresolved (2026-11-18)
+
+The owner reports that repeated clicks on a taskbar entry do not reliably toggle
+foreground/minimized state; moving the pointer away and back seems necessary.
+There is no intentional click cooldown or hover-reset requirement. Waybar's
+`minimize-raise` uses the last compositor-reported state, while `hypr-windows`
+handles minimization via `special:minimized` and restores on activation.
+Stale state or pointer/focus event handling are hypotheses, not confirmed causes.
+
+Click-to-focus and disabling automatic cursor warps addressed related focus and
+pointer-jump behavior, but have not established a fix for this repeated-click issue.
+Reproduce with consecutive clicks without leaving the entry, both rapid and several
+seconds apart, and correlate Waybar events with compositor focus/workspace events.
+Existing keyboard alternative: SUPER+Tab cycles and raises windows; SUPER+M opens
+the minimized workspace. This defect is separate from the older restore-overlay
+issue documented below.
+
 ## Overnight deep suspend loses the session — unresolved (2026-11-18)
 
 The owner selected Suspend from the menu while plugged in. The previous boot ends
