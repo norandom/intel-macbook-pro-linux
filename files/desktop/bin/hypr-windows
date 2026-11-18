@@ -253,7 +253,7 @@ def restore_cmds(win, monitors):
     The title bar's minimize button parks windows on special:minimized. A taskbar "activate"
     only focuses such a window, which opens the special workspace as an overlay above every
     normal window: the restored window then stays on top and the windows below can't be raised
-    by clicking. So: close the overlay, move the window to its monitor's workspace, raise it.
+    by clicking. So: close the overlay, move the window back, raise it, then focus it.
     """
     if not win or win.get("workspace", {}).get("name") != MINIMIZED:
         return []
@@ -266,7 +266,7 @@ def restore_cmds(win, monitors):
     if mon.get("specialWorkspace", {}).get("name") == MINIMIZED:
         cmds.append("togglespecialworkspace minimized")
     cmds += [f"movetoworkspacesilent {mon['activeWorkspace']['id']},address:{addr}",
-             f"focuswindow address:{addr}", f"alterzorder top,address:{addr}"]
+             f"alterzorder top,address:{addr}", f"focuswindow address:{addr}"]
     return cmds
 
 

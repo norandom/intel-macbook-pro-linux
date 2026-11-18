@@ -100,7 +100,7 @@ class Geometry(unittest.TestCase):
         win = {"address": "0xab", "monitor": 0, "workspace": {"name": "special:minimized"}}
         self.assertEqual(hw.restore_cmds(win, mons), [
             "togglespecialworkspace minimized", "movetoworkspacesilent 3,address:0xab",
-            "focuswindow address:0xab", "alterzorder top,address:0xab"])
+            "alterzorder top,address:0xab", "focuswindow address:0xab"])
         mons[0]["specialWorkspace"] = {"name": ""}          # overlay already closed: don't reopen it
         self.assertNotIn("togglespecialworkspace minimized", hw.restore_cmds(win, mons))
         self.assertEqual(hw.restore_cmds({**win, "workspace": {"name": "3"}}, mons), [])

@@ -2,6 +2,20 @@
 
 Defects we know about, with what we saw, the cause as far as we know it, and the sources.
 
+## Overnight deep suspend loses the session — unresolved (2026-11-18)
+
+The owner selected Suspend from the menu while plugged in. The previous boot ends
+on 2026-11-17 at 21:18:30 CET with `PM: suspend entry (deep)`; the next boot starts
+on 2026-11-18 at 08:20:47 CET. Starting with the power button produced the startup
+chime. This was a fresh boot, not merely a restarted Hyprland session. There is no
+recorded suspend exit or orderly shutdown, and systemd-pstore found no stored report.
+The evidence does not establish whether entry, overnight sleep, or resume failed.
+
+Ordinary suspend remains unresolved. Hibernate is a separate, previously tested
+path (below); use that for overnight sleep pending an owner-run controlled suspend
+and resume test. Do not apply legacy apple-bce unload hooks to the current t2bce
+stack, or change boot/kernel settings based only on this incident.
+
 ## Windows restored from the tab bar stay on top of everything - fixed
 
 Status: fixed in `hypr-windows`, 2026-11-16 (tested live: overlay closed, window back on its
