@@ -82,3 +82,26 @@ Wi-Fi and Tailscale. Authentication and fail2ban remain enabled. The RDP firewal
 continues to accept TCP/UDP 3389 only on loopback and tailscale0. Tailscale prefers
 a direct connection, including over the local network; relay fallback is possible,
 so a Tailscale address does not guarantee that traffic stays on the LAN.
+
+## Traffic shaping (CAKE)
+
+Off by default. With `cake_upload_mbit` and/or `cake_download_mbit` set, `tasks/traffic_shaping.py`
+puts the kernel's CAKE shaper on the Wi-Fi/Ethernet uplinks and on the Tailscale tunnel. The
+queue then forms on this machine instead of in the router, connections share the line fairly,
+and calls or remote desktop stay responsive while an upload, backup or download fills it.
+
+- Set each rate a little below the measured line speed (about 90-95 %). A rate above what the
+  link delivers does nothing, which is also the case on a Wi-Fi link slower than the line.
+- With a Tailscale exit node all traffic leaves the uplink as one encrypted flow. The tunnel is
+  therefore shaped as well, at 92 % of the rate, so the queue forms where the connections are
+  still visible.
+- Only this laptop is shaped. Other devices on the same line need shaping on the router
+  (OpenWrt: SQM).
+- Guests on libvirt's NAT network leave through the same uplinks and are shaped with the host.
+
+```
+/usr/local/libexec/t2-cake status    # rates and the active queues (no sudo)
+```
+
+Both rates `0` and a re-run remove the unit, the udev rule and the queues; the kernel default
+(`fq_codel`) returns. Nothing is written to sysctl, the kernel or the boot configuration.

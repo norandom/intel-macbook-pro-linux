@@ -1,0 +1,14 @@
+# Managed by t2-mac-kde (tasks/traffic_shaping.py).
+[Unit]
+Description=CAKE traffic shaper for the uplinks and the Tailscale tunnel
+Documentation=man:tc-cake(8)
+After=network-pre.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/local/libexec/t2-cake apply
+ExecStop=/usr/local/libexec/t2-cake clear
+
+[Install]
+WantedBy=multi-user.target

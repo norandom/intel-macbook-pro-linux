@@ -1,0 +1,3 @@
+# Managed by t2-mac-kde (tasks/traffic_shaping.py). A new interface starts with the default
+# queue: shape adapters plugged in later and tailscale0 after a tailscaled restart.
+ACTION=="add|move", SUBSYSTEM=="net", KERNEL=="wl*|en*|eth*|tailscale0", RUN+="/usr/local/libexec/t2-cake apply $name"

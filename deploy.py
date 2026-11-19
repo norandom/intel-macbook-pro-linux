@@ -17,6 +17,7 @@ for task in (
     "t2_pack",          # config t2_pack_pin: hold the tested T2/Hyprland versions (owner exception); .deb backup
     "storage_health",   # smartd + daily NVMe check, alerts in new shells
     "remote_access",    # tailscale, sshd at boot, fail2ban, RDP firewall
+    "traffic_shaping",  # config cake_upload_mbit/cake_download_mbit: CAKE shaper (off by default)
     "security_keys",    # YubiKey tools; config yubikey_login: touch the key instead of a password
     "containers",       # rootless podman, docker compat, compose, podman-tui
     "virtualization",   # virt-manager on KVM, libvirt default NAT network

@@ -1,0 +1,96 @@
+#!/bin/sh
+# Managed by t2-mac-kde (tasks/traffic_shaping.py). CAKE traffic shaper (sch_cake).
+#   t2-cake apply [dev]   shape the physical uplinks (wl*, en*, eth*) and tailscale0
+#   t2-cake clear         remove our qdiscs: the kernel default (fq_codel) comes back
+#   t2-cake status        current qdiscs (no root needed)
+# Rates come from /etc/t2-mac-kde/cake.conf (UP_KBIT, DOWN_KBIT; 0 = that direction unshaped).
+# Upload is shaped on the device itself. Download is redirected through an IFB device
+# (t2ifb<ifindex>), because Linux only queues what it sends.
+# With a Tailscale exit node all traffic leaves the uplink as one encrypted flow, where CAKE
+# cannot tell connections apart. So tailscale0 is shaped too, a little lower (TUNNEL_PCT, for
+# the WireGuard overhead): the queue then forms inside the tunnel, where the flows are visible.
+set -u
+conf=${T2_CAKE_CONF:-/etc/t2-mac-kde/cake.conf}
+TUNNEL_PCT=92
+num() { sed -n "s/^$1=\([0-9][0-9]*\)$/\1/p" "$conf" 2>/dev/null | head -n 1; }
+UP_KBIT=$(num UP_KBIT); UP_KBIT=${UP_KBIT:-0}
+DOWN_KBIT=$(num DOWN_KBIT); DOWN_KBIT=${DOWN_KBIT:-0}
+
+devices() {
+  if [ -n "${T2_CAKE_DEVICES:-}" ]; then echo "$T2_CAKE_DEVICES" | tr ' ' '\n'; return; fi
+  for p in /sys/class/net/*; do
+    d=${p##*/}
+    case "$d" in
+      tailscale0) echo "$d" ;;
+      wl*|en*|eth*) [ -e "$p/device" ] && echo "$d" ;;
+    esac
+  done
+}
+ours() { for d in $(devices); do [ "$d" = "$1" ] && return 0; done; return 1; }
+rate() { case "$1" in tailscale0) echo $(($2 * TUNNEL_PCT / 100)) ;; *) echo "$2" ;; esac; }
+ifb_of() { echo "t2ifb$(cat "/sys/class/net/$1/ifindex")"; }
+
+clear_dev() {
+  tc qdisc del dev "$1" root 2>/dev/null
+  tc qdisc del dev "$1" ingress 2>/dev/null
+  [ -e "/sys/class/net/$1/ifindex" ] && ip link del "$(ifb_of "$1")" 2>/dev/null
+  return 0
+}
+
+apply_dev() {
+  dev=$1
+  [ -e "/sys/class/net/$dev/ifindex" ] || return 0
+  if [ "$UP_KBIT" -gt 0 ]; then
+    tc qdisc replace dev "$dev" root cake bandwidth "$(rate "$dev" "$UP_KBIT")kbit" || return 1
+  else
+    tc qdisc del dev "$dev" root 2>/dev/null
+  fi
+  ifb=$(ifb_of "$dev")
+  if [ "$DOWN_KBIT" -gt 0 ]; then
+    [ -e "/sys/class/net/$ifb" ] || ip link add "$ifb" type ifb || return 1
+    ip link set "$ifb" up || return 1
+    tc qdisc replace dev "$ifb" root cake bandwidth "$(rate "$dev" "$DOWN_KBIT")kbit" ingress || return 1
+    tc qdisc del dev "$dev" ingress 2>/dev/null
+    tc qdisc add dev "$dev" handle ffff: ingress || return 1
+    tc filter add dev "$dev" parent ffff: protocol all matchall action mirred egress redirect dev "$ifb" || return 1
+  else
+    tc qdisc del dev "$dev" ingress 2>/dev/null
+    ip link del "$ifb" 2>/dev/null
+  fi
+  return 0
+}
+
+# IFB devices whose interface is gone (unplugged adapter, restarted tailscaled).
+prune() {
+  for p in /sys/class/net/t2ifb*; do
+    [ -e "$p" ] || continue
+    keep=no
+    for d in $(devices); do [ "$(ifb_of "$d")" = "${p##*/}" ] && keep=yes; done
+    [ "$keep" = yes ] || ip link del "${p##*/}" 2>/dev/null
+  done
+}
+
+case "${1:-}" in
+  apply)
+    rc=0
+    if [ -n "${2:-}" ]; then
+      ours "$2" || exit 0
+      apply_dev "$2" || rc=1
+    else
+      for d in $(devices); do apply_dev "$d" || rc=1; done
+    fi
+    prune
+    exit $rc ;;
+  clear)
+    for d in $(devices); do clear_dev "$d"; done
+    prune
+    exit 0 ;;
+  status)
+    echo "upload ${UP_KBIT} kbit/s, download ${DOWN_KBIT} kbit/s (0 = unshaped); tunnel at ${TUNNEL_PCT}%"
+    for d in $(devices); do
+      tc qdisc show dev "$d" | sed "s/^/$d: /"
+      ifb=$(ifb_of "$d"); [ -e "/sys/class/net/$ifb" ] && tc qdisc show dev "$ifb" | sed "s/^/$d download ($ifb): /"
+    done
+    exit 0 ;;
+  *) echo "usage: t2-cake apply [dev]|clear|status" >&2; exit 2 ;;
+esac

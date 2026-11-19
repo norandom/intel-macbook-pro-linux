@@ -75,6 +75,15 @@ Read by `tasks/resource_policy.py` (mitigations: `tasks/cpu_mitigations.py`).
 | `background_updates` | `true` | `false` stops apt-daily, unattended-upgrades and the update notifier ([t2-pack.md](t2-pack.md)) |
 | `t2_pack_backup` | `true` | Keep `.deb` copies of the pack in `~/.local/share/t2-mac-kde/t2-packs/` |
 
+## Network
+
+Read by `tasks/traffic_shaping.py` ([remote-access.md](remote-access.md#traffic-shaping-cake)).
+
+| Key | Default | Effect |
+|---|---|---|
+| `cake_upload_mbit` | `0` | CAKE shaper for uploads, in Mbit/s; set about 90-95 % of the measured speed; `0` = off |
+| `cake_download_mbit` | `0` | The same for downloads |
+
 ## Shell and developer tools
 
 Read by `tasks/shell.py`.
