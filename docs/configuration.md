@@ -77,10 +77,12 @@ Read by `tasks/resource_policy.py` (mitigations: `tasks/cpu_mitigations.py`).
 
 ## Network
 
-Read by `tasks/traffic_shaping.py` ([remote-access.md](remote-access.md#traffic-shaping-cake)).
+Read by `tasks/network_tuning.py` and `tasks/traffic_shaping.py`
+([remote-access.md](remote-access.md#tcp-tuning)).
 
 | Key | Default | Effect |
 |---|---|---|
+| `network_tuning` | `true` | BBR congestion control, no slow start after idle, MTU probing; `false` restores the kernel defaults |
 | `cake_upload_mbit` | `0` | CAKE shaper for uploads, in Mbit/s; set about 90-95 % of the measured speed; `0` = off |
 | `cake_download_mbit` | `0` | The same for downloads |
 

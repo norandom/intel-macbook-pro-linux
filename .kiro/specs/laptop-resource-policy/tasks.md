@@ -17,6 +17,7 @@ tests `tests/test_resource_policy.py`). Ported from source `tasks/memory.py`, `t
 - [x] Unit tests: exact turbo assets, zram settings, no teardown/boot ops, avoid regex coverage, 15-char limit, inotify floor, coredump applicability.
 
 ## Deferred / needs live owner check
+- [x] Network sysctls/BBR: rejection reversed by the owner 2026-11-19 after measuring; three sender-side settings in `tasks/network_tuning.py` (config `network_tuning`, default true).
 - [ ] Live deploy (needs sudo): run `pyinfra @local tasks/resource_policy.py` as owner.
 - [ ] After apply/reboot: `swapon --show` shows zram0 prio 100 and dm-1 still prio -1; `zramctl` reports lz4.
 - [ ] `earlyoom --dryrun` style check of avoid list in both KDE and Hyprland sessions (Hyprland comm names unobserved yet).

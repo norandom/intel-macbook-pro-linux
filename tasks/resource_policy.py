@@ -3,7 +3,7 @@
 Adopted: turbo off at boot + turbo aliases fragment, additive capped zram (disk swap and
 resume untouched), earlyoom aware of KDE and Hyprland, journald/coredump size limits,
 inotify instances floor, higher open-file limits, Avahi masked. Rejected (see .kiro/specs/laptop-resource-policy/
-design.md): reclaim/dirty/network sysctls, /tmp size, noatime, watchdog, GRUB
+design.md): reclaim/dirty sysctls (network: tasks/network_tuning.py since 2026-11-19), /tmp size, noatime, watchdog, GRUB
 cmdline, serial console, root SSH, module blacklist, qemu agent, away lock, snitch.
 GPU power settings are intentionally not touched here.
 """

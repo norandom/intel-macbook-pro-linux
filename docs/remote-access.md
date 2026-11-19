@@ -83,6 +83,23 @@ continues to accept TCP/UDP 3389 only on loopback and tailscale0. Tailscale pref
 a direct connection, including over the local network; relay fallback is possible,
 so a Tailscale address does not guarantee that traffic stays on the LAN.
 
+## TCP tuning
+
+On by default (`network_tuning`). `tasks/network_tuning.py` writes one file,
+`/etc/sysctl.d/61-t2-network.conf`, with three settings for what this laptop sends: uploads,
+the RDP server's stream, SSH. Downloads such as video streaming are paced by the remote
+server and don't change.
+
+| Setting | Value | Why |
+|---|---|---|
+| `tcp_congestion_control` | `bbr` | Random Wi-Fi loss no longer halves the sending rate |
+| `tcp_slow_start_after_idle` | `0` | Bursty streams don't restart slowly after each pause |
+| `tcp_mtu_probing` | `1` | A stalled connection retries with smaller packets (tunnels) |
+
+Buffers for TCP and UDP (QUIC, Tailscale) and the default queue stay as Ubuntu ships them.
+`network_tuning = false` and a re-run remove the file and restore the kernel defaults at once.
+Check: `sysctl net.ipv4.tcp_congestion_control`.
+
 ## Traffic shaping (CAKE)
 
 Off by default. With `cake_upload_mbit` and/or `cake_download_mbit` set, `tasks/traffic_shaping.py`
