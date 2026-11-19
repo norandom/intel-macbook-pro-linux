@@ -162,9 +162,9 @@ VENDOR_DEBS = {
     "discord": ("discord", "1.0.169", "https://dl.discordapp.net/apps/linux/1.0.169/discord-1.0.169.deb",
                 "64d39ef66390149c09ec7d20759a2e4aa0b93efc071d073e3e72155eb86639df", "discord"),
     # 1-1: the owner's own RDP client (norandom/1-1); pre-release, Tauri on system WebKitGTK.
-    "1-1": ("1-1", "0.1.0-alpha.5",
-            "https://github.com/norandom/1-1/releases/download/v0.1.0-alpha.5/1-1_0.1.0-alpha.5_amd64.deb",
-            "8f42d952173bca31900f357d4f08e005060d579ff559ced5f3d6e4d1932e2473", "rdp-client"),
+    "1-1": ("1-1", "0.1.0-beta.1",
+            "https://github.com/norandom/1-1/releases/download/v0.1.0-beta.1/1-1_0.1.0-beta.1_amd64.deb",
+            "31997e17b572d405caba1daf43e06ebb42746db64770f8cf26525b8ba92dfbd8", "rdp-client"),
     "rclone-ui": ("rclone-ui", "3.7.5", "https://github.com/rclone-ui/rclone-ui/releases/download/v3.7.5/Rclone.UI_amd64.deb",
                   "9abf7db50839350fe336710574232197b87be9204036f94390de458b59ab9faf", "Rclone UI"),
 }
