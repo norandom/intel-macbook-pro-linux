@@ -31,7 +31,7 @@ for task in (
     "multiplexers",      # Screen Ctrl+A keys for Zellij and Byobu
     "shell",            # bash/grml, history, nvim-simple, npm/uv user tools
     "remove_warp",      # remove the retired managed Warp trial
-    "warpeer",          # pinned user-local terminal-only fork (Linux x86-64)
+    "warpeer",          # Cyberterm 2077 (formerly Warpeer): pinned user-local terminal (Linux x86-64)
     "themes",           # five palettes + hypr-termtheme
     "desktop",          # Hyprland session, waybar, decorations, night filter
     "audio_effects",    # EasyEffects: QC35 3D preset, speakers bypass, BT device roles

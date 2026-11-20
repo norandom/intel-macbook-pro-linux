@@ -63,3 +63,21 @@ class WarpeerTests(unittest.TestCase):
                 finally:
                     os.close(master)
                     os.close(slave)
+
+class RenameTests(unittest.TestCase):
+    TASK = (Path(__file__).resolve().parents[1] / 'tasks/warpeer.py').read_text()
+
+    def test_pin_points_at_the_renamed_project(self):
+        self.assertIn('NAME = "cyberterm2077"', self.TASK)
+        self.assertRegex(self.TASK, r'VERSION = "v\d+\.\d+\.\d+"')
+        self.assertIn('github.com/norandom/Cyberterm-2077/releases/download/{VERSION}/{NAME}-linux-x86_64.tar.gz', self.TASK)
+        for key in ('ARCHIVE_SHA256', 'BINARY_SHA256'):
+            self.assertRegex(self.TASK, key + r' = "[0-9a-f]{64}"')
+        self.assertTrue((Path(__file__).resolve().parents[1] / 'files/applications/cyberterm2077.png').is_file())
+
+    def test_data_directory_keeps_the_old_name_and_old_launcher_is_retired(self):
+        self.assertIn('home / ".config/warpeer/settings.toml"', self.TASK)
+        self.assertIn('StartupWMClass=com.matrixme.warpeer', self.TASK)
+        # only our own symlink into a managed install is removed; version directories stay
+        self.assertIn('str(old_launcher.readlink()).startswith(str(opt / "warpeer-"))', self.TASK)
+        self.assertNotIn('rm -rf {quote(str(opt', self.TASK)

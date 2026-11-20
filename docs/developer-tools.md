@@ -215,55 +215,63 @@ included in deploy.py, removes the exact previously managed user-level payload,
 launcher, desktop entry and marked settings/themes. User-created Warp data and
 pre-t2 settings backups are retained. No Warp installation or theme target remains.
 
-## Warpeer
+## Cyberterm 2077 (formerly Warpeer)
 
-`tasks/warpeer.py` installs our [Warpeer fork](https://github.com/norandom/warpeer)
-from release `desktop-9ade3d6` under `~/.local/opt/warpeer-9ade3d6`, with a
-`~/.local/bin/warpeer` command and application-menu entry. Both the archive and
-executable are SHA-256 pinned. This task needs no sudo or package changes and is
-included in `deploy.py`. The proprietary Warp cleanup remains separate.
+`tasks/warpeer.py` installs [Cyberterm 2077](https://github.com/norandom/Cyberterm-2077), our
+terminal fork that was called Warpeer until v1.0.0, from release `v1.0.1` under
+`~/.local/opt/cyberterm2077-v1.0.1`, with a `~/.local/bin/cyberterm2077` command and
+application-menu entry. Both the archive and executable are SHA-256 pinned. This task needs
+no sudo or package changes and is included in `deploy.py`. The proprietary Warp cleanup
+remains separate.
 
 ```sh
 .venv/bin/pyinfra @local tasks/warpeer.py --dry
 .venv/bin/pyinfra @local tasks/warpeer.py
 ```
 
-The fork now merges Warp upstream directly while retaining Warpeer’s terminal-only configuration, with cloud
-services, telemetry, crash reporting and auto-update disabled. Updates are
-explicit changes to the release and hashes in the task. These are experimental
-native desktop builds; the Linux binary requires glibc 2.39 or newer.
+The rename changed the release, the executable and the menu entry only. Data stays in the
+`warpeer` directories (`~/.config/warpeer`, `~/.warpeer`, `~/.local/state/warpeer`), so
+preferences carry over; the task, `manage/warpeer.py` and the config key `warpeer_font` keep
+the old name too. The deploy removes the old `warpeer` command and menu entry. Older
+`~/.local/opt/warpeer-*` version directories are left in place; delete them by hand when you
+no longer want them.
 
-Warpeer selects the configured `shell_interactive` as its native startup shell.
+The fork merges Warp upstream directly while staying terminal-only: no sign-in, telemetry,
+crash reporting, hosted AI or sync. Once a day it asks the project's GitHub Releases whether a
+newer signed version exists and installs it only when you click to apply it. An update applied
+that way no longer matches the pin, so the next deploy puts the pinned version back; change
+the release and hashes in the task to move the pin. The Linux binary requires glibc 2.39 or
+newer.
+
+Cyberterm 2077 selects the configured `shell_interactive` as its native startup shell.
 The managed Bash-to-fish prompt handover is disabled when `TERM_PROGRAM` is
-`WarpTerminal`: replacing the shell after bootstrap discards Warpeer's command
-hooks and can hide command output. Existing Warpeer appearance preferences are
+`WarpTerminal`: replacing the shell after bootstrap discards its command
+hooks and can hide command output. Existing appearance preferences are
 preserved; open a fresh session after changing the startup shell.
 
-Warpeer input is pinned to the top (Reverse mode), with command blocks below it,
+Input is pinned to the top (Reverse mode), with command blocks below it,
 using `appearance.input.input_mode = "pinned_to_top"`.
 
-The new build adds **Add local runbook folder** and **Browse local runbooks** to
-the command palette. It searches user-selected folders for Markdown documents;
+The command palette has **Add local runbook folder** and **Browse local runbooks** to
+It searches user-selected folders for Markdown documents;
 opening a document does not execute commands. Use a shell block’s explicit Run
 control. Folders remain local and are stored under `[runbooks]` as a `folders`
 list in `~/.config/warpeer/settings.toml`. No YAML workflows or cloud sync are enabled.
 
-The managed Warpeer font is **Fixedsys Excelsior**, installed by `tasks/fonts.py`.
+The managed font is **Fixedsys Excelsior**, installed by `tasks/fonts.py`.
 `warpeer_font` overrides this family. Terminal/editor text, document text and
-menus/tabs use the same family; existing font sizes are preserved. The UI font
-setting needs desktop-9ade3d6 or newer; older builds use their default
-UI font while still applying the terminal/content settings.
+menus/tabs use the same family; existing font sizes are preserved.
 
 The toolbar adds **New Window**, **New Tab**, **New File**, and **CP** before the
 existing right-side controls. CP opens the command palette (Ctrl+Shift+P), and
 its hover label is **Command Palette**. Save a new Markdown file with Ctrl+S in
 one of your configured runbook folders.
 
-Warpeer's **Settings → Appearance → Text → Enforce minimum contrast** is managed as
+**Settings → Appearance → Text → Enforce minimum contrast** is managed as
 **Always** (`appearance.text.enforce_minimum_contrast = "always"`). This also adjusts
 explicit RGB shell colours in command history against the active background when
 switching between light and dark themes. Underlines remain; low-contrast colours
-may shift for readability. No new Warpeer build is required.
+may shift for readability.
 
 `files/warpeer/settings.toml` holds the repository defaults captured from the owner's
 preferences: Neobones Light, compact vertical tabs, Fixedsys 16, steady block cursor,
