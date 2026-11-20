@@ -91,9 +91,4 @@
 # --- Development libraries (tasks/dev_libs.py) -----------------------------------
 # dev_libs = true                 # GTK/WebKit/Ayatana tray/rsvg/dbus/ssl headers + pkg-config (Tauri)
 
-# --- Scrivener (tasks/scrivener.py, docs/apps.md) ----------------------------------
-# scrivener = false               # true: Scrivener 3 for Windows in its own Wine bottle
-# scrivener_dpi = 154              # Windows DPI in the bottle: 96 x panel scale (1.6)
-# scrivener_wayland = false       # true: Wine's Wayland driver instead of XWayland
-
 # warpeer_font = "Fixedsys Excelsior"  # Cyberterm 2077 (formerly Warpeer): terminal, editor, Markdown, menus and tabs

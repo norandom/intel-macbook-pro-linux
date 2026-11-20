@@ -27,7 +27,6 @@ for task in (
     "apps",             # application suite + release tools
     "vendor_apps",      # vendor repos/.debs/tarballs (before themes: editors get palettes)
     "office_apps",      # LibreOffice (tabbed UI), Craft suite, OpenIDEA
-    "scrivener",        # config scrivener: Scrivener 3 (Windows) in its own Wine bottle (off by default)
     "nix_tools",        # Nix (Ubuntu package) + pinned flake profile for user CLI tools
     "xfe",              # Xfe file manager (unpacked; keeps KDE's im-config)
     "multiplexers",      # Screen Ctrl+A keys for Zellij and Byobu

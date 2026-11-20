@@ -10,8 +10,8 @@ class DefaultAppsTests(unittest.TestCase):
         self.assertEqual(dict(entries(table)), table)
 
     def test_stray_setting_is_reported_with_a_hint(self):
-        with self.assertRaisesRegex(RuntimeError, "scrivener = True.*above that table"):
-            entries({"text/html": "vivaldi-stable.desktop", "scrivener": True})
+        with self.assertRaisesRegex(RuntimeError, "night_shift = True.*above that table"):
+            entries({"text/html": "vivaldi-stable.desktop", "night_shift": True})
         for bad in ({"text/html": "vivaldi"}, {"text/html": "a b.desktop"}, {"html": "x.desktop"}, []):
             with self.subTest(bad=bad), self.assertRaises(RuntimeError):
                 entries(bad)
