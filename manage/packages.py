@@ -139,8 +139,15 @@ def _local_deb(package: str, version: str, request: PackageRequest) -> Path | No
     return None
 
 
+def _native_arch() -> str:
+    return _run(("/usr/bin/dpkg", "--print-architecture")).strip()
+
+
 def _deb_path(package: str, version: str) -> Path:
+    # apt names native packages without ":arch"; with multiarch (wine32:i386) the same
+    # name and version can also be cached as _i386.deb, so the native arch must be explicit.
     name, _, arch = package.partition(":")
+    arch = arch or _native_arch()
     pattern = f"{name}_{version.replace(':', '%3a')}_"
     matches = [p for p in Path("/var/cache/apt/archives").glob(pattern + "*.deb")
                if not arch or p.name.endswith(f"_{arch}.deb") or p.name.endswith("_all.deb")]
