@@ -11,6 +11,7 @@ validate_local_context()
 for task in (
     "node",             # nvm + Node/npm (user)
     "tools",            # snap/flatpak pin + core CLI packages
+    "dev_libs",         # GTK/WebKit/Ayatana build libraries (Tauri); replaces the conflicting legacy appindicator
     "fan_curve",        # earlier cooling: full fans by 85 C; CPU power policy unchanged
     "resource_policy",  # turbo, zram, earlyoom, journald/coredump limits
     "cpu_mitigations",  # config cpu_mitigations_off: GRUB drop-in (owner exception)

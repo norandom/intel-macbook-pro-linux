@@ -26,7 +26,10 @@ That's also why some features are manual runbooks instead of tasks: growing swap
 
 Every apt install goes through `manage.packages.install_packages`. Before anything runs as root:
 
-1. `apt-get --simulate` plans the install. A plan that removes anything is refused.
+1. `apt-get --simulate` plans the install. A plan that removes anything is refused. The one
+   exception is a package a task names as replaced because it conflicts with what it installs:
+   `tasks/dev_libs.py` replaces the legacy `libappindicator3-dev`/`libappindicator3-1` with Ubuntu's
+   Ayatana equivalent. Protected packages can never be named, and any other removal still blocks.
 2. Snap, snapd, Flatpak and their plugins are refused, whether requested or pulled in.
 3. Protected packages are refused: kernels, GRUB, shim, initramfs tools, cryptsetup, LVM, DKMS,
    kmod, udev, systemd, firmware, `apple-*` and `t2-*` packages, PipeWire, WirePlumber and ALSA

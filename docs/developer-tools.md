@@ -77,6 +77,18 @@ matters for the system:
 
 One build with GCC: `CC=gcc make`. For Nim: `nim c --cc:gcc file.nim`.
 
+## Desktop app build libraries
+
+`tasks/dev_libs.py` installs the headers for GTK/WebKit desktop apps (Tauri, e.g. the 1-1 RDP
+client): `libwebkit2gtk-4.1-dev`, `libayatana-appindicator3-dev`, `librsvg2-dev`,
+`libdbus-1-dev`, `libssl-dev` and `pkg-config`. Turn it off with `dev_libs = false`.
+
+Use the Ayatana tray headers, not `libappindicator3-dev`: the legacy package conflicts with the
+Ayatana library that nm-applet, Remmina and 1-1 need, and `apt install libappindicator3-dev`
+removes all three. If the legacy pair is installed, the deploy replaces it and later tasks put
+the tray apps back. pkg-config knows the Ayatana library as `ayatana-appindicator3-0.1`; Tauri
+finds it under that name.
+
 ## Node and Python
 
 - Node comes from nvm, per user, at the version in `.nvmrc`. No system Node, no npm prefix

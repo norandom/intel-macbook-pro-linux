@@ -26,6 +26,10 @@ from typing import Literal
 class PackageRequest:
     packages: tuple[str, ...]
     source: Literal["ubuntu"] = "ubuntu"
+    # The only removals a request may cause: installed packages that conflict with what it
+    # installs, named here one by one (e.g. the legacy libappindicator3 stack that Ubuntu's
+    # Ayatana packages replace). Any other removal still blocks the plan.
+    replaces: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -88,6 +92,15 @@ def validate_request(request: PackageRequest) -> None:
             raise RuntimeError(f"Invalid package selection: {package!r}")
         if _protected(package.split("=")[0].split(":")[0]):
             raise RuntimeError(f"Prohibited or protected package: {package}")
+    if not isinstance(request.replaces, tuple) or len(request.replaces) > 8:
+        raise RuntimeError("replaces must be a tuple of at most 8 package names.")
+    for package in request.replaces:
+        if not isinstance(package, str) or not _NAME.match(package) or "=" in package or package.endswith("-"):
+            raise RuntimeError(f"Invalid replaced package: {package!r}")
+        if _protected(package.split(":")[0]):
+            raise RuntimeError(f"Protected package cannot be replaced: {package}")
+        if package in request.packages:
+            raise RuntimeError(f"Package both installed and replaced: {package}")
 
 
 def _run(argv) -> str:
@@ -100,11 +113,20 @@ def _run(argv) -> str:
 def _apt_args(request):
     # Lock::Timeout: apt waits (instead of failing) if a background apt run takes the lock between
     # the transaction's lock check and this call.
-    return ("/usr/bin/apt-get", "-o", "DPkg::Lock::Timeout=300", "--no-install-recommends", "--no-remove",
-            "install", *request.packages)
+    # Named replacements are removed explicitly ("name-"), so --no-remove is dropped only then;
+    # the simulation still allows no removal beyond them.
+    replaced = tuple(f"{p}-" for p in request.replaces if _installed(p))
+    return ("/usr/bin/apt-get", "-o", "DPkg::Lock::Timeout=300", "--no-install-recommends",
+            *(() if replaced else ("--no-remove",)), "install", *request.packages, *replaced)
 
 
-def _parse_simulation(output: str) -> PackagePlan:
+def _installed(package: str) -> bool:
+    result = subprocess.run(("/usr/bin/dpkg-query", "-W", "-f=${db:Status-Status}", package),
+                            env=_ENV, capture_output=True, text=True, timeout=10)
+    return result.returncode == 0 and result.stdout == "installed"
+
+
+def _parse_simulation(output: str, allowed_removals: tuple[str, ...] = ()) -> PackagePlan:
     installs, removals = [], []
     for line in output.splitlines():
         if line.startswith("Remv "):
@@ -118,16 +140,36 @@ def _parse_simulation(output: str) -> PackagePlan:
         if _protected(name):
             raise RuntimeError(f"Plan would install/upgrade protected or prohibited package {package}; blocked.")
         installs.append((package, version))
-    if removals:
-        raise RuntimeError(f"Plan would remove packages {removals}; blocked.")
-    return PackagePlan(tuple(installs))
+    blocked = [r for r in removals if r not in allowed_removals and r.split(":")[0] not in allowed_removals]
+    if blocked:
+        raise RuntimeError(f"Plan would remove packages {blocked}; blocked.")
+    return PackagePlan(tuple(installs), tuple(removals))
 
 
 def inspect_plan(request: PackageRequest) -> PackagePlan:
     """Unprivileged apt simulation of exactly this request."""
     validate_request(request)
     argv = _apt_args(request)
-    return _parse_simulation(_run((argv[0], "--simulate", *argv[1:])))
+    try:
+        output = _run((argv[0], "--simulate", *argv[1:]))
+    except RuntimeError as error:
+        if "remove is disabled" not in str(error):
+            raise
+        # Name the packages apt wants to remove (blocked below) instead of apt's bare refusal.
+        output = _run((argv[0], "--simulate", *(a for a in argv[1:] if a != "--no-remove")))
+    return _parse_simulation(output, request.replaces)
+
+
+# Replacements requested earlier in this deploy run. pyinfra plans every task before it runs
+# any, so a later task's simulation must already assume them (e.g. tasks/apps.py installing
+# Remmina, which needs the Ayatana library that tasks/dev_libs.py swaps in).
+_PENDING_REPLACES: set[str] = set()
+
+
+def _with_pending(request: PackageRequest) -> PackageRequest:
+    _PENDING_REPLACES.update(request.replaces)
+    extra = tuple(sorted(p for p in _PENDING_REPLACES if p not in request.replaces and p not in request.packages))
+    return request if not extra else PackageRequest(request.packages, request.source, request.replaces + extra)
 
 
 def _local_deb(package: str, version: str, request: PackageRequest) -> Path | None:
@@ -201,16 +243,20 @@ def install_packages(request: PackageRequest, *, prevent_service_start: bool = F
 
     validate_local_context()
     validate_request(request)
+    request = _with_pending(request)
     verify_effective_policy(preview=True)
     plan = inspect_plan(request)
     if prevent_service_start:
         inspect_service_policy()
-    if not plan.installs or preview_only:
+    if not (plan.installs or plan.removals) or preview_only:
         return
     project = Path(__file__).resolve().parents[1]
     command = ("cd " + shlex.quote(str(project)) + " && /usr/bin/python3 -m manage.packages --apply "
-               + ("--prevent-service-start " if prevent_service_start else "") + shlex.join(request.packages))
+               + ("--prevent-service-start " if prevent_service_start else "")
+               + "".join(f"--replace {shlex.quote(p)} " for p in request.replaces) + shlex.join(request.packages))
     shown = ", ".join(p for p, _ in plan.installs[:6]) + (" ..." if len(plan.installs) > 6 else "")
+    if plan.removals:
+        shown += f"; replacing {', '.join(plan.removals)}"
     server.shell(name=f"apt install {len(plan.installs)} package(s): {shown}", commands=command, _sudo=True)
 
 
@@ -265,7 +311,7 @@ def _apply_install(request: PackageRequest, *, prevent_service_start: bool = Fal
     with package_transaction(prevent_service_start=prevent_service_start):
         verify_effective_policy()
         plan = inspect_plan(request)
-        if not plan.installs:
+        if not (plan.installs or plan.removals):
             return
         argv = _apt_args(request)
         subprocess.run((argv[0], "--download-only", "--yes", *argv[1:]), env=_ENV, check=True)
@@ -283,6 +329,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Apply a guarded apt install (root)")
     parser.add_argument("--apply", action="store_true", required=True)
     parser.add_argument("--prevent-service-start", action="store_true")
+    parser.add_argument("--replace", action="append", default=[])
     parser.add_argument("packages", nargs="+")
     arguments = parser.parse_args()
-    _apply_install(PackageRequest(tuple(arguments.packages)), prevent_service_start=arguments.prevent_service_start)
+    _apply_install(PackageRequest(tuple(arguments.packages), replaces=tuple(arguments.replace)),
+                   prevent_service_start=arguments.prevent_service_start)

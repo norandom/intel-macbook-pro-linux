@@ -11,7 +11,8 @@ The owner prioritizes delivery speed (`.kiro/steering/execution-policy.md`).
 - No evidence ledgers, review manifests, checksum baselines or attestation records.
   Pin and sha256-check downloaded upstream binaries; that is enough.
 - apt installs go through `manage.packages.install_packages` (automatic guard: no
-  snap/flatpak, no protected packages, no removals, archive payload/script scan).
+  snap/flatpak, no protected packages, no removals except packages a request names in
+  `replaces`, archive payload/script scan).
 - Verify with `.venv/bin/python -m unittest discover -s tests` and
   `.venv/bin/pyinfra @local <file> --dry`. The owner runs the live deploy
   (`--use-sudo-password`); agents never run sudo.

@@ -68,7 +68,11 @@ NATIVE = {
     # File transfer (FTP/SFTP/mirror) and a terminal multiplexer front end (owner request 2026-11-16)
     "lftp": ("lftp", "lftp"),
     "byobu": ("byobu", "byobu"),
+    # RDP/VNC client; came with the base install, managed since a manual apt run removed it
+    # (owner request 2026-11-20). Plugins: see REMMINA_PLUGINS.
+    "remmina": ("remmina", "remmina"),
 }
+REMMINA_PLUGINS = ("remmina-plugin-rdp", "remmina-plugin-vnc", "remmina-plugin-secret")
 
 # GStreamer decoders for Clapper without FFmpeg (never gstreamer1.0-libav, which is FFmpeg):
 #   plugins-bad: openh264 (H.264), de265 (HEVC), aom (AV1), faad (AAC), MPEG-TS, HLS/DASH
@@ -273,7 +277,7 @@ def catalog(nix_attrs=DEFAULT_TOOLS) -> dict[str, tuple[str, str, str | None, st
 
 
 def native_packages() -> tuple[str, ...]:
-    return tuple(pkg for pkg, _ in NATIVE.values()) + GSTREAMER
+    return tuple(pkg for pkg, _ in NATIVE.values()) + GSTREAMER + REMMINA_PLUGINS
 
 
 def _dpkg_version(package: str) -> str | None:

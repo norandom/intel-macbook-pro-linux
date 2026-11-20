@@ -88,4 +88,7 @@
 # [default_apps]                   # MIME type = desktop file (see /usr/share/applications)
 # "application/pdf" = "ai.storyteller.pdfcraft.desktop"
 
+# --- Development libraries (tasks/dev_libs.py) -----------------------------------
+# dev_libs = true                 # GTK/WebKit/Ayatana tray/rsvg/dbus/ssl headers + pkg-config (Tauri)
+
 # warpeer_font = "Fixedsys Excelsior"  # Cyberterm 2077 (formerly Warpeer): terminal, editor, Markdown, menus and tabs
