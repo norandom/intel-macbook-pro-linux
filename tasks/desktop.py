@@ -13,6 +13,7 @@ import os
 import socket
 from io import StringIO
 from pathlib import Path
+from shlex import quote
 
 from pyinfra import host, local, logger
 from pyinfra.facts.files import File, FindInFile
@@ -22,7 +23,7 @@ from pyinfra.operations.util import any_changed
 from manage.desktop_hostcolor import color_for
 from manage.pixel_snap import conf as pixel_snap_conf
 from manage import night_shift as nightshift
-from manage import password_store
+from manage import default_apps, password_store
 from manage.packages import PackageRequest, install_packages
 from manage.preflight import validate_local_context
 from manage.userconfig import setting
@@ -257,9 +258,9 @@ for app in (password_store.APPS if store else ()):
 
 # Default applications per MIME type from the user config, e.g. PDFs -> PdfCraft:
 #   [default_apps]  "application/pdf" = "ai.storyteller.pdfcraft.desktop"
-for mime, app in dict(setting("default_apps", {})).items():
+for mime, app in default_apps.entries(setting("default_apps", {})):
     server.shell(name=f"Default app for {mime}: {app}",
-                 commands=[f"[ \"$(xdg-mime query default {mime})\" = '{app}' ] || xdg-mime default '{app}' {mime}"])
+                 commands=[f"[ \"$(xdg-mime query default {quote(mime)})\" = {quote(app)} ] || xdg-mime default {quote(app)} {quote(mime)}"])
 
 # hyprbars with our input fix (files/desktop/hyprbars): Ubuntu's 0.53.0 lets the focused
 # window's bar take clicks meant for the window above it (no raise) and can miss a release
