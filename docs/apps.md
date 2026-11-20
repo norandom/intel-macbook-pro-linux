@@ -1,12 +1,13 @@
 # Apps
 
-Three tasks install applications, each with its own route:
+Four tasks install applications, each with its own route:
 
 | Task | Route |
 |---|---|
 | `tasks/apps.py` | Ubuntu archive, plus a few pinned upstream binaries into `~/.local/bin` |
 | `tasks/vendor_apps.py` | Vendor apt repos with a committed, checksummed key; pinned vendor `.deb`s; pinned tarballs in `~/.local/opt` |
 | `tasks/office_apps.py` | LibreOffice from Ubuntu; the Craft suite and OpenIDEA as pinned `.deb`s |
+| `tasks/scrivener.py` | Opt-in: Scrivener 3 for Windows in its own Wine bottle (pinned installer) |
 
 Every download is checked against a sha256 in the repository, and every `.deb` goes through the
 package guard ([safety.md](safety.md)). The full inventory, with the reason for each entry, is in
@@ -43,6 +44,39 @@ DeckCraft covers slides. You can change the LibreOffice UI per user in View > Us
 
 If you live in real Excel macros or a heavy Photoshop workflow, these won't cover everything. Run
 Windows in virt-manager for those ([developer-tools.md](developer-tools.md#virtual-machines)).
+
+## Scrivener (Windows build under Wine)
+
+Opt-in with `scrivener = true` in `config.toml`. Scrivener has no Linux build, and Mac apps don't
+run on Linux (Darling handles command-line programs only), so the task installs the Windows
+build under Wine:
+
+- Every Windows app gets its own Wine prefix ("bottle") under `~/.local/share/wineprefixes/<app>`;
+  Scrivener's is `scrivener`. A deploy never deletes or recreates it, so the license
+  activation and preferences inside it survive.
+- Wine, winetricks and icoutils come from the Ubuntu archive (the only sudo step). The bottle
+  gets Microsoft's core fonts (Times New Roman, Arial, Courier New, so manuscripts lay out
+  as on Windows) and .NET 4.8, which the license activation needs. The first run takes about
+  ten minutes and shows no dialogs.
+- The installer is pinned by version and sha256 in `manage/scrivener.py`. Literature & Latte
+  publish it under one unversioned URL, so after a new release the checksum fails and the
+  pin needs a bump.
+- Text is sharp because the app draws at the panel's native pixels: XWayland apps aren't
+  scaled (`force_zero_scaling`), and the bottle's DPI is 154 (96 × 1.6). Qt draws text with
+  FreeType instead of Windows GDI, font smoothing follows `font_rendering`, and Segoe UI (the
+  interface font) is replaced with Noto Sans.
+- Speech (read aloud, dictation) is left out: without the Windows speech API, Scrivener hangs at
+  start while it looks for voices, so the `scrivener` command removes its `texttospeech` folder
+  before every start, also after Scrivener updates itself.
+
+Enter your license key once in Scrivener's own dialog; it never goes into the repo or the
+config. Keep projects and backups in your Linux home: drive `Z:` is `/`, so
+`Z:\home\<you>\Documents` is your Documents folder. Scrivener's default backup folder is
+inside the bottle.
+
+Settings: `scrivener_dpi` (default 154) when text is too small or too big;
+`scrivener_wayland = true` uses Wine's native Wayland driver instead of XWayland (newer;
+try it if XWayland misbehaves).
 
 ## Browsers
 
