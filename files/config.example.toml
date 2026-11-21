@@ -85,6 +85,8 @@
 # --- Remote access (tasks/remote_access.py) ---------------------------------------
 
 # --- Default applications (tasks/desktop.py) -----------------------------------------
+# own_titlebar_apps = []           # window classes (hyprctl clients) that draw their own title bar,
+#                                  # e.g. ["Deckle"] (Tauri/GTK on Wayland): no Hyprland bar on top
 # [default_apps]                   # MIME type = desktop file (see /usr/share/applications)
 # "application/pdf" = "ai.storyteller.pdfcraft.desktop"
 

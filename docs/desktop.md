@@ -19,6 +19,13 @@ The deploy builds hyprbars itself (pinned upstream 0.53.0 plus
 wrong window; see `docs/known-issues.md`. After a Hyprland update the package plugin is used
 until the next desktop deploy rebuilds ours.
 
+Some apps draw their own title bar on Wayland: GTK always does, and Tauri apps such as Deckle
+add their own header bar, which CSS can't remove. Running them under XWayland would drop it but
+scales them by whole numbers only (2x on the 1.6 panel: too big). List their window classes
+(`hyprctl clients`) in `own_titlebar_apps = ["Deckle"]`: they keep their own bar and get no
+hyprbars bar on top (`~/.config/hypr/apps.conf`). Hyprland ignores an app's own move request,
+so move these windows with SUPER+drag; SUPER+right-drag resizes.
+
 Tiling is there for the moments it helps, such as a terminal next to an editor, or several
 agent dashboards side by side:
 

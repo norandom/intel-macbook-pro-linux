@@ -23,7 +23,7 @@ from pyinfra.operations.util import any_changed
 from manage.desktop_hostcolor import color_for
 from manage.pixel_snap import conf as pixel_snap_conf
 from manage import night_shift as nightshift
-from manage import default_apps, password_store
+from manage import default_apps, password_store, own_titlebar
 from manage.packages import PackageRequest, install_packages
 from manage.preflight import validate_local_context
 from manage.userconfig import setting
@@ -138,6 +138,13 @@ hypr_ops.append(owned_put(
     StringIO(f"# {MARKER} (tools/hostcolor): colour of {hostname}, white text {hc['contrast']}:1\n"
              f"$host_color = {hc['hex']}\n$host_pale = {hc['pale']}\n"),
     f"{hypr}/hostcolor.conf"))
+
+# Apps that draw their own title bar (GTK/Tauri on Wayland, e.g. Deckle): no hyprbars on top
+# (config own_titlebar_apps, window classes).
+hypr_ops.append(owned_put(
+    StringIO(f"# {MARKER}: own_titlebar_apps (~/.config/t2-mac-kde/config.toml)\n"
+             + own_titlebar.conf(setting("own_titlebar_apps", []))),
+    f"{hypr}/apps.conf"))
 
 conf_names = sorted(p.name for p in Path(SRC, "hypr").glob("*.conf") if p.name != "hyprland.conf")
 hypr_ops += [owned_put(f"{SRC}/hypr/{n}", f"{hypr}/{n}") for n in conf_names]
