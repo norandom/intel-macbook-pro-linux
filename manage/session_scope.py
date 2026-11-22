@@ -7,8 +7,10 @@ dim, lock) and polkit agent came up inside Plasma. A per-user drop-in limits the
 Hyprland sessions; the package links stay untouched.
 
 The black strip over the panel's defective left edge (desktop_left_reserve) is a Waybar
-layer-shell bar in Hyprland. KWin supports layer-shell too, so KDE runs the same strip as
-its own Waybar, sized to cover the same physical pixels at KDE's scale.
+layer-shell bar in Hyprland. In KDE, t2-leftstrip draws it (files/desktop/bin/t2-leftstrip):
+Plasma keeps windows, icons, panels and the start menu clear only of its own panels, so the
+helper keeps an empty Plasma panel of that width and paints black over it. The width is
+converted to KDE's scale so it covers the same physical pixels.
 """
 import json
 from pathlib import Path
@@ -16,7 +18,7 @@ from pathlib import Path
 HYPRLAND_ONLY = ("waybar.service", "mako.service", "hypridle.service", "hyprpolkitagent.service")
 DROPIN = "t2-hyprland-only.conf"
 KDE_STRIP_UNIT = "t2-kde-leftstrip.service"
-KDE_STRIP_CONFIG = "leftstrip-kde.jsonc"
+OLD_KDE_STRIP_CONFIG = "leftstrip-kde.jsonc"   # Waybar strip before t2-leftstrip; removed
 
 
 def hyprland_only_dropin(marker: str) -> str:
@@ -50,20 +52,12 @@ def kde_strip_width(left_reserve: int, hypr_scale: str, kde: float | None) -> in
     return max(1, round(left_reserve * hypr / kde))
 
 
-def kde_strip_config(marker: str, width: int, output: str = "eDP-1") -> str:
-    bar = {"output": output, "name": "leftstrip", "layer": "top", "position": "left",
-           "width": width, "exclusive": True, "spacing": 0,
-           "modules-left": ["custom/strip"], "modules-center": [], "modules-right": [],
-           "custom/strip": {"format": " ", "tooltip": False}}
-    return f"// {marker}: black strip over the panel's defective left edge (KDE session)\n" + json.dumps(bar, indent=2) + "\n"
-
-
-def kde_strip_unit(marker: str) -> str:
+def kde_strip_unit(marker: str, width: int, output: str = "eDP-1") -> str:
     return (f"# {marker}. Black strip over the panel's defective left edge in KDE sessions\n"
             "# (the Hyprland session has it in its own Waybar).\n"
             "[Unit]\nDescription=Black strip over the internal panel's left edge (KDE)\n"
             "PartOf=graphical-session.target\nAfter=graphical-session.target\n"
             "ConditionEnvironment=XDG_CURRENT_DESKTOP=KDE\n\n"
-            "[Service]\nExecStart=/usr/bin/waybar -c %h/.config/waybar/" + KDE_STRIP_CONFIG
-            + " -s %h/.config/waybar/style.css\nRestart=on-failure\nRestartSec=3\n\n"
+            f"[Service]\nExecStart=%h/.local/bin/t2-leftstrip {int(width)} {output}\n"
+            "Restart=on-failure\nRestartSec=3\n\n"
             "[Install]\nWantedBy=graphical-session.target\n")

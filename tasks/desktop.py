@@ -159,7 +159,7 @@ HELPERS = (
     "hypr-glass", "hypr-kbd", "hypr-nightmode", "hypr-windows", "hypr-session", "hypr-appmenu",
     "hypr-sparkline", "hypr-agent-quota", "hypr-cliphist", "hypr-clip-bridge", "hypr-termtheme-status",
     "hypr-brightness", "hypr-screenshot", "hypr-osd", "hypr-volume", "hypr-power-profile", "hypr-findcursor", "hypr-netrate", "hypr-thermal", "hypr-touchpad", "hypr-gpu", "hypr-wallet-check",
-    "hypr-nightshift", "hypr-xscale",
+    "hypr-nightshift", "hypr-xscale", "t2-leftstrip",
 )
 helper_ops = [owned_put(f"{SRC}/bin/{h}", f"{bin_dir}/{h}", mode="755") for h in HELPERS]
 
@@ -359,8 +359,10 @@ strip_unit = f"{cfg}/systemd/user/{session_scope.KDE_STRIP_UNIT}"
 if left_reserve:
     kde_width = session_scope.kde_strip_width(
         left_reserve, panel_scale, session_scope.kde_scale(Path(cfg) / "kwinoutputconfig.json"))
-    unit_ops.append(owned_put(StringIO(session_scope.kde_strip_unit(MARKER)), strip_unit))
-    owned_put(StringIO(session_scope.kde_strip_config(MARKER, kde_width)), f"{cfg}/waybar/{session_scope.KDE_STRIP_CONFIG}")
+    unit_ops.append(owned_put(StringIO(session_scope.kde_strip_unit(MARKER, kde_width)), strip_unit))
+old_strip_bar = f"{cfg}/waybar/{session_scope.OLD_KDE_STRIP_CONFIG}"
+if host.get_fact(FindInFile, path=old_strip_bar, pattern=MARKER):
+    files.file(name="KDE: remove the old Waybar strip config (t2-leftstrip draws it now)", path=old_strip_bar, present=False)
 server.shell(name="systemd --user daemon-reload (desktop units changed)", commands=["systemctl --user daemon-reload"],
              _if=any_changed(*[o for o in unit_ops if o]))
 # enable = link into hypr-desktop.target.wants only (no --now: nothing starts in this KDE login).
@@ -371,7 +373,6 @@ elif host.get_fact(FindInFile, path=strip_unit, pattern=MARKER):
     server.shell(name="KDE: left strip off (desktop_left_reserve = 0)",
                  commands=[f"systemctl --user disable {session_scope.KDE_STRIP_UNIT} || true"])
     files.file(name="KDE: remove the left strip unit", path=strip_unit, present=False)
-    files.file(name="KDE: remove the left strip bar", path=f"{cfg}/waybar/{session_scope.KDE_STRIP_CONFIG}", present=False)
 server.shell(
     name="Desktop services wanted by hypr-desktop.target (waybar, worker, clipboard, 01:00 wipe)",
     commands=["systemctl --user enable hypr-windows.service hypr-clip-bridge.service "

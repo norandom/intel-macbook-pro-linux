@@ -28,20 +28,29 @@ class SessionScopeTests(unittest.TestCase):
         self.assertEqual(scope.kde_strip_width(15, "auto", 1.5), 15)
         self.assertEqual(scope.kde_strip_width(15, "1.6", None), 15)
 
-    def test_kde_strip_files(self):
-        bar = json.loads(scope.kde_strip_config("Managed", 16).split("\n", 1)[1])
-        self.assertEqual((bar["output"], bar["position"], bar["width"], bar["exclusive"], bar["name"]),
-                         ("eDP-1", "left", 16, True, "leftstrip"))   # style.css: window#waybar.leftstrip = black
-        unit = scope.kde_strip_unit("Managed")
+    def test_kde_strip_unit_and_helper(self):
+        unit = scope.kde_strip_unit("Managed", 16)
+        self.assertIn("ExecStart=%h/.local/bin/t2-leftstrip 16 eDP-1\n", unit)
         self.assertIn("ConditionEnvironment=XDG_CURRENT_DESKTOP=KDE\n", unit)
         self.assertIn("WantedBy=graphical-session.target\n", unit)
-        self.assertIn("window#waybar.leftstrip { background: #000000;", (ROOT / "files/desktop/waybar/style.css").read_text())
+        helper = (ROOT / "files/desktop/bin/t2-leftstrip").read_text()
+        self.assertIn("Managed by t2-mac-kde (desktop)", helper)           # owned_put marker
+        self.assertIn("set_exclusive_zone(win, -1)", helper)              # drawn over the Plasma panel
+        self.assertIn("GtkLayerShell.Layer.OVERLAY", helper)
+        self.assertIn("p.location == 'left' && p.widgetIds.length == 0", helper)   # only our empty panel
+        self.assertIn("p.location == 'bottom' && p.lengthMode == 'fill'", helper)  # only an untouched panel
+        self.assertIn('"t2-leftstrip"', (ROOT / "tasks/desktop.py").read_text())
+        subprocess.run(["python3", "-m", "py_compile", str(ROOT / "files/desktop/bin/t2-leftstrip")], check=True)
 
     @unittest.skipUnless(Path("/usr/bin/systemd-analyze").exists(), "systemd-analyze required")
     def test_unit_verifies(self):
         with tempfile.TemporaryDirectory() as tmp:
             unit = Path(tmp) / scope.KDE_STRIP_UNIT
-            unit.write_text(scope.kde_strip_unit("Managed").replace("%h", tmp))
+            unit.write_text(scope.kde_strip_unit("Managed", 16).replace("%h", tmp))
+            helper = Path(tmp) / ".local/bin/t2-leftstrip"
+            helper.parent.mkdir(parents=True)
+            helper.write_text("#!/bin/sh\n")
+            helper.chmod(0o755)
             r = subprocess.run(["systemd-analyze", "--user", "verify", str(unit)], capture_output=True, text=True)
             ours = [l for l in (r.stderr + r.stdout).splitlines() if scope.KDE_STRIP_UNIT in l]
             self.assertEqual(ours, [])

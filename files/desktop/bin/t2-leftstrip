@@ -1,0 +1,92 @@
+#!/usr/bin/env python3
+# Managed by t2-mac-kde (desktop). Black strip over the internal panel's defective left edge
+# in KDE sessions (desktop_left_reserve; Hyprland has it in its Waybar):
+#   t2-leftstrip <width> [output]      width in KDE logical px, output e.g. eDP-1
+# Plasma keeps windows, desktop icons and its other panels clear only of its own panels, never
+# of space other programs reserve. So an empty Plasma panel of the same width reserves the edge
+# (made sure here, through Plasma's scripting interface), and this layer-shell surface draws
+# black over it, at the very edge (exclusive zone -1, overlay layer).
+# The start menu (Kickoff) opens about 11 px left of the bottom panel's offset, so a bottom
+# panel still at Plasma's full-width default gets offset MENU_OVERHANG (the panel itself still
+# starts right after the left panel and reaches the right edge); one set up differently is
+# left alone.
+import subprocess
+import sys
+import time
+
+import gi
+gi.require_version("Gdk", "3.0")
+gi.require_version("Gtk", "3.0")
+gi.require_version("GtkLayerShell", "0.1")
+from gi.repository import Gdk, Gtk, GtkLayerShell  # noqa: E402
+
+MENU_OVERHANG = 11
+
+PANEL_SCRIPT = """
+var w = %d, m = %d, found = false;
+panels().forEach(function (p) {
+  if (p.location == 'left' && p.widgetIds.length == 0) { found = true; p.height = w; p.hiding = 'none'; p.floating = false; }
+});
+if (!found) { var p = new Panel; p.location = 'left'; p.height = w; p.hiding = 'none'; p.floating = false; p.lengthMode = 'fill'; }
+panels().forEach(function (p) {
+  if (p.location == 'bottom' && p.lengthMode == 'fill') {
+    var s = screenGeometry(p.screen);
+    p.lengthMode = 'custom'; p.alignment = 'left'; p.offset = m;
+    p.minimumLength = s.width - w; p.maximumLength = s.width - w;   // Plasma starts it after the left panel
+  }
+});
+"""
+
+
+def ensure_plasma_panel(width: int, tries: int = 30) -> bool:
+    """An empty left Plasma panel `width` px thick; waits for plasmashell after login."""
+    for _ in range(tries):
+        r = subprocess.run(["qdbus6", "org.kde.plasmashell", "/PlasmaShell",
+                            "org.kde.PlasmaShell.evaluateScript", PANEL_SCRIPT % (width, MENU_OVERHANG)],
+                           capture_output=True, text=True)
+        if r.returncode == 0:
+            return True
+        time.sleep(1)
+    print("t2-leftstrip: plasmashell not reachable; strip drawn without the Plasma panel", file=sys.stderr)
+    return False
+
+
+def monitor_for(output: str):
+    """GTK 3 names Wayland outputs "<connector>-<model>", e.g. "eDP-1-Color LCD"."""
+    display = Gdk.Display.get_default()
+    for i in range(display.get_n_monitors()):
+        model = display.get_monitor(i).get_model() or ""
+        if model == output or model.startswith(output + "-"):
+            return display.get_monitor(i)
+    return None
+
+
+def main() -> int:
+    width = int(sys.argv[1]) if len(sys.argv) > 1 else 16
+    output = sys.argv[2] if len(sys.argv) > 2 else "eDP-1"
+    ensure_plasma_panel(width)
+    win = Gtk.Window()
+    GtkLayerShell.init_for_window(win)
+    GtkLayerShell.set_namespace(win, "t2-leftstrip")
+    GtkLayerShell.set_layer(win, GtkLayerShell.Layer.OVERLAY)
+    for edge in (GtkLayerShell.Edge.LEFT, GtkLayerShell.Edge.TOP, GtkLayerShell.Edge.BOTTOM):
+        GtkLayerShell.set_anchor(win, edge, True)
+    GtkLayerShell.set_exclusive_zone(win, -1)   # the very edge, over the Plasma panel
+    GtkLayerShell.set_keyboard_mode(win, GtkLayerShell.KeyboardMode.NONE)
+    monitor = monitor_for(output)
+    if monitor is None:
+        print(f"t2-leftstrip: output {output} not found", file=sys.stderr)
+        return 1
+    GtkLayerShell.set_monitor(win, monitor)
+    css = Gtk.CssProvider()
+    css.load_from_data(b"window { background: #000000; }")
+    Gtk.StyleContext.add_provider_for_screen(Gdk.Screen.get_default(), css, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
+    win.set_size_request(width, -1)
+    win.connect("destroy", Gtk.main_quit)
+    win.show_all()
+    Gtk.main()
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

@@ -179,9 +179,13 @@ To use another browser there, see [forking.md](forking.md#waybar).
 
 With `desktop_left_reserve` set, a black strip of that many pixels at the left panel edge is
 kept free of windows. I need it for a few dead pixel columns.
-KDE gets the same black strip: a second Waybar with only the strip
-(`t2-kde-leftstrip.service`, KDE sessions only), sized for KDE's own scale so it covers the
-same physical pixels. A grey Plasma panel used for this before is no longer needed.
+KDE gets the same black strip from `t2-leftstrip` (`t2-kde-leftstrip.service`, KDE sessions
+only), sized for KDE's own scale so it covers the same physical pixels. Plasma keeps windows,
+desktop icons, its panels and the start menu clear only of its own panels, so at each KDE login
+the helper makes sure of an empty Plasma panel of that width on the left and draws black over
+it. A bottom panel still at Plasma's full-width default gets an offset of 11 px: the start
+menu opens that far left of the panel's offset, and would otherwise cover the strip. A bottom
+panel you have set up yourself is left alone.
 
 ## Display and GPUs
 
