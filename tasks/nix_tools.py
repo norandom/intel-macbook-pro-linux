@@ -135,6 +135,11 @@ for app_id, attr in nt.MIGRATED.items():
         _if=holds(f"[ -x {quote(str(nix_bin / app_id))} ] && [ -f {quote(str(mark))} ]"),
     )
 
+# --- Rust toolchains: reinstall those the Nix rustup patched (rustup is from Ubuntu now) ----
+from manage.rust_toolchains import REINSTALL_PATCHED
+server.shell(name="Rust: reinstall toolchains patched to Nix's glibc (with Ubuntu's rustup)",
+             commands=[REINSTALL_PATCHED], _shell_executable="bash")
+
 # --- PATH: Nix profile first (before the ble.sh attach block, after ~/.local/bin) -----------
 files.block(
     name="bash: ~/.nix-profile/bin first in PATH",

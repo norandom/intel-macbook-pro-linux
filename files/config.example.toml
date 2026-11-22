@@ -41,7 +41,7 @@
 # in PATH). Unset = the repository default (manage/nix_tools.DEFAULT_TOOLS):
 # nix_tools = ["zellij", "kubectl", "kubernetes-helm", "k9s", "ktop", "bitwarden-cli", "rclone",
 #              "podman-tui", "btop", "ripgrep", "fd", "bat", "jq", "fzf", "lazygit", "glow", "gh",
-#              "gdu", "trippy", "multitail", "aria2", "rustup", "go", "nim", "nimble",
+#              "gdu", "trippy", "multitail", "aria2", "go", "nim", "nimble",
 #              "nimlangserver", "nano-syntax-highlighting", "netcat-openbsd", "gef", "rizin", "valgrind", "lftp", "byobu", "eza", "uutils-coreutils",
 #              "atuin", "delta", "yazi", "zoxide"]
 # Leaving out zellij/kubectl/kubernetes-helm/k9s/ktop/bitwarden-cli/rclone/podman-tui brings back

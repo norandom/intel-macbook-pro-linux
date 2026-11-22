@@ -12,11 +12,12 @@ import re
 
 # Attribute names in nixpkgs nixos-26.05 (checked against pkgs/by-name and all-packages.nix).
 # Not here: upmd, dagger, pwndbg (not in nixpkgs; pwndbg was removed), rc (nixpkgs "rc" is the Plan 9 shell, not
-# rustfs-cli), uv (bootstrap needs it before Nix) and node/npm (nvm).
+# rustfs-cli), uv (bootstrap needs it before Nix), node/npm (nvm) and rustup (Ubuntu archive:
+# nixpkgs' rustup patches every toolchain it downloads to Nix's glibc; see manage/rust_toolchains.py).
 DEFAULT_TOOLS = (
     "zellij", "kubectl", "kubernetes-helm", "k9s", "ktop", "bitwarden-cli", "rclone", "podman-tui",
     "btop", "ripgrep", "fd", "bat", "jq", "fzf", "lazygit", "glow", "gh", "gdu", "trippy",
-    "multitail", "aria2", "rustup", "go", "nim", "nimble", "nimlangserver", "nano-syntax-highlighting",
+    "multitail", "aria2", "go", "nim", "nimble", "nimlangserver", "nano-syntax-highlighting",
     "netcat-openbsd", "gef", "rizin", "valgrind", "lftp", "byobu", "eza", "uutils-coreutils",
     "atuin", "delta", "yazi", "zoxide",
 )

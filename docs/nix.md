@@ -9,7 +9,7 @@ daemon runs from the package's own systemd units. `/nix` sits on the normal root
 
 Nix: zellij, kubectl, helm, k9s, ktop, bw (bitwarden-cli), rclone, podman-tui, btop, ripgrep,
 fd, bat, jq, fzf, lazygit, glow, gh, gdu, trippy, multitail, aria2, nc (netcat-openbsd), gef, rizin,
-valgrind, go, rustup, and Nim (nim, nimble, nimlangserver). The full list is `nix_tools` in `files/config.example.toml`.
+valgrind, go, and Nim (nim, nimble, nimlangserver). The full list is `nix_tools` in `files/config.example.toml`.
 
 Not Nix:
 
@@ -77,6 +77,13 @@ The first line should be `~/.nix-profile/bin/btop`. If it isn't, open a new shel
 block lives in `~/.bashrc`); for apps started from Hyprland, log in again.
 
 ## Rust and Nim
+
+rustup comes from the Ubuntu archive, not Nix. Nix's rustup patches every toolchain it
+downloads to run on Nix's glibc, so build scripts and proc-macros (linked against the system
+glibc) ran inside a Nix-glibc compiler, and Nix's garbage collection could break the toolchain.
+Ubuntu's rustup keeps rust-lang.org toolchains as they are; the deploy reinstalls toolchains the
+Nix rustup had patched, with the same components. Linker, `cc` and `pkg-config` are the
+system's, so GUI binaries link against the system's GTK, WebKit, X11 and Wayland libraries.
 
 rustup comes without a toolchain. Fetch one once:
 

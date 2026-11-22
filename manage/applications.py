@@ -71,6 +71,9 @@ NATIVE = {
     # RDP/VNC client; came with the base install, managed since a manual apt run removed it
     # (owner request 2026-11-20). Plugins: see REMMINA_PLUGINS.
     "remmina": ("remmina", "remmina"),
+    # rustup from Ubuntu, not Nix: it leaves rust-lang.org toolchains as built (system glibc), so
+    # build scripts and proc-macros run against the same glibc the system linker uses.
+    "rustup": ("rustup", "rustup"),
 }
 REMMINA_PLUGINS = ("remmina-plugin-rdp", "remmina-plugin-vnc", "remmina-plugin-secret")
 
