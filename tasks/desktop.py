@@ -23,7 +23,7 @@ from pyinfra.operations.util import any_changed
 from manage.desktop_hostcolor import color_for
 from manage.pixel_snap import conf as pixel_snap_conf
 from manage import night_shift as nightshift
-from manage import default_apps, password_store, own_titlebar
+from manage import default_apps, password_store, own_titlebar, session_scope
 from manage.packages import PackageRequest, install_packages
 from manage.preflight import validate_local_context
 from manage.userconfig import setting
@@ -350,9 +350,28 @@ UNITS = ("hypr-desktop.target", "hypr-windows.service", "hypr-clip-bridge.servic
          "hypr-cliphist.service", "hypr-cliphist-wipe.service", "hypr-cliphist-wipe.timer",
          "hypr-tailscale-tray.service", "hypr-secret-service.service", "hypr-gammastep.service")
 unit_ops = [owned_put(f"{SRC}/systemd/{u}", f"{cfg}/systemd/user/{u}") for u in UNITS]
+# Packages enable waybar/mako/hypridle/hyprpolkitagent for every graphical session, KDE too:
+# a per-user drop-in keeps them to Hyprland (manage/session_scope.py).
+unit_ops += [owned_put(StringIO(session_scope.hyprland_only_dropin(MARKER)),
+                       f"{cfg}/systemd/user/{u}.d/{session_scope.DROPIN}") for u in session_scope.HYPRLAND_ONLY]
+# KDE: the same black strip over the defective left edge, as its own Waybar (desktop_left_reserve).
+strip_unit = f"{cfg}/systemd/user/{session_scope.KDE_STRIP_UNIT}"
+if left_reserve:
+    kde_width = session_scope.kde_strip_width(
+        left_reserve, panel_scale, session_scope.kde_scale(Path(cfg) / "kwinoutputconfig.json"))
+    unit_ops.append(owned_put(StringIO(session_scope.kde_strip_unit(MARKER)), strip_unit))
+    owned_put(StringIO(session_scope.kde_strip_config(MARKER, kde_width)), f"{cfg}/waybar/{session_scope.KDE_STRIP_CONFIG}")
 server.shell(name="systemd --user daemon-reload (desktop units changed)", commands=["systemctl --user daemon-reload"],
              _if=any_changed(*[o for o in unit_ops if o]))
 # enable = link into hypr-desktop.target.wants only (no --now: nothing starts in this KDE login).
+if left_reserve:
+    server.shell(name="KDE: black left strip with the session (graphical-session.target, KDE only)",
+                 commands=[f"systemctl --user enable {session_scope.KDE_STRIP_UNIT}"])
+elif host.get_fact(FindInFile, path=strip_unit, pattern=MARKER):
+    server.shell(name="KDE: left strip off (desktop_left_reserve = 0)",
+                 commands=[f"systemctl --user disable {session_scope.KDE_STRIP_UNIT} || true"])
+    files.file(name="KDE: remove the left strip unit", path=strip_unit, present=False)
+    files.file(name="KDE: remove the left strip bar", path=f"{cfg}/waybar/{session_scope.KDE_STRIP_CONFIG}", present=False)
 server.shell(
     name="Desktop services wanted by hypr-desktop.target (waybar, worker, clipboard, 01:00 wipe)",
     commands=["systemctl --user enable hypr-windows.service hypr-clip-bridge.service "

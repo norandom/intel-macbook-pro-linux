@@ -40,6 +40,12 @@ The modes live in `files/desktop/hypr/layout-*.conf`.
 
 ## How it lives next to KDE
 
+The Ubuntu packages of Waybar, mako, hypridle and hyprpolkitagent enable themselves for every
+graphical session, so they also came up inside Plasma (Hyprland's bar, notifications, idle
+rules and polkit agent). The deploy adds a per-user drop-in
+(`~/.config/systemd/user/<unit>.d/t2-hyprland-only.conf`) that starts them only when
+`XDG_CURRENT_DESKTOP=Hyprland`; the package links stay as they are.
+
 - Everything the Hyprland session needs (Waybar, the window worker, clipboard history,
   EasyEffects, the Tailscale tray, the secret service, the RDP server) hangs off one user
   target, `hypr-desktop.target`. Hyprland starts it, so none of it runs in a KDE login.
@@ -173,6 +179,9 @@ To use another browser there, see [forking.md](forking.md#waybar).
 
 With `desktop_left_reserve` set, a black strip of that many pixels at the left panel edge is
 kept free of windows. I need it for a few dead pixel columns.
+KDE gets the same black strip: a second Waybar with only the strip
+(`t2-kde-leftstrip.service`, KDE sessions only), sized for KDE's own scale so it covers the
+same physical pixels. A grey Plasma panel used for this before is no longer needed.
 
 ## Display and GPUs
 
