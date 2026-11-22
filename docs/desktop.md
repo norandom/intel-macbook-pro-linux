@@ -84,6 +84,11 @@ differently from the built-in one, the safe route is a Hyprland `device { name =
 block for that keyboard only. The driver's module options (`fnmode`, `swap_opt_cmd`) would also
 change the built-in T2 keyboard and need an initramfs rebuild, so this repository doesn't use them.
 
+KDE gets the same keyboard: German Mac without dead keys plus US, the same Option and Super
+keys, key repeat and NumLock (`manage/kde_input.py`, written to `kxkbrc` and `kcminputrc`;
+only these keys). The KDE values are tested against `files/desktop/hypr/input.conf`, so the two
+sessions stay the same.
+
 ## Keys
 
 SUPER is Right Option on the Apple keyboard. On a keyboard without a spare Super key,
