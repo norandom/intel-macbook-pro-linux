@@ -59,23 +59,27 @@ Nerd Font (fontconfig fills them in for the Berkeley Mono and Fixedsys profiles)
 
 ## Compilers
 
-GCC and make come from Ubuntu. Intel's oneAPI `icx`/`icpx` are installed from Intel's apt repo
-(`tasks/vendor_apps.py`) but stay off your PATH unless you ask:
+GCC and make come from Ubuntu, and GCC is the compiler everywhere: C and C++, Go with cgo,
+the C parts of Rust crates (cc-rs, cmake-rs), Nim and V. Builds then link only against the
+system's libraries, so what you ship runs on a normal Ubuntu.
 
-```toml
-default_cc = "icx"
+Intel's oneAPI `icx`/`icpx` are installed from Intel's apt repo (`tasks/vendor_apps.py`) but
+stay off your PATH. Use them for one command when you want them:
+
+```sh
+intel make                  # CC=icx CXX=icpx for this command only
+intel cmake -B build && intel cmake --build build
+intel go build              # cgo through icx
+nim-icx c -d:release app.nim
+v -cc icx .                 # V picks its compiler with -cc
 ```
 
-Then interactive shells export `CC=icx CXX=icpx`, append the oneAPI bin directory to the end of
-PATH (so it never shadows gcc or clang), and Nim compiles through icx. GCC is kept wherever it
-matters for the system:
+Rust crates compiled with icx need Intel's runtime library (`_intel_fast_memcpy`), which rustc
+doesn't link, so `intel cargo build` usually fails at the link step; keep GCC for Rust.
 
-- root, sudo, apt and the package helper never see your CC/CXX;
-- `dpkg-buildpackage` and `debuild` are wrapped to force GCC;
-- the kernel build (Kbuild) picks its own compiler anyway;
-- if DKMS is ever installed, a drop-in unsets CC/CXX for it, even under `sudo -E`.
-
-One build with GCC: `CC=gcc make`. For Nim: `nim c --cc:gcc file.nim`.
+The system never sees icx: root, sudo, apt and the package helper keep GCC, `dpkg-buildpackage`
+and `debuild` are wrapped to force GCC, the kernel build picks its own compiler, and if DKMS is
+ever installed a drop-in unsets CC/CXX for it, even under `sudo -E`.
 
 ## Desktop app build libraries
 
@@ -168,7 +172,7 @@ shells also print until you `t2-alerts ack`.
 | Other npm globals | `NPM_TOOLS` in `manage/shell_tools.py` |
 | Another Node version | `.nvmrc` |
 | More CLI tools | `nix_tools_extra` in your config |
-| icx, Safe Chain, ble.sh | `default_cc`, `safe_chain`, `shell_blesh` |
+| Safe Chain, ble.sh | `safe_chain`, `shell_blesh` |
 
 Re-run: `.venv/bin/pyinfra @local tasks/shell.py --use-sudo-password`.
 

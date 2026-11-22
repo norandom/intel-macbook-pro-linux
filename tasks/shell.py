@@ -282,21 +282,15 @@ files.put(name="aria2c defaults ~/.config/aria2/aria2.conf (16 connections, resu
           create_remote_dir=True)
 
 
-# --- Compilers: config default_cc ("icx" = Intel oneAPI for your shells; unset = GCC) --------
-# CC/CXX only in interactive user shells. Root, apt, DKMS and Kbuild stay on GCC (sudo resets the
-# environment, the package helper runs apt with a fixed env, Kbuild sets its own CC).
-default_cc = str(setting("default_cc", ""))
+# --- Compilers: GCC everywhere; Intel oneAPI only via `intel <cmd>` / `nim-icx` ---------------
 files.block(
-    name=f"bash: compilers ({default_cc or 'gcc'}), GCC for Debian package builds, safe-chain aliases",
-    path=str(home / ".bashrc"), marker=cfg.DEVTOOLS_MARKER, content=cfg.devtools_block(default_cc, safe_chain),
+    name="bash: GCC default, intel/nim-icx on request, GCC for Debian package builds, safe-chain aliases",
+    path=str(home / ".bashrc"), marker=cfg.DEVTOOLS_MARKER, content=cfg.devtools_block(safe_chain),
     before=True, line="BEGIN t2-mac-kde: ble.sh attach", try_prevent_shell_expansion=True, backup=True,
 )
 nim_cfg = home / ".config/nim/nim.cfg"
-if default_cc == "icx":
-    files.put(name="Nim: compile through icx/icpx (~/.config/nim/nim.cfg)", src=StringIO(cfg.NIM_CFG),
-              dest=str(nim_cfg), mode="644", create_remote_dir=True)
-elif nim_cfg.exists() and "Managed by t2-mac-kde" in nim_cfg.read_text():
-    files.file(name="Nim: back to its default compiler (remove our nim.cfg)", path=str(nim_cfg), present=False)
+if nim_cfg.exists() and "Managed by t2-mac-kde" in nim_cfg.read_text():
+    files.file(name="Nim: back to GCC (remove our icx nim.cfg)", path=str(nim_cfg), present=False)
 # DKMS (not installed today; e.g. if a forked t2 kernel brings out-of-tree modules): never icx,
 # even under `sudo -E`.
 if os.path.exists("/usr/sbin/dkms") or os.path.exists("/usr/bin/dkms"):

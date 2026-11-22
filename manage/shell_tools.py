@@ -47,33 +47,29 @@ ICX_BIN = '/opt/intel/oneapi/compiler/latest/bin'
 DEVTOOLS_MARKER = '# {mark} t2-mac-kde: compilers, package-build safety, safe-chain'
 
 
-def devtools_block(default_cc: str = '', safe_chain: bool = False) -> str:
-    """Interactive shells only. CC/CXX never go system-wide (no /etc/environment, no session env),
-    so root, apt, DKMS and Kbuild keep GCC; Debian package builds are forced to GCC as well."""
-    lines = ['if [[ $- == *i* ]]; then']
-    if default_cc == 'icx':
-        lines += [f'  if [ -x {ICX_BIN}/icx ]; then',
-                  f'    case ":$PATH:" in *:{ICX_BIN}:*) ;; *) PATH="$PATH:{ICX_BIN}" ;; esac  # last: never shadows gcc/clang',
-                  '    export CC=icx CXX=icpx   # your default compiler (config default_cc); CC=gcc make for one build',
-                  '  fi']
-    lines += ['  # Debian package builds honour an exported CC: always GCC there (kernel/Kbuild ignores CC anyway)',
-              '  dpkg-buildpackage() { CC=gcc CXX=g++ command dpkg-buildpackage "$@"; }',
-              '  debuild() { CC=gcc CXX=g++ command debuild "$@"; }']
+NIM_ICX = ("--cc:clang --clang.exe=icx --clang.linkerexe=icx "
+           "--clang.cpp.exe=icpx --clang.cpp.linkerexe=icpx")
+
+
+def devtools_block(safe_chain: bool = False) -> str:
+    """Interactive shells only. GCC is the compiler everywhere (C, C++, cgo, Rust's cc-rs, Nim, V);
+    Intel oneAPI only on request: `intel <command>` runs one command with CC=icx CXX=icpx, and
+    `nim-icx` compiles Nim through icx. Root, apt, DKMS and Kbuild never see a CC from here."""
+    lines = ['if [[ $- == *i* ]]; then',
+             '  # Intel oneAPI on request: intel make | intel cmake -B build | intel go build | nim-icx c x.nim',
+             f'  if [ -x {ICX_BIN}/icx ]; then',
+             f'    intel() {{ CC=icx CXX=icpx PATH="$PATH:{ICX_BIN}" "$@"; }}',
+             f'    nim-icx() {{ PATH="$PATH:{ICX_BIN}" nim {NIM_ICX} "$@"; }}',
+             '  fi',
+             '  # Debian package builds honour an exported CC: always GCC there (kernel/Kbuild ignores CC anyway)',
+             '  dpkg-buildpackage() { CC=gcc CXX=g++ command dpkg-buildpackage "$@"; }',
+             '  debuild() { CC=gcc CXX=g++ command debuild "$@"; }']
     if safe_chain:
         for tool in SAFE_CHAIN_WRAPPED:
             lines.append(f'  command -v aikido-{tool} >/dev/null && alias {tool}=aikido-{tool}')
     lines.append('fi')
     return '\n'.join(lines)
 
-
-NIM_CFG = """# Managed by t2-mac-kde (config default_cc = "icx"): Nim compiles its C/C++ through Intel's
-# clang-based icx/icpx. One build with GCC instead: nim c --cc:gcc file.nim
-cc = clang
-clang.exe = "icx"
-clang.linkerexe = "icx"
-clang.cpp.exe = "icpx"
-clang.cpp.linkerexe = "icpx"
-"""
 
 DKMS_GCC_ONLY = """# Managed by t2-mac-kde: DKMS builds kernel modules with the kernel's GCC, even under sudo -E.
 unset CC CXX

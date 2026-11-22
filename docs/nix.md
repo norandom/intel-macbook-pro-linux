@@ -91,8 +91,9 @@ rustup comes without a toolchain. Fetch one once:
 rustup default stable
 ```
 
-Nim (compiler, nimble and nimlangserver) comes from Nix. Compiling with the Intel compiler
-(icx) is set up separately, in a user `nim.cfg` from another task.
+Nim (compiler, nimble and nimlangserver) comes from Nix; it compiles its C through the
+system's GCC, so the programs it builds link only against system libraries. Through Intel's
+icx instead: `nim-icx c app.nim` (see [developer-tools.md](developer-tools.md#compilers)).
 
 ## First install notes
 

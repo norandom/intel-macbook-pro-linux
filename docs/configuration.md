@@ -95,7 +95,6 @@ Read by `tasks/shell.py`.
 | `shell_blesh` | `false` | ble.sh suggestions, syntax colours and completion menu in Bash |
 | `shell_prompt` | `"builtin"` | `"starship"`: Starship prompt in bash and fish (language symbols, palette colours) |
 | `shell_interactive` | `"bash"` | `"fish"`: every terminal hands over to fish (grml aliases, functions and prompt ported; bash stays the login shell) |
-| `default_cc` | `""` | `"icx"` = Intel icx/icpx as CC/CXX in your interactive shells, and for Nim |
 | `safe_chain` | `false` | Aikido Safe Chain in front of npm, pip, uv and friends |
 | `rclone_mounts` | `{}` | `{ remote = "Dir" }`: mount each rclone remote at `~/Dir` |
 | `rclone_cache_size` | `"10G"` | VFS cache size per mount |

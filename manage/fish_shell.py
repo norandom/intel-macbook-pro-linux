@@ -1,7 +1,7 @@
 """fish as the interactive shell in every terminal (config shell_interactive = "fish").
 
 Bash stays the login shell. Interactive bash runs ~/.bashrc as before (PATH with Nix first,
-CC=icx, nvm's Node, system alerts) and hands over to fish at its first prompt, so fish inherits
+nvm's Node, system alerts) and hands over to fish at its first prompt, so fish inherits
 that environment. What doesn't inherit (aliases, functions, the prompt) is generated here from
 the same sources bash uses: files/shell/grml.bash, the safe-chain tool list, turbo.bash.
 
@@ -111,6 +111,16 @@ end
 # --- turbo-on / turbo-off / turbo-status (laptop-resource-policy) ----------------------------
 test -r ~/.config/t2-mac-kde/turbo.bash
 and string match -r "^alias [A-Za-z0-9_-]+='[^']*'\$" < ~/.config/t2-mac-kde/turbo.bash | source
+
+# --- Intel oneAPI on request (GCC stays the default; bash: the same functions) ---------------
+if test -x /opt/intel/oneapi/compiler/latest/bin/icx
+    function intel --description 'run one command with Intel icx/icpx as CC/CXX'
+        env CC=icx CXX=icpx PATH=(string join : $PATH /opt/intel/oneapi/compiler/latest/bin) $argv
+    end
+    function nim-icx --wraps nim --description 'nim, compiling through Intel icx/icpx'
+        env PATH=(string join : $PATH /opt/intel/oneapi/compiler/latest/bin) nim --cc:clang --clang.exe=icx --clang.linkerexe=icx --clang.cpp.exe=icpx --clang.cpp.linkerexe=icpx $argv
+    end
+end
 
 # --- Debian package builds always with GCC (bash: the same functions) ------------------------
 function dpkg-buildpackage --wraps dpkg-buildpackage
