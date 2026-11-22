@@ -60,6 +60,12 @@ class DevLibsTaskTests(unittest.TestCase):
         self.assertLess(deploy.index('"dev_libs"'), deploy.index('"vendor_apps"'))
         self.assertLess(deploy.index('"dev_libs"'), deploy.index('"desktop"'))
 
+    def test_qt_tools(self):
+        task = (ROOT / "tasks/dev_libs.py").read_text()
+        for package in ("qtcreator", "qt6-base-dev", "cmake", "python3-pyside6.qtwidgets", "python3-pyqt6"):
+            self.assertIn(f'"{package}"', task)
+        self.assertIn("PACKAGES + QT", task)
+
     def test_remmina_is_managed(self):
         native = applications.native_packages()
         for package in ("remmina", "remmina-plugin-rdp", "remmina-plugin-vnc", "remmina-plugin-secret"):

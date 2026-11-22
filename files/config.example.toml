@@ -90,6 +90,7 @@
 # "application/pdf" = "ai.storyteller.pdfcraft.desktop"
 
 # --- Development libraries (tasks/dev_libs.py) -----------------------------------
-# dev_libs = true                 # GTK/WebKit/Ayatana tray/rsvg/dbus/ssl headers + pkg-config (Tauri)
+# dev_libs = true                 # GTK/WebKit/Ayatana tray/rsvg/dbus/ssl headers + pkg-config (Tauri),
+#                                  # Qt 6: Qt Creator, C++/QML dev, CMake/Ninja, PyQt6, PySide6
 
 # warpeer_font = "Fixedsys Excelsior"  # Cyberterm 2077 (formerly Warpeer): terminal, editor, Markdown, menus and tabs

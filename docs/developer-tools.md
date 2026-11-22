@@ -87,6 +87,11 @@ ever installed a drop-in unsets CC/CXX for it, even under `sudo -E`.
 client): `libwebkit2gtk-4.1-dev`, `libayatana-appindicator3-dev`, `librsvg2-dev`,
 `libdbus-1-dev`, `libssl-dev` and `pkg-config`. Turn it off with `dev_libs = false`.
 
+The same task installs Qt 6 for C++, QML and Python: Qt Creator (with clangd and clang-tidy),
+the Qt 6 headers and tools, CMake and Ninja, PyQt6 (`pyuic6`) and PySide6 (`pyside6-uic`,
+`pyside6-designer`). Everything is from the Ubuntu archive, so what you build links against
+the system's Qt.
+
 Use the Ayatana tray headers, not `libappindicator3-dev`: the legacy package conflicts with the
 Ayatana library that nm-applet, Remmina and 1-1 need, and `apt install libappindicator3-dev`
 removes all three. If the legacy pair is installed, the deploy replaces it and later tasks put
