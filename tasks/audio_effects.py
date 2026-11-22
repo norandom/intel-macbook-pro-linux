@@ -11,7 +11,8 @@ Run: .venv/bin/pyinfra @local tasks/audio_effects.py [--dry] [--use-sudo-passwor
   `bluetoothctl trust` so A2DP reconnects, and a user WirePlumber drop-in (music only: A2DP
   auto-connect, its mic never becomes the default source). WirePlumber restarts only when that
   drop-in changed (brief audio interruption).
-- easyeffects.service (service mode) wanted by hypr-desktop.target only; ~/.local/bin/hypr-3d.
+- easyeffects.service (service mode) wanted by hypr-desktop.target (Hyprland) and
+  plasma-workspace.target (KDE); ~/.local/bin/hypr-3d.
 Pure logic + pins: manage/audio_effects.py. IR builder: tools/make_hrir.py.
 """
 import hashlib
@@ -121,12 +122,12 @@ else:
 # --- Session service + toggle ---------------------------------------------------------------------
 files.put(name="~/.local/bin/hypr-3d (3D on/off/status)", src=str(src / "hypr-3d"), dest=f"{home}/.local/bin/hypr-3d",
           mode="755", create_remote_dir=True)
-unit = files.put(name="User unit easyeffects.service (Hyprland session only)", src=str(src / "easyeffects.service"),
+unit = files.put(name="User unit easyeffects.service (Hyprland and KDE sessions)", src=str(src / "easyeffects.service"),
                  dest=f"{cfg}/systemd/user/easyeffects.service", mode="644", create_remote_dir=True)
 server.shell(name="systemd --user daemon-reload (easyeffects unit changed)", commands=["systemctl --user daemon-reload"],
              _if=unit.did_change)
-server.shell(name="easyeffects.service wanted by hypr-desktop.target (no --now)",
-             commands=["systemctl --user enable easyeffects.service"])
+server.shell(name="easyeffects.service wanted by the Hyprland and KDE session targets (no --now)",
+             commands=["systemctl --user reenable easyeffects.service"])
 server.shell(name="(Re)start EasyEffects in a running Hyprland session",
              commands=["! systemctl --user is-active -q hypr-desktop.target || "
                        "systemctl --user restart easyeffects.service"],

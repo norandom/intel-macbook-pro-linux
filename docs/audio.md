@@ -6,8 +6,8 @@ system PipeWire, WirePlumber or ALSA UCM files; everything is per user.
 
 ## Headphone presets
 
-EasyEffects runs as a user service inside the Hyprland session only. In KDE it doesn't start,
-so the headphones play unprocessed there.
+EasyEffects runs as a user service in both sessions: wanted by `hypr-desktop.target` in
+Hyprland and by `plasma-workspace.target` in KDE.
 
 Every preset starts from the same chain: AutoEq correction for the Bose QC35, bass enhancer,
 crossfeed, a binaural convolver (MIT KEMAR at 85 % wet) and a limiter at -1 dB. The variants

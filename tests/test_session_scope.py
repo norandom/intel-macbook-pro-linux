@@ -55,6 +55,11 @@ class SessionScopeTests(unittest.TestCase):
             ours = [l for l in (r.stderr + r.stdout).splitlines() if scope.KDE_STRIP_UNIT in l]
             self.assertEqual(ours, [])
 
+    def test_easyeffects_in_both_sessions(self):
+        unit = (ROOT / "files/audio-effects/easyeffects.service").read_text()
+        self.assertIn("WantedBy=hypr-desktop.target plasma-workspace.target", unit)
+        self.assertIn("systemctl --user reenable easyeffects.service", (ROOT / "tasks/audio_effects.py").read_text())
+
     def test_task_wiring(self):
         task = (ROOT / "tasks/desktop.py").read_text()
         self.assertIn("session_scope.HYPRLAND_ONLY", task)
