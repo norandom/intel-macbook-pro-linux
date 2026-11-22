@@ -24,7 +24,9 @@ add their own header bar, which CSS can't remove. Running them under XWayland wo
 scales them by whole numbers only (2x on the 1.6 panel: too big). List their window classes
 (`hyprctl clients`) in `own_titlebar_apps = ["Deckle"]`: they keep their own bar and get no
 hyprbars bar on top (`~/.config/hypr/apps.conf`). Hyprland ignores an app's own move request,
-so move these windows with SUPER+drag; SUPER+right-drag resizes.
+so move these windows with SUPER+drag; SUPER+right-drag resizes. Hyprland also ignores an app's own
+minimize request; our hyprbars build hooks that request and parks the window like the
+taskbar does, so their minimize button works (after the deploy and a re-login).
 
 Tiling is there for the moments it helps, such as a terminal next to an editor, or several
 agent dashboards side by side:

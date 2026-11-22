@@ -317,6 +317,12 @@ class Scripts(unittest.TestCase):
         self.assertIn("windowTracker()->historyForWorkspace(workspace)", patch)
         self.assertIn("changeWindowZOrder(next, true)", patch)
         self.assertNotIn("workspace->getFirstWindow()", patch)
+        # an app's own minimize button (xdg_toplevel.set_minimized, ignored by Hyprland) is
+        # routed to the same t2Minimize, deferred out of the protocol request
+        self.assertIn('findFunctionsByName(PHANDLE, "setSetMinimized")', patch)
+        self.assertIn("CXdgToplevel::setSetMinimized", patch)
+        self.assertIn("g_pEventLoopManager->doLater", patch)
+        self.assertIn("return t2Minimize(args.empty()", patch)
         task = (ROOT / "tasks/desktop.py").read_text()
         self.assertIn("build-hyprbars", task)
         self.assertIn("\"libgles-dev\"", task)  # GLES3/gl32.h, not pulled in by hyprland-dev

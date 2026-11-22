@@ -47,58 +47,115 @@
  
 --- a/hyprbars/main.cpp
 +++ b/hyprbars/main.cpp
-@@ -4,6 +4,9 @@
+@@ -4,6 +4,12 @@
  
  #include <any>
  #include <hyprland/src/Compositor.hpp>
 +#include <hyprland/src/desktop/Workspace.hpp>
 +#include <hyprland/src/desktop/history/WindowHistoryTracker.hpp>
 +#include <hyprland/src/desktop/state/FocusState.hpp>
++#include <hyprland/src/managers/eventLoop/EventLoopManager.hpp>
++#include <hyprland/src/protocols/XDGShell.hpp>
++#include <hyprland/protocols/xdg-shell.hpp>
  #include <hyprland/src/desktop/view/Window.hpp>
  #include <hyprland/src/config/ConfigManager.hpp>
  #include <hyprland/src/render/Renderer.hpp>
-@@ -122,6 +125,45 @@
+@@ -110,6 +116,79 @@
+     return result;
+ }
+ 
++// t2-mac-kde: park a window on special:minimized (taskbar, title-bar button and an
++// app's own minimize request all end here).
++// Parking a focused window under a non-interactive Waybar surface can leave
++// it ACTIVATED in wlr-foreign-toplevel. Release focus explicitly, including
++// when this is the last window. Never warp the pointer to force a refocus.
++static SDispatchResult t2Minimize(PHLWINDOW window) {
++    if (!window || !window->m_workspace)
++        return {.success = false, .error = "Window not found"};
++    if (window->m_workspace->m_name == "special:minimized")
++        return {};
++    const auto workspace = window->m_workspace;
++    const bool focused = Desktop::focusState()->window() == window;
++    if (focused)
++        Desktop::focusState()->rawWindowFocus(nullptr);
++    HyprlandAPI::invokeHyprctlCommand("dispatch", std::format("movetoworkspacesilent special:minimized,address:0x{:x}", rc<uintptr_t>(window.get())));
++    if (focused) {
++        // Focus the window used last on that workspace and raise it: the active
++        // window must be the one on top, or the next taskbar click on it (which
++        // means "minimize" for the active entry) hits a window buried under others.
++        // (getFirstWindow() returns the bottom of the stack.)
++        const auto usable = [&](const PHLWINDOW& w) { return w && w != window && w->m_workspace == workspace && w->m_isMapped && !w->isHidden(); };
++        PHLWINDOW  next;
++        const auto history = Desktop::History::windowTracker()->historyForWorkspace(workspace);
++        for (auto it = history.rbegin(); it != history.rend() && !next; ++it) {
++            if (const auto w = it->lock(); usable(w))
++                next = w;
++        }
++        for (auto it = g_pCompositor->m_windows.rbegin(); it != g_pCompositor->m_windows.rend() && !next; ++it) {
++            if (usable(*it))
++                next = *it;
++        }
++        if (next) {
++            if (next->m_isFloating)
++                g_pCompositor->changeWindowZOrder(next, true);
++            Desktop::focusState()->fullWindowFocus(next);
++        }
++    }
++    return {};
++}
++
++// t2-mac-kde: Hyprland ignores xdg_toplevel.set_minimized, so a minimize button an app
++// draws itself (GTK/Tauri client-side title bars) did nothing. Hook the setter Hyprland
++// uses to install that request's handler and send the request to t2Minimize instead.
++// The handlers live in this plugin: it must stay loaded for the session (it is, from a
++// fixed path; a deploy rebuilds the file in place and the next login loads the new one).
++inline CFunctionHook* g_pSetMinimizedHook = nullptr;
++typedef void (*origSetMinimized)(CXdgToplevel*, std::function<void(CXdgToplevel*)>);
++
++static void onMinimizeRequest(CXdgToplevel* request) {
++    PHLWINDOW target;
++    for (const auto& w : g_pCompositor->m_windows) {
++        if (w && w->m_xdgSurface && w->m_xdgSurface->m_toplevel && rc<void*>(w->m_xdgSurface->m_toplevel.get()) == request->data())
++            target = w;
++    }
++    if (!target) { // the button was just clicked: the focused window of the same process
++        const auto focused = Desktop::focusState()->window();
++        pid_t      pid     = 0;
++        wl_client_get_credentials(request->client(), &pid, nullptr, nullptr);
++        if (focused && !focused->m_isX11 && pid > 0 && focused->getPID() == pid)
++            target = focused;
++    }
++    if (!target)
++        return;
++    g_pEventLoopManager->doLater([ref = PHLWINDOWREF{target}] {
++        if (const auto w = ref.lock(); w && w->m_isMapped)
++            t2Minimize(w);
++    });
++}
++
++static void hkSetSetMinimized(CXdgToplevel* self, std::function<void(CXdgToplevel*)> handler) {
++    (*(origSetMinimized)g_pSetMinimizedHook->m_original)(self, [](CXdgToplevel* request) { onMinimizeRequest(request); });
++}
++
+ APICALL EXPORT PLUGIN_DESCRIPTION_INFO PLUGIN_INIT(HANDLE handle) {
+     PHANDLE = handle;
+ 
+@@ -122,6 +201,19 @@
          throw std::runtime_error("[hb] Version mismatch");
      }
  
-+    // Parking a focused window under a non-interactive Waybar surface can leave
-+    // it ACTIVATED in wlr-foreign-toplevel. Release focus explicitly, including
-+    // when this is the last window. Never warp the pointer to force a refocus.
 +    HyprlandAPI::addDispatcherV2(PHANDLE, "t2:minimize", [](std::string args) -> SDispatchResult {
-+        const auto window = args.empty() ? Desktop::focusState()->window() : g_pCompositor->getWindowByRegex(args);
-+        if (!window || !window->m_workspace)
-+            return {.success = false, .error = "Window not found"};
-+        if (window->m_workspace->m_name == "special:minimized")
-+            return {};
-+        const auto workspace = window->m_workspace;
-+        const bool focused = Desktop::focusState()->window() == window;
-+        if (focused)
-+            Desktop::focusState()->rawWindowFocus(nullptr);
-+        HyprlandAPI::invokeHyprctlCommand("dispatch", std::format("movetoworkspacesilent special:minimized,address:0x{:x}", rc<uintptr_t>(window.get())));
-+        if (focused) {
-+            // Focus the window used last on that workspace and raise it: the active
-+            // window must be the one on top, or the next taskbar click on it (which
-+            // means "minimize" for the active entry) hits a window buried under others.
-+            // (getFirstWindow() returns the bottom of the stack.)
-+            const auto usable = [&](const PHLWINDOW& w) { return w && w != window && w->m_workspace == workspace && w->m_isMapped && !w->isHidden(); };
-+            PHLWINDOW  next;
-+            const auto history = Desktop::History::windowTracker()->historyForWorkspace(workspace);
-+            for (auto it = history.rbegin(); it != history.rend() && !next; ++it) {
-+                if (const auto w = it->lock(); usable(w))
-+                    next = w;
-+            }
-+            for (auto it = g_pCompositor->m_windows.rbegin(); it != g_pCompositor->m_windows.rend() && !next; ++it) {
-+                if (usable(*it))
-+                    next = *it;
-+            }
-+            if (next) {
-+                if (next->m_isFloating)
-+                    g_pCompositor->changeWindowZOrder(next, true);
-+                Desktop::focusState()->fullWindowFocus(next);
-+            }
-+        }
-+        return {};
++        return t2Minimize(args.empty() ? Desktop::focusState()->window() : g_pCompositor->getWindowByRegex(args));
 +    });
++
++    for (const auto& match : HyprlandAPI::findFunctionsByName(PHANDLE, "setSetMinimized")) {
++        if (match.demangled.find("CXdgToplevel::setSetMinimized") == std::string::npos)
++            continue;
++        g_pSetMinimizedHook = HyprlandAPI::createFunctionHook(PHANDLE, match.address, rc<void*>(&hkSetSetMinimized));
++        if (g_pSetMinimizedHook && !g_pSetMinimizedHook->hook())
++            g_pSetMinimizedHook = nullptr;
++        break;
++    }
 +
      g_pGlobalState                    = makeUnique<SGlobalState>();
      g_pGlobalState->nobarRuleIdx      = Desktop::Rule::windowEffects()->registerEffect("hyprbars:no_bar");
