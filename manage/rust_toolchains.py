@@ -22,12 +22,18 @@ for dir in "$home"/toolchains/*/; do
   [ -x "$rustc" ] || continue
   readelf -l "$rustc" 2>/dev/null | grep -q 'interpreter: /nix/store/' || continue
   host=${tc#*-}
-  comps=$("$r" component list --installed --toolchain "$tc" | sed "s/-$host\$//" \
-          | grep -vxE 'rustc|cargo|rust-std|rust-docs' | sed 's/^/-c /' | tr '\n' ' ')
-  echo "reinstalling $tc (was patched to Nix's glibc) ${comps:+with $comps}"
+  installed=$("$r" component list --installed --toolchain "$tc")
+  # rust-std for other targets (cross builds) comes back with -t, everything else with -c
+  targets=$(printf '%s\n' "$installed" | sed -n 's/^rust-std-//p' | grep -vx "$host" | sed 's/^/-t /' | tr '\n' ' ' || true)
+  comps=$(printf '%s\n' "$installed" | grep -v '^rust-std-' | sed "s/-$host\$//" \
+          | grep -vxE 'rustc|cargo|rust-docs' | sed 's/^/-c /' | tr '\n' ' ' || true)
+  echo "reinstalling $tc (was patched to Nix's glibc): ${comps}${targets}"
   "$r" toolchain uninstall "$tc"
-  # shellcheck disable=SC2086  # one word per -c option
-  "$r" toolchain install "$tc" --profile minimal $comps
+  # shellcheck disable=SC2086  # one word per option
+  if ! "$r" toolchain install "$tc" --profile minimal $comps $targets; then
+    echo "warning: $tc reinstalled without its extra components/targets; add them with rustup component/target add" >&2
+    "$r" toolchain install "$tc" --profile minimal
+  fi
 done
 [ -n "$default" ] && "$r" default "$default" >/dev/null || true
 """
