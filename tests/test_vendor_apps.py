@@ -11,11 +11,11 @@ from manage.packages import _LOCAL_DEB, LOCAL_DEBS
 ROOT = Path(__file__).resolve().parents[1]
 SRC = ROOT / "files/vendor-apps"
 TASK = (ROOT / "tasks/vendor_apps.py").read_text()
-DEB_HOSTS = {"obsidian": "github.com", "bitwarden": "github.com", "quarto": "github.com",
+DEB_HOSTS = {"obsidian": "github.com", "penguin-mail": "github.com", "bitwarden": "github.com", "quarto": "github.com",
              "positron": "cdn.posit.co", "remotedesktopmanager": "cdn.devolutions.net",
              "zoom": "cdn.zoom.us", "slack": "downloads.slack-edge.com", "discord": "dl.discordapp.net",
              "rclone-ui": "github.com", "1-1": "github.com"}
-DEB_PATHS = {"obsidian": "/obsidianmd/obsidian-releases/", "bitwarden": "/bitwarden/clients/releases/download/desktop-v",
+DEB_PATHS = {"obsidian": "/obsidianmd/obsidian-releases/", "penguin-mail": "/c9dev/penguin-mail/releases/download/v", "bitwarden": "/bitwarden/clients/releases/download/desktop-v",
              "quarto": "/quarto-dev/quarto-cli/", "rclone-ui": "/rclone-ui/rclone-ui/releases/download/v",
              "1-1": "/norandom/1-1/releases/download/v"}
 TARBALL_PATHS = {"zed": "/zed-industries/zed/", "zen": "/zen-browser/desktop/",

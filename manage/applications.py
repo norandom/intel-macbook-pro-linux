@@ -153,6 +153,12 @@ VENDOR_REPOS = {
 }
 # Pinned vendor .debs: id -> (dpkg package, dpkg Version, url, sha256, executable).
 VENDOR_DEBS = {
+    # Mail + calendar with Google sign-in through GNOME Online Accounts (owner request 2026-11-23).
+    # GTK 4 / libadwaita, GPL-3.0. The .deb also brings its own signed apt repo
+    # (c9dev.github.io/penguin-mail, key FE3C3B6E699AF939DC4670DCF3A853035C3E2B8E = the published one).
+    "penguin-mail": ("penguin-mail", "1.0.12",
+                     "https://github.com/c9dev/penguin-mail/releases/download/v1.0.12/penguin-mail_1.0.12_amd64.deb",
+                     "395589a2982f1b99498fbab791f70a4bf34e5c19ca2727cc78e63ebf5b6672ce", "penguin-mail"),
     "obsidian": ("obsidian", "1.15.1",
                  "https://github.com/obsidianmd/obsidian-releases/releases/download/v1.15.1/obsidian_1.15.1_amd64.deb",
                  "f77b6dfc8c040214f2febad2b1b9b051b6a838a47b0f4fb90a31cfcb79b8fcec", "obsidian"),
@@ -233,6 +239,7 @@ OTHER = {
     "typora": ("vendor", _VENDOR_OWNER, "typora", _REPO),
     "vivaldi-stable": ("vendor", _VENDOR_OWNER, "vivaldi-stable", _REPO + " (replaces the package's own vivaldi.sources)"),
     "obsidian": ("vendor", _VENDOR_OWNER, "obsidian", _DEB),
+    "penguin-mail": ("vendor", _VENDOR_OWNER, "penguin-mail", _DEB + " (GitHub; then its own signed apt repo)"),
     "bitwarden": ("vendor", _VENDOR_OWNER, "bitwarden", _DEB + " (desktop-v release)"),
     "quarto": ("vendor", _VENDOR_OWNER, "quarto", _DEB),
     "positron": ("vendor", _VENDOR_OWNER, "positron", _DEB + " (Posit CDN)"),
