@@ -201,6 +201,12 @@ at the minimum turns the backlight off (Plasma's PowerDevil stops at its lowest 
 Plasma's own brightness OSD. `t2-kde-keys` binds them at each KDE login; Shift+brightness keeps
 PowerDevil's 1 % steps.
 
+KDE's panel can show the system in iStat style (`net.local.t2stats`, one widget per item,
+mode `cpu`, `mem`, `net` or `temp`): CPU and memory with a one-minute bar history beside label and
+percent, upload over download in one narrow item, and the CPU temperature as a number in
+`hypr-thermal`'s colours (amber from 85 °C, red from 95 °C). The deploy installs the widgets;
+add them to a panel through "Add Widgets".
+
 ## Display and GPUs
 
 - `panel_scale` sets the internal panel scale (`auto` lets Hyprland decide; I use 1.6).

@@ -85,3 +85,26 @@ class SessionScopeTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class StatsWidgetTests(unittest.TestCase):
+    ROOT = Path(__file__).resolve().parents[1] / "files/desktop/plasma/net.local.t2stats"
+
+    def test_plasmoid_package(self):
+        import json
+        meta = json.loads((self.ROOT / "metadata.json").read_text())
+        self.assertEqual(meta["KPlugin"]["Id"], "net.local.t2stats")
+        self.assertIn("Managed by t2-mac-kde (desktop)", meta["X-Managed-By"])
+        qml = (self.ROOT / "contents/ui/main.qml").read_text()
+        self.assertIn("Managed by t2-mac-kde (desktop)", qml)
+        self.assertIn('name="mode"', (self.ROOT / "contents/config/main.xml").read_text())
+        for sensor in ("network/all/upload", "network/all/download", "cpu/all/usage",
+                       "memory/physical/usedPercent", "cpu/all/maximumTemperature"):
+            self.assertIn(sensor, qml)
+        self.assertNotRegex(qml, r"function (short|int|char|byte|long|float|double)\(")  # reserved in QML JS
+        # temperature colours = hypr-thermal's thresholds
+        thermal = (self.ROOT.parents[1] / "bin/hypr-thermal").read_text()
+        self.assertIn("-ge 85 ] && class=warning", thermal)
+        self.assertIn("-ge 95 ] && class=critical", thermal)
+        self.assertIn('t >= 95 ? "#c0605a" : t >= 85 ? "#a87a2f"', qml)
+        self.assertIn("net.local.t2stats", (self.ROOT.parents[3] / "tasks/desktop.py").read_text())

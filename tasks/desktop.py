@@ -421,6 +421,13 @@ keys_unit = owned_put(StringIO(session_scope.kde_keys_unit(MARKER)), f"{cfg}/sys
 server.shell(name="KDE: brightness keys service at KDE login",
              commands=["systemctl --user daemon-reload", f"systemctl --user enable {session_scope.KDE_KEYS_UNIT}"])
 
+# KDE: compact panel items as in iStat Menus (net.local.t2stats; mode cpu, mem, net or temp):
+# CPU/MEM history graphs, upload over download, temperature coloured as hypr-thermal.
+# Plasma's own system monitor is wider and has no stacked rates. Added to a panel by hand.
+for rel in ("metadata.json", "contents/config/main.xml", "contents/ui/main.qml"):
+    owned_put(f"files/desktop/plasma/net.local.t2stats/{rel}",
+              f"{home}/.local/share/plasma/plasmoids/net.local.t2stats/{rel}")
+
 # KDE: the same keyboard as Hyprland's input.conf (German Mac no dead keys + US, Right Option =
 # Super, Left Option = Mac Option, repeat, NumLock); only these keys are written.
 server.shell(name="KDE: keyboard, two desktops, and power management that never suspends",
