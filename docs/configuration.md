@@ -52,6 +52,7 @@ Read by `tasks/desktop.py` (fonts: `tasks/fonts.py`).
 | `fleet_hosts` | `[]` | Hostnames that should get clearly distinct title bar colours |
 | `[decor_colors]` | empty | Per-host colour override, `hostname = "#rrggbb"` |
 | `[default_apps]` | empty | MIME type = desktop file, applied with `xdg-mime` |
+| `[[mounts]]` | none | Network folders mounted at login in KDE and Hyprland (rclone or sshfs); see below |
 | `font_rendering` | `"grayscale"` | `"rgb"` for subpixel rendering (fontconfig) |
 | `night_shift` | `false` | `true`: warmer screen after sunset, like f.lux (gammastep; [desktop.md](desktop.md)) |
 | `night_shift_location` | `""` | `"lat:lon"`; empty = the city of the system timezone |
@@ -167,6 +168,34 @@ crash_upload = false
 
 Tables such as `[default_apps]` go after the plain keys, because everything below a table header
 belongs to that table.
+
+## Network folders (`[[mounts]]`)
+
+Each `[[mounts]]` entry becomes the user service `t2-mount@<name>`, started at login in KDE and
+Hyprland (`tasks/mounts.py`). At login without a network it waits in the background.
+
+```toml
+[[mounts]]
+name = "onedrive"        # t2-mount@onedrive
+type = "rclone"          # cloud remote with a local cache (50G, offline use of cached files)
+source = "OneDrive:"     # a remote from ~/.config/rclone/rclone.conf
+path = "~/OneDrive"
+options = ["--onedrive-delta"]      # extra rclone flags; they override the defaults
+offline = ["Configs", "Obsidian"]   # folders kept fully in the cache
+
+[[mounts]]
+name = "filer"
+type = "sshfs"           # SFTP share, no local cache: media players can seek freely
+source = "filer:/share"  # [user@]host:path; a Host from ~/.ssh/config works
+path = "~/Filer"
+```
+
+Logins are not part of the config: rclone remotes come from `rclone config`, sshfs needs an SSH
+key login (`ssh-copy-id`), because it never asks for a password. Commands:
+`systemctl --user status 't2-mount@*'`, `systemctl --user restart t2-mount@filer`. Logs:
+`~/.cache/rclone/<remote>-mount.log` and `~/.cache/t2-mount/<name>-sshfs.log`. Removing an
+entry disables its service at the next deploy; the folder stays mounted until logout.
+For video from an sshfs share, use Haruna or mpv: VLC's MKV reader needs a minute there.
 
 ## Ubuntu reporting
 

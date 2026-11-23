@@ -1,0 +1,114 @@
+#!/usr/bin/env bash
+# Managed by t2-mac-kde (tasks/mounts.py). Network folder from config.toml [[mounts]].
+#   t2-mount NAME          mount (no-op if mounted; waits for a network)   systemd: t2-mount@NAME
+#   t2-mount --stop NAME   unmount
+# Settings: ~/.config/t2-mac-kde/mounts/NAME.env (TYPE, SOURCE, MOUNTPOINT, OPTIONS, OFFLINE_FOLDERS).
+# Logs: rclone ~/.cache/rclone/<remote>-mount.log, sshfs ~/.cache/t2-mount/NAME-sshfs.log
+set -euo pipefail
+
+FUSERMOUNT=$(command -v fusermount3 || command -v fusermount)
+stop=0
+if [[ ${1:-} == --stop ]]; then stop=1; shift; fi
+NAME=${1:?usage: t2-mount [--stop] NAME}
+[[ $NAME =~ ^[a-z0-9][a-z0-9-]*$ ]] || { echo "t2-mount: bad name $NAME" >&2; exit 2; }
+ENV_FILE="${XDG_CONFIG_HOME:-$HOME/.config}/t2-mac-kde/mounts/$NAME.env"
+[[ -r $ENV_FILE ]] || { echo "t2-mount: no settings $ENV_FILE (config.toml [[mounts]])" >&2; exit 2; }
+# shellcheck source=/dev/null
+. "$ENV_FILE"
+MNT=$MOUNTPOINT
+
+if ((stop)); then
+  "$FUSERMOUNT" -u "$MNT" 2>/dev/null || "$FUSERMOUNT" -uz "$MNT" 2>/dev/null || true
+  exit 0
+fi
+
+mounted() { mountpoint -q "$MNT" 2>/dev/null || awk -v m="$MNT" '$2 == m { f = 1 } END { exit !f }' /proc/mounts; }
+
+# --- rclone: offline keeper for OFFLINE_FOLDERS --------------------------------------------------
+CACHE_DIR="${XDG_CACHE_HOME:-$HOME/.cache}/rclone"
+REMOTE_NAME=${SOURCE%%:*}
+start_offline_keeper() {
+  [[ $TYPE == rclone ]] || return 0
+  local folders=()
+  mapfile -t folders < <(printf '%s\n' "${OFFLINE_FOLDERS:-}" | sed '/^[[:space:]]*$/d')
+  ((${#folders[@]})) || return 0
+  pgrep -f "rclone-offline.py $MNT " >/dev/null && return 0
+  setsid -f python3 "$(dirname "$(readlink -f "$0")")/rclone-offline.py" \
+    "$MNT" "$REMOTE_NAME" "$CACHE_DIR" "${folders[@]}" </dev/null >/dev/null 2>&1
+  echo "keeping ${#folders[@]} folder(s) offline, log: $CACHE_DIR/$REMOTE_NAME-offline.log"
+}
+
+if mounted; then
+  if ls "$MNT" >/dev/null 2>&1; then
+    echo "$SOURCE already mounted on $MNT"; start_offline_keeper; exit 0
+  fi
+  echo "stale mount on $MNT, cleaning up"   # "Transport endpoint is not connected"
+  "$FUSERMOUNT" -uz "$MNT"
+fi
+mkdir -p "$MNT"
+if [[ -n $(ls -A "$MNT") ]]; then
+  echo "$MNT is not empty; not mounting over local files" >&2; exit 1
+fi
+
+# The remote is contacted when mounting: wait for a network (at login Wi-Fi may still be
+# connecting, or the laptop starts offline; then this waits in the background until online).
+if command -v nm-online >/dev/null; then
+  until nm-online -q -t 60; do :; done
+fi
+
+case $TYPE in
+rclone)
+  RCLONE=$(command -v rclone || echo "$HOME/.nix-profile/bin/rclone")
+  LOG="$CACHE_DIR/$REMOTE_NAME-mount.log"
+  mkdir -p "$CACHE_DIR"
+  # --vfs-cache-mode full        reads/writes through a local cache (apps can seek, open for
+  #                              write and work offline on cached files)
+  # --vfs-cache-max-size/-age    cache limit; least recently used files are evicted first
+  # --vfs-cache-min-free-space   never fill the home disk
+  # --vfs-write-back 10s         upload 10 s after a file is closed
+  # --dir-cache-time + poll      listings cached long, remote changes picked up by polling
+  # --vfs-read-ahead/buffer      smooth streaming of big files (video, archives)
+  # --vfs-fast-fingerprint       no slow hash checks of cached files on start
+  # --vfs-refresh                list all folders in the background after mounting (offline browsing)
+  # --timeout/--contimeout       a connection that died with a network switch fails in 30 s
+  #                              instead of 5 min, so apps don't hang; the cache retries uploads
+  # OPTIONS from the config come last: rclone takes the last value of a repeated flag.
+  flags=(
+    --vfs-cache-mode full --cache-dir "$CACHE_DIR"
+    --vfs-cache-max-size 50G --vfs-cache-max-age 720h --vfs-cache-min-free-space 20G
+    --vfs-cache-poll-interval 5m --vfs-write-back 10s --vfs-fast-fingerprint
+    --dir-cache-time 1000h --vfs-refresh --poll-interval 1m --attr-timeout 10s
+    --buffer-size 32M --vfs-read-ahead 256M --vfs-read-chunk-size 32M --vfs-read-chunk-size-limit 1G
+    --transfers 8 --checkers 16 --contimeout 10s --timeout 30s
+    --umask 077 --volname "$REMOTE_NAME" --log-file "$LOG" --log-level NOTICE
+    --daemon --daemon-wait 60s
+  )
+  for attempt in 1 2 3 4 5; do   # network up but the remote not reachable yet (DNS, captive portal)
+    "$RCLONE" mount "$SOURCE" "$MNT" "${flags[@]}" "${OPTIONS[@]}" && { start_offline_keeper; exit 0; }
+    echo "mount of $SOURCE failed (attempt $attempt), see $LOG" >&2
+    sleep 30
+  done
+  ;;
+sshfs)
+  # Every read is an SFTP read at that offset with the kernel page cache in front, so players
+  # can seek freely (rclone's VFS without its disk cache re-opened a stream per seek).
+  # reconnect     a dropped connection is re-established on the next access
+  # BatchMode     key login only, never wait for a password prompt (keepalive: ~/.ssh/config)
+  # idmap=user    the server's uid shows as yours
+  # auto_cache    file contents stay in the page cache until size/mtime change
+  # dir_cache, dcache_timeout=60   listings cached for a minute
+  # max_conns=4   a long read (video) does not block browsing or opening a PDF
+  LOG="${XDG_CACHE_HOME:-$HOME/.cache}/t2-mount/$NAME-sshfs.log"
+  mkdir -p "${LOG%/*}"
+  opts=reconnect,BatchMode=yes,idmap=user,auto_cache,dir_cache=yes,dcache_timeout=60,max_conns=4
+  for o in "${OPTIONS[@]}"; do opts+=",$o"; done
+  for attempt in 1 2 3 4 5; do
+    sshfs "$SOURCE" "$MNT" -o "$opts" 2>>"$LOG" && { echo "$SOURCE mounted on $MNT"; exit 0; }
+    echo "mount of $SOURCE failed (attempt $attempt), see $LOG" >&2
+    sleep 30
+  done
+  ;;
+*)
+  echo "t2-mount: unknown TYPE=$TYPE in $ENV_FILE" >&2; exit 2 ;;
+esac
+exit 1

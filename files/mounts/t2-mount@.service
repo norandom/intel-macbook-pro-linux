@@ -1,0 +1,18 @@
+# Managed by t2-mac-kde (tasks/mounts.py): network folder %i from config.toml [[mounts]],
+# in KDE and Hyprland. t2-mount waits for a network (also forever when starting offline), mounts
+# in the background and returns; rclone/sshfs stay in this unit, so stop/logout cleans them up.
+[Unit]
+Description=Network mount (%i)
+After=network-online.target graphical-session.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=%h/.local/libexec/t2-mac-kde/t2-mount %i
+# Unmount first; killing the daemon alone leaves a dead mount ("Transport endpoint is not connected").
+ExecStop=%h/.local/libexec/t2-mac-kde/t2-mount --stop %i
+TimeoutStartSec=infinity
+TimeoutStopSec=30
+
+[Install]
+WantedBy=hypr-desktop.target plasma-workspace.target
