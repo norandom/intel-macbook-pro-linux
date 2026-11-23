@@ -12,7 +12,10 @@ ExecStopPost=/usr/local/libexec/t2-fan-curve restore
 RuntimeDirectory=t2-fan-curve
 RuntimeDirectoryMode=0700
 RuntimeDirectoryPreserve=yes
-WatchdogSec=10
+# 60, not 10: on this Mac ~23 s of monotonic time pass between "PM: suspend entry" and the
+# process freeze (CPUs going offline) without the daemon getting to ping; at 10 s that was a
+# watchdog kill, a coredump and a failed unit on resume. A real hang is still caught in a minute.
+WatchdogSec=60
 TimeoutStartSec=15
 TimeoutStopSec=5
 Restart=on-failure

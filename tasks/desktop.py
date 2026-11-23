@@ -162,6 +162,9 @@ HELPERS = (
     "hypr-nightshift", "hypr-xscale", "t2-leftstrip", "t2-kde-keys",
 )
 helper_ops = [owned_put(f"{SRC}/bin/{h}", f"{bin_dir}/{h}", mode="755") for h in HELPERS]
+# KDE crash notifier: no "whoopsie is not running" failed unit while crash upload is off
+owned_put(f"{SRC}/kubuntu-notification-helper/whoopsie-upload-all",
+          f"{home}/.local/share/kubuntu-notification-helper/whoopsie-upload-all", mode="755")
 
 # Hibernate (config hibernate, default off): needs disk swap >= RAM (docs/hibernate-swap.md).
 # Ubuntu's polkit rules forbid it for everyone; ours allows the active local session.

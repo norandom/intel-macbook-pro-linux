@@ -1,0 +1,11 @@
+#!/bin/sh
+# Managed by t2-mac-kde (desktop). Plasma's crash notifier (kded notificationhelper) runs
+# kubuntu-notification-helper/whoopsie-upload-all, first match on XDG_DATA_DIRS (so this copy
+# in ~/.local/share), whenever DrKonqi marked a crash report for upload. With crash upload off
+# (config crash_upload, whoopsie masked) the system script ends in "ERROR: whoopsie is not
+# running" and a failed user unit. Then there is nothing to do: the reports stay in /var/crash.
+if [ "$(systemctl show -P UnitFileState whoopsie.service 2>/dev/null)" = masked ]; then
+  echo "whoopsie-upload-all: crash upload is off (whoopsie masked); reports stay in /var/crash"
+  exit 0
+fi
+exec /usr/share/kubuntu-notification-helper/whoopsie-upload-all "$@"
