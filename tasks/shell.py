@@ -123,6 +123,12 @@ server.shell(
     _shell_executable="bash",
 )
 
+# --- t2-craft-update (alias craftup): Craft pins to the latest releases + deploy that task ---
+files.put(name="t2-craft-update (runs tools/craft-update from this checkout)",
+          src=StringIO("#!/bin/sh\n# Managed by t2-mac-kde (shell-user-tools)\n"
+                       f"exec {quote(str(repo / 'tools/craft-update'))} \"$@\"\n"),
+          dest=str(bin_dir / "t2-craft-update"), mode="755")
+
 # --- dev-disk-reclaim: report-only by default (--apply deletes) ---------------------------
 files.put(name="dev-disk-reclaim (report-only by default)", src=str(src / "dev-disk-reclaim"),
           dest=str(bin_dir / "dev-disk-reclaim"), mode="755")

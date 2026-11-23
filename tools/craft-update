@@ -1,0 +1,71 @@
+#!/usr/bin/env python3
+"""Update the Craft suite (storytold/*): bump the pins in tasks/office_apps.py to each app's
+latest GitHub release, then deploy only that task (sudo password asked once).
+
+    craftup            bump pins + deploy tasks/office_apps.py
+    craftup --check    show available updates only
+
+The sha256 pin is GitHub's own asset digest; the deploy downloads, checks it and installs through
+the package guard as usual. Commit the bumped tasks/office_apps.py afterwards.
+"""
+import json
+import os
+import re
+import sys
+import urllib.request
+from pathlib import Path
+
+REPO = Path(__file__).resolve().parent.parent
+TASK = REPO / "tasks/office_apps.py"
+PIN = re.compile(r'^(    "(\w+craft)": \(")([\d.]+)(", ")([0-9a-f]{64})("\),)$', re.M)
+
+
+def version_key(v):
+    return tuple(int(p) for p in v.split("."))
+
+
+def latest(name):
+    req = urllib.request.Request(f"https://api.github.com/repos/storytold/{name}/releases/latest",
+                                 headers={"Accept": "application/vnd.github+json", "User-Agent": "craft-update"})
+    with urllib.request.urlopen(req, timeout=20) as r:
+        rel = json.load(r)
+    ver = rel["tag_name"].lstrip("v")
+    asset = f"{name}-{ver}-linux-x86_64.deb"
+    for a in rel.get("assets", ()):
+        if a["name"] == asset and (a.get("digest") or "").startswith("sha256:"):
+            return ver, a["digest"].removeprefix("sha256:")
+    raise LookupError(f"{asset} with a sha256 digest not in release {rel['tag_name']}")
+
+
+def main():
+    check = sys.argv[1:] == ["--check"]
+    if sys.argv[1:] not in ([], ["--check"]):
+        sys.exit(__doc__)
+    text = TASK.read_text()
+    updates = {}
+    for m in PIN.finditer(text):
+        name, ver = m.group(2), m.group(3)
+        try:
+            new, sha = latest(name)
+        except (OSError, LookupError, ValueError, KeyError) as e:
+            print(f"{name:12} {ver:8} ? ({e})")
+            continue
+        if version_key(new) > version_key(ver):
+            updates[name] = (new, sha)
+            print(f"{name:12} {ver:8} -> {new}")
+        else:
+            print(f"{name:12} {ver:8} up to date")
+    if check:
+        return
+    if updates:
+        TASK.write_text(PIN.sub(lambda m: m.group(0) if m.group(2) not in updates else
+                                f"{m.group(1)}{updates[m.group(2)][0]}{m.group(4)}{updates[m.group(2)][1]}{m.group(6)}",
+                                text))
+        print(f"pins bumped in {TASK.relative_to(REPO)} (commit it)")
+    # Also installs any app that is behind its pin, so it runs even without new releases.
+    os.chdir(REPO)
+    os.execv(".venv/bin/pyinfra", [".venv/bin/pyinfra", "@local", "tasks/office_apps.py", "--use-sudo-password"])
+
+
+if __name__ == "__main__":
+    main()
