@@ -74,8 +74,15 @@ NATIVE = {
     # rustup from Ubuntu, not Nix: it leaves rust-lang.org toolchains as built (system glibc), so
     # build scripts and proc-macros run against the same glibc the system linker uses.
     "rustup": ("rustup", "rustup"),
+    # KDE calendar (owner request 2026-11-23); Google Calendar via the Google Groupware resource.
+    # Akonadi + kdepim-runtime come as dependencies. Mail is Penguin Mail (VENDOR_DEBS).
+    "korganizer": ("korganizer", "korganizer"),
+    # E-book library and reader (owner request 2026-11-23)
+    "calibre": ("calibre", "calibre"),
 }
 REMMINA_PLUGINS = ("remmina-plugin-rdp", "remmina-plugin-vnc", "remmina-plugin-secret")
+# KOrganizer plugins (e.g. holiday and date plugins); only a recommend, the guard skips those
+KDEPIM_ADDONS = ("kdepim-addons",)
 
 # GStreamer decoders for Clapper without FFmpeg (never gstreamer1.0-libav, which is FFmpeg):
 #   plugins-bad: openh264 (H.264), de265 (HEVC), aom (AV1), faad (AAC), MPEG-TS, HLS/DASH
@@ -280,7 +287,7 @@ def catalog(nix_attrs=DEFAULT_TOOLS) -> dict[str, tuple[str, str, str | None, st
 
 
 def native_packages() -> tuple[str, ...]:
-    return tuple(pkg for pkg, _ in NATIVE.values()) + GSTREAMER + REMMINA_PLUGINS
+    return tuple(pkg for pkg, _ in NATIVE.values()) + GSTREAMER + REMMINA_PLUGINS + KDEPIM_ADDONS
 
 
 def _dpkg_version(package: str) -> str | None:
