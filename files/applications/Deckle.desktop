@@ -1,0 +1,10 @@
+[Desktop Entry]
+# Deckle's .deb launches with WEBKIT_DISABLE_DMABUF_RENDERER=1 (a Tauri workaround for NVIDIA).
+# On the T2 Mac's Intel/AMD GPUs that forces CPU shared-memory repaints at 1.5x scale: typing lags.
+Categories=Office;
+Exec=Deckle
+StartupWMClass=Deckle
+Icon=Deckle
+Name=Deckle
+Terminal=false
+Type=Application

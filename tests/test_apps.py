@@ -105,6 +105,12 @@ class AssetTests(unittest.TestCase):
             self.assertTrue(text.startswith("[Desktop Entry]"), path)
             self.assertNotRegex(text, re.compile(r"license|key=", re.I), path)
 
+    def test_deckle_entry_keeps_webkit_dmabuf_renderer(self):
+        # Deckle's .deb sets WEBKIT_DISABLE_DMABUF_RENDERER=1: CPU repaints, laggy typing.
+        text = (ROOT / "files/applications/Deckle.desktop").read_text()
+        self.assertNotRegex(text, re.compile(r"^[^#].*WEBKIT_DISABLE", re.M))
+        self.assertIn("\nExec=Deckle\n", text)
+
 
 if __name__ == "__main__":
     unittest.main()

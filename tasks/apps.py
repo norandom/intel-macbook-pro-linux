@@ -83,6 +83,10 @@ if host.get_fact(File, path="/usr/local/bin/hypr-term"):
               dest=f"{home}/.local/share/applications/terminator.desktop", mode="644", create_remote_dir=True)
 else:
     logger.info("apps: /usr/local/bin/hypr-term absent; terminator.desktop override skipped")
+# Deckle (installed by hand): its .deb entry disables WebKit's DMA-BUF renderer; typing lags.
+if host.get_fact(File, path="/usr/bin/Deckle"):
+    files.put(name="Desktop entry: Deckle (WebKit DMA-BUF renderer on)", src="files/applications/Deckle.desktop",
+              dest=f"{home}/.local/share/applications/Deckle.desktop", mode="644", create_remote_dir=True)
 
 # --- Seed-once configs (the apps rewrite these files; never overwrite the user's) ---
 # (Xfe seed not ported: xfe is blocked, see manage/applications.py.)
