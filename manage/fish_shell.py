@@ -31,7 +31,7 @@ CONF = "~/.config/fish/conf.d/t2-mac-kde.fish"
 ABBR = {
     "l": "ls -lF", "la": "ls -la", "ll": "ls -l", "lh": "ls -hAl", "lsd": "ls -d */",
     "da": "du -sch", "j": "jobs", "d": "dirh", "hist": "history search --contains",
-    "k": "kubectl", "dl": "aria2c",
+    "k": "kubectl", "dl": "aria2c", "leftbar": "t2-leftstrip --panel",
 }
 WRAP = {"ls": "ls --color=auto -F", "grep": "grep --color=auto", "diff": "diff --color=auto",
         "ip": "ip -color=auto"}

@@ -38,7 +38,8 @@ class SessionScopeTests(unittest.TestCase):
         self.assertIn("set_exclusive_zone(win, -1)", helper)              # drawn over the Plasma panel
         self.assertIn("GtkLayerShell.Layer.OVERLAY", helper)
         self.assertIn("p.location == 'left' && p.widgetIds.length == 0", helper)   # only our empty panel
-        self.assertIn("p.location == 'bottom' && p.lengthMode == 'fill'", helper)  # only an untouched panel
+        self.assertIn("(p.location == 'bottom' || p.location == 'top') && p.lengthMode == 'fill'", helper)  # only an untouched panel, also a theme's top panel
+        self.assertIn('sys.argv[1:2] == ["--panel"]', helper)   # leftbar: panels again after a theme change
         self.assertIn('"t2-leftstrip"', (ROOT / "tasks/desktop.py").read_text())
         subprocess.run(["python3", "-m", "py_compile", str(ROOT / "files/desktop/bin/t2-leftstrip")], check=True)
 

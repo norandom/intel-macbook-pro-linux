@@ -6,10 +6,13 @@
 # of space other programs reserve. So an empty Plasma panel of the same width reserves the edge
 # (made sure here, through Plasma's scripting interface), and this layer-shell surface draws
 # black over it, at the very edge (exclusive zone -1, overlay layer).
-# The start menu (Kickoff) opens about 11 px left of the bottom panel's offset, so a bottom
-# panel still at Plasma's full-width default gets offset MENU_OVERHANG (the panel itself still
-# starts right after the left panel and reaches the right edge); one set up differently is
-# left alone.
+# The start menu (Kickoff) opens about 11 px left of its panel's offset, so a bottom or top
+# panel still at Plasma's full-width default (also after a global theme replaces the layout)
+# gets offset MENU_OVERHANG, is no longer floating (gaps around it) and reaches the right
+# edge; one set up differently is left alone.
+# Changing the global theme or Plasma style resets panels (thickness back to the default, or
+# a whole new layout): `t2-leftstrip --panel` (shell alias leftbar) sets them up again.
+#   t2-leftstrip --panel [width]
 import subprocess
 import sys
 import time
@@ -25,14 +28,18 @@ MENU_OVERHANG = 11
 PANEL_SCRIPT = """
 var w = %d, m = %d, found = false;
 panels().forEach(function (p) {
-  if (p.location == 'left' && p.widgetIds.length == 0) { found = true; p.height = w; p.hiding = 'none'; p.floating = false; }
+  if (p.location == 'left' && p.widgetIds.length == 0) {
+    found = true; p.height = w; p.hiding = 'none'; p.floating = false;
+  }
 });
 if (!found) { var p = new Panel; p.location = 'left'; p.height = w; p.hiding = 'none'; p.floating = false; p.lengthMode = 'fill'; }
 panels().forEach(function (p) {
-  if (p.location == 'bottom' && p.lengthMode == 'fill') {
+  if ((p.location == 'bottom' || p.location == 'top') && p.lengthMode == 'fill') {
     var s = screenGeometry(p.screen);
-    p.lengthMode = 'custom'; p.alignment = 'left'; p.offset = m;
-    p.minimumLength = s.width - w; p.maximumLength = s.width - w;   // Plasma starts it after the left panel
+    p.lengthMode = 'custom'; p.alignment = 'left'; p.offset = m; p.floating = false;   // floating = gaps around it
+    // up to the right edge: Plasma places it at the offset (under the strip), or after the left
+    // panel when that panel came first, and then keeps it within the screen
+    p.minimumLength = s.width - m; p.maximumLength = s.width - m;
   }
 });
 """
@@ -40,14 +47,19 @@ panels().forEach(function (p) {
 
 def ensure_plasma_panel(width: int, tries: int = 30) -> bool:
     """An empty left Plasma panel `width` px thick; waits for plasmashell after login."""
-    for _ in range(tries):
-        r = subprocess.run(["qdbus6", "org.kde.plasmashell", "/PlasmaShell",
-                            "org.kde.PlasmaShell.evaluateScript", PANEL_SCRIPT % (width, MENU_OVERHANG)],
-                           capture_output=True, text=True)
-        if r.returncode == 0:
+    for attempt in range(tries):
+        try:
+            r = subprocess.run(["qdbus6", "org.kde.plasmashell", "/PlasmaShell",
+                                "org.kde.PlasmaShell.evaluateScript", PANEL_SCRIPT % (width, MENU_OVERHANG)],
+                               capture_output=True, text=True, timeout=5)
+        except subprocess.TimeoutExpired:   # plasmashell busy or hung: not this time
+            r = None
+        if r is not None and r.returncode == 0:
             return True
-        time.sleep(1)
-    print("t2-leftstrip: plasmashell not reachable; strip drawn without the Plasma panel", file=sys.stderr)
+        if attempt + 1 < tries:
+            time.sleep(1)
+    if tries > 1:
+        print("t2-leftstrip: plasmashell not reachable; strip drawn without the Plasma panel", file=sys.stderr)
     return False
 
 
@@ -62,6 +74,8 @@ def monitor_for(output: str):
 
 
 def main() -> int:
+    if sys.argv[1:2] == ["--panel"]:   # only the Plasma panels, e.g. after a theme change
+        return 0 if ensure_plasma_panel(int(sys.argv[2]) if len(sys.argv) > 2 else 16, tries=1) else 1
     width = int(sys.argv[1]) if len(sys.argv) > 1 else 16
     output = sys.argv[2] if len(sys.argv) > 2 else "eDP-1"
     ensure_plasma_panel(width)
