@@ -379,7 +379,9 @@ elif host.get_fact(FindInFile, path=strip_unit, pattern=MARKER):
 server.shell(
     name="Desktop services wanted by hypr-desktop.target (waybar, worker, clipboard, 01:00 wipe)",
     commands=["systemctl --user enable hypr-windows.service hypr-clip-bridge.service "
-              "hypr-cliphist.service hypr-cliphist-wipe.timer hypr-tailscale-tray.service hypr-secret-service.service",
+              "hypr-cliphist.service hypr-cliphist-wipe.timer hypr-secret-service.service",
+              # Tailscale tray in both sessions: reenable moves an old hypr-desktop-only link
+              "systemctl --user reenable hypr-tailscale-tray.service",
               "systemctl --user add-wants hypr-desktop.target waybar.service"],
 )
 worker_op = helper_ops[HELPERS.index("hypr-windows")]
@@ -414,6 +416,25 @@ server.shell(
               "systemctl --user reload-or-restart waybar.service || true"],
     _if=any_changed(*[o for o in bar_ops if o]),
 )
+
+# Menu entry for the Tailscale tray (Tailscale ships none): starts it again if it was quit;
+# the action opens the admin console. Both launchers (KDE, fuzzel) list it.
+owned_put(StringIO(f"""[Desktop Entry]
+# {MARKER}: Tailscale tray menu entry
+Type=Application
+Name=Tailscale
+Comment=Tailscale tray: connect, disconnect, exit node
+Exec=systemctl --user start hypr-tailscale-tray.service
+Icon=network-vpn
+Categories=Network;
+Keywords=vpn;tailnet;exit node;
+StartupNotify=false
+Actions=admin;
+
+[Desktop Action admin]
+Name=Admin console
+Exec=xdg-open https://login.tailscale.com/admin/machines
+"""), f"{home}/.local/share/applications/net.local.t2-tailscale.desktop")
 
 # KDE: brightness keys through hypr-brightness (dark at the minimum, as in Hyprland); the
 # binding needs KDE's shortcut service, so t2-kde-keys.service sets it at each KDE login.

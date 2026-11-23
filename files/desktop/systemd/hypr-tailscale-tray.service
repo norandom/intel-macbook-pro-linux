@@ -1,7 +1,7 @@
 # Managed by t2-mac-kde (desktop)
 [Unit]
-Description=Tailscale tray (connect, exit node on/off) in the Waybar tray
-PartOf=hypr-desktop.target graphical-session.target
+Description=Tailscale tray (connect, exit node on/off) in the Waybar and the KDE tray
+PartOf=graphical-session.target
 After=graphical-session.target waybar.service
 ConditionPathExists=/usr/bin/tailscale
 
@@ -13,4 +13,5 @@ Restart=on-failure
 RestartSec=5
 
 [Install]
-WantedBy=hypr-desktop.target
+# hypr-desktop.target: Hyprland's session services; plasma-workspace.target: KDE's.
+WantedBy=hypr-desktop.target plasma-workspace.target

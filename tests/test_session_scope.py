@@ -61,6 +61,12 @@ class SessionScopeTests(unittest.TestCase):
         self.assertIn("WantedBy=hypr-desktop.target plasma-workspace.target", unit)
         self.assertIn("systemctl --user reenable easyeffects.service", (ROOT / "tasks/audio_effects.py").read_text())
 
+    def test_tailscale_tray_in_both_sessions(self):
+        unit = (ROOT / "files/desktop/systemd/hypr-tailscale-tray.service").read_text()
+        self.assertIn("WantedBy=hypr-desktop.target plasma-workspace.target", unit)
+        self.assertIn("systemctl --user reenable hypr-tailscale-tray.service", (ROOT / "tasks/desktop.py").read_text())
+        self.assertIn("net.local.t2-tailscale.desktop", (ROOT / "tasks/desktop.py").read_text())
+
     def test_kde_brightness_keys(self):
         entry = scope.brightness_entry("Managed", "/home/u", "-5", "Down")
         self.assertIn("Exec=/home/u/.local/bin/hypr-brightness screen -5\n", entry)
