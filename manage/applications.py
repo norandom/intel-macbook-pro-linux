@@ -293,6 +293,15 @@ def _dpkg_version(package: str) -> str | None:
     return version if out.returncode == 0 and status == "installed" else None
 
 
+def needs_pinned_deb(package: str, version: str) -> bool:
+    """A pinned .deb installs when the package is missing or older; a newer one (e.g. the
+    owner's own build) is kept: apt would refuse the downgrade and fail the batch."""
+    installed = _dpkg_version(package)
+    if not installed:
+        return True
+    return subprocess.run(["dpkg", "--compare-versions", installed, "lt", version]).returncode == 0
+
+
 def observe(home: str | None = None, nix_attrs=DEFAULT_TOOLS) -> list[dict]:
     """Read-only availability probe (Nix profile, ~/.local/bin, then PATH: the session order)."""
     home = home or os.path.expanduser("~")

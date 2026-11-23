@@ -25,7 +25,7 @@ from io import StringIO
 from pyinfra import logger
 from pyinfra.operations import files, python, server
 
-from manage.applications import VENDOR_DEBS, VENDOR_REPOS, VENDOR_TARBALLS, _dpkg_version
+from manage.applications import VENDOR_DEBS, VENDOR_REPOS, VENDOR_TARBALLS, _dpkg_version, needs_pinned_deb
 from manage.packages import LOCAL_DEBS, schedule_batch
 from manage.preflight import validate_local_context
 
@@ -82,7 +82,7 @@ files.put(name="Slack: no cron-added apt repo", dest="/etc/default/slack", mode=
           src=StringIO('# Managed by t2-mac-kde: updates come from the pinned .deb\n'
                        'repo_add_once="false"\nrepo_reenable_on_distupgrade="false"\n'))
 missing_debs = [(package, version, url, sha) for package, version, url, sha, _exe in VENDOR_DEBS.values()
-                if _dpkg_version(package) != version]
+                if needs_pinned_deb(package, version)]
 # Everything missing (repo apps + pinned .debs) in ONE guarded apt transaction.
 schedule_batch("Vendor apps", packages=repo_packages, debs=missing_debs, source_lists=repo_lists, preseed=preseed)
 

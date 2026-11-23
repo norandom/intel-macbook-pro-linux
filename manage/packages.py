@@ -280,7 +280,7 @@ def schedule_batch(name: str, *, packages=(), debs=(), source_lists=(), preseed:
     if debs:
         script.append("pids=''")
         for (package, version, url, sha), deb in zip(debs, staged):
-            script.append(f"( echo '{sha}  {deb}' | sha256sum -c --quiet - 2>/dev/null || "
+            script.append(f"( echo '{sha}  {deb}' | sha256sum -c --status - 2>/dev/null || "
                           f"{{ curl -fsSL --proto '=https' --tlsv1.2 -o {deb}.part {shlex.quote(url)} && "
                           f"mv -f {deb}.part {deb} && echo '{sha}  {deb}' | sha256sum -c --quiet -; }} ) & pids=\"$pids $!\"")
         script.append('for p in $pids; do wait "$p"; done')

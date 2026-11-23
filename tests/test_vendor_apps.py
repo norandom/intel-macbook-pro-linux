@@ -149,3 +149,15 @@ class CatalogTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class PinnedDebTests(unittest.TestCase):
+    def test_newer_installed_deb_is_kept(self):
+        from unittest import mock
+        with mock.patch.object(apps, "_dpkg_version", return_value="0.2.0-beta.1"):
+            self.assertFalse(apps.needs_pinned_deb("1-1", "0.1.0-beta.1"))
+            self.assertFalse(apps.needs_pinned_deb("1-1", "0.2.0-beta.1"))
+        with mock.patch.object(apps, "_dpkg_version", return_value="0.1.0-alpha.7"):
+            self.assertTrue(apps.needs_pinned_deb("1-1", "0.1.0-beta.1"))
+        with mock.patch.object(apps, "_dpkg_version", return_value=None):
+            self.assertTrue(apps.needs_pinned_deb("1-1", "0.1.0-beta.1"))
