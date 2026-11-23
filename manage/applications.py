@@ -181,6 +181,11 @@ VENDOR_DEBS = {
     "1-1": ("1-1", "0.1.0-beta.1",
             "https://github.com/norandom/1-1/releases/download/v0.1.0-beta.1/1-1_0.1.0-beta.1_amd64.deb",
             "31997e17b572d405caba1daf43e06ebb42746db64770f8cf26525b8ba92dfbd8", "rdp-client"),
+    # Diffcore: semantic diff / review app for large (agent-made) changes (owner request 2026-11-23).
+    # Tauri on the system WebKitGTK, no maintainer scripts. The repo has no license file.
+    "diffcore": ("diffcore", "0.5.16",
+                 "https://github.com/jamesaphoenix/diff-core/releases/download/v0.5.16/Diffcore_0.5.16_amd64.deb",
+                 "fa56ab3e7cf3956c8a86fb55a55f4fa108c10b33c3aade92d36794d26475fd80", "diffcore-tauri"),
     "rclone-ui": ("rclone-ui", "3.7.5", "https://github.com/rclone-ui/rclone-ui/releases/download/v3.7.5/Rclone.UI_amd64.deb",
                   "9abf7db50839350fe336710574232197b87be9204036f94390de458b59ab9faf", "Rclone UI"),
 }
@@ -258,6 +263,7 @@ OTHER = {
     "discord": ("vendor", _VENDOR_OWNER, "discord", _DEB + " (host self-updates in ~/.config/discord)"),
     "firefox-devedition": ("vendor", _VENDOR_OWNER, "firefox-devedition",
                            _REPO + " (Mozilla; pinned to Developer Edition only; not the default browser)"),
+    "diffcore": ("vendor", _VENDOR_OWNER, "diffcore-tauri", _DEB + " (jamesaphoenix/diff-core; desktop app only, no CLI)"),
     "rclone-ui": ("vendor", _VENDOR_OWNER, "Rclone UI", _DEB + " (Tauri, system WebKitGTK; point it at Nix rclone)"),
     # Its postinst builds and insmods the SEP sampling drivers and installs a boot script
     # (kernel boundary); VTune 2026.6 HW sampling also does not support this i9-9980HK.
