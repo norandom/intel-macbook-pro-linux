@@ -196,6 +196,11 @@ it. A bottom panel still at Plasma's full-width default gets an offset of 11 px:
 menu opens that far left of the panel's offset, and would otherwise cover the strip. A bottom
 panel you have set up yourself is left alone.
 
+In KDE the screen brightness keys run `hypr-brightness` as in Hyprland, so one more step down
+at the minimum turns the backlight off (Plasma's PowerDevil stops at its lowest step), with
+Plasma's own brightness OSD. `t2-kde-keys` binds them at each KDE login; Shift+brightness keeps
+PowerDevil's 1 % steps.
+
 ## Display and GPUs
 
 - `panel_scale` sets the internal panel scale (`auto` lets Hyprland decide; I use 1.6).

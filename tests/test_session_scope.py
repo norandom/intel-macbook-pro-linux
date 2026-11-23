@@ -60,6 +60,23 @@ class SessionScopeTests(unittest.TestCase):
         self.assertIn("WantedBy=hypr-desktop.target plasma-workspace.target", unit)
         self.assertIn("systemctl --user reenable easyeffects.service", (ROOT / "tasks/audio_effects.py").read_text())
 
+    def test_kde_brightness_keys(self):
+        entry = scope.brightness_entry("Managed", "/home/u", "-5", "Down")
+        self.assertIn("Exec=/home/u/.local/bin/hypr-brightness screen -5\n", entry)
+        self.assertIn("NoDisplay=true\n", entry)
+        self.assertIn("StartupNotify=false\n", entry)         # no bouncing icon on each key press
+        unit = scope.kde_keys_unit("Managed")
+        self.assertIn("ConditionEnvironment=XDG_CURRENT_DESKTOP=KDE\n", unit)
+        self.assertIn("ExecStart=%h/.local/bin/t2-kde-keys\n", unit)
+        self.assertIn("WantedBy=plasma-workspace.target\n", unit)
+        helper = (ROOT / "files/desktop/bin/t2-kde-keys").read_text()
+        self.assertIn("0x10000B3", helper)                      # Qt::Key_MonBrightnessDown
+        self.assertIn('"Decrease Screen Brightness"', helper)   # PowerDevil's plain key unbound
+        self.assertNotIn("Small", helper)                       # Shift = 1 % steps stays PowerDevil's
+        osd = (ROOT / "files/desktop/bin/hypr-osd").read_text()
+        self.assertIn("org.kde.osdService.brightnessChanged", osd)
+        subprocess.run(["python3", "-m", "py_compile", str(ROOT / "files/desktop/bin/t2-kde-keys")], check=True)
+
     def test_task_wiring(self):
         task = (ROOT / "tasks/desktop.py").read_text()
         self.assertIn("session_scope.HYPRLAND_ONLY", task)

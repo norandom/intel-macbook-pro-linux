@@ -1,0 +1,45 @@
+#!/usr/bin/env python3
+# Managed by t2-mac-kde (desktop). KDE sessions: the screen brightness keys run hypr-brightness
+# as in Hyprland, so one more step down at the minimum turns the backlight off (Plasma's
+# PowerDevil never goes below its lowest step). Binds the keys to the menu entries
+# net.local.t2-brightness-{down,up}.desktop through KDE's shortcut service (saved by KDE in
+# kglobalshortcutsrc) and unbinds PowerDevil's plain brightness keys; Shift+brightness (1 %
+# steps) stays PowerDevil's. Idempotent; t2-kde-keys.service runs it at each KDE login.
+import sys
+import time
+
+import dbus
+
+KEYS = (("down", 0x10000B3, "Screen brightness down (dark at the minimum)"),   # Qt::Key_MonBrightnessDown
+        ("up", 0x10000B2, "Screen brightness up"))                           # Qt::Key_MonBrightnessUp
+POWERDEVIL = ("Decrease Screen Brightness", "Increase Screen Brightness")
+
+
+def keys(code: int):
+    return dbus.Array([dbus.Struct((dbus.Array([dbus.Int32(code), 0, 0, 0], signature="i"),), signature=None)],
+                      signature="(ai)")
+
+
+def main() -> int:
+    for _ in range(30):   # kglobalaccel lives in KWin: wait for it after login
+        try:
+            accel = dbus.Interface(dbus.SessionBus().get_object("org.kde.kglobalaccel", "/kglobalaccel"),
+                                   "org.kde.KGlobalAccel")
+            accel.shortcutKeys(["org_kde_powerdevil", POWERDEVIL[0], "", ""])
+            break
+        except dbus.DBusException:
+            time.sleep(1)
+    else:
+        print("t2-kde-keys: KDE's shortcut service is not reachable", file=sys.stderr)
+        return 1
+    for action in POWERDEVIL:
+        accel.setForeignShortcutKeys(["org_kde_powerdevil", action, "", ""], dbus.Array([], signature="(ai)"))
+    for name, code, label in KEYS:
+        action = [f"net.local.t2-brightness-{name}.desktop", "_launch", label, "Launch"]
+        accel.doRegister(action)
+        accel.setForeignShortcutKeys(action, keys(code))
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

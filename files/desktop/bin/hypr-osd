@@ -3,6 +3,14 @@
 # One replacing notification per KIND with a progress bar (mako shows the value).
 set -u
 kind=$1 pct=$2 label=${3:-$1}
+# KDE: Plasma's own on-screen display (the brightness keys run hypr-brightness there too).
+if [ "${XDG_CURRENT_DESKTOP:-}" = KDE ]; then
+  case "$kind" in
+    screen) qdbus6 org.kde.plasmashell /org/kde/osdService org.kde.osdService.brightnessChanged "$pct" >/dev/null 2>&1 ;;
+    kbd) qdbus6 org.kde.plasmashell /org/kde/osdService org.kde.osdService.keyboardBrightnessChanged "$pct" >/dev/null 2>&1 ;;
+  esac
+  exit 0
+fi
 state=${XDG_RUNTIME_DIR:-/tmp}/hypr-osd-$kind
 id=$(cat "$state" 2>/dev/null || echo 0)
 new=$(notify-send -a OSD -u low -t 1200 -p -r "$id" -h "int:value:$pct" "$label" "$pct%" 2>/dev/null) && echo "$new" > "$state"

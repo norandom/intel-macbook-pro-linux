@@ -159,7 +159,7 @@ HELPERS = (
     "hypr-glass", "hypr-kbd", "hypr-nightmode", "hypr-windows", "hypr-session", "hypr-appmenu",
     "hypr-sparkline", "hypr-agent-quota", "hypr-cliphist", "hypr-clip-bridge", "hypr-termtheme-status",
     "hypr-brightness", "hypr-screenshot", "hypr-osd", "hypr-volume", "hypr-power-profile", "hypr-findcursor", "hypr-netrate", "hypr-thermal", "hypr-touchpad", "hypr-gpu", "hypr-wallet-check",
-    "hypr-nightshift", "hypr-xscale", "t2-leftstrip",
+    "hypr-nightshift", "hypr-xscale", "t2-leftstrip", "t2-kde-keys",
 )
 helper_ops = [owned_put(f"{SRC}/bin/{h}", f"{bin_dir}/{h}", mode="755") for h in HELPERS]
 
@@ -411,6 +411,15 @@ server.shell(
               "systemctl --user reload-or-restart waybar.service || true"],
     _if=any_changed(*[o for o in bar_ops if o]),
 )
+
+# KDE: brightness keys through hypr-brightness (dark at the minimum, as in Hyprland); the
+# binding needs KDE's shortcut service, so t2-kde-keys.service sets it at each KDE login.
+for name, step, label in session_scope.BRIGHTNESS_STEPS:
+    owned_put(StringIO(session_scope.brightness_entry(MARKER, home, step, label)),
+              f"{home}/.local/share/applications/net.local.t2-brightness-{name}.desktop")
+keys_unit = owned_put(StringIO(session_scope.kde_keys_unit(MARKER)), f"{cfg}/systemd/user/{session_scope.KDE_KEYS_UNIT}")
+server.shell(name="KDE: brightness keys service at KDE login",
+             commands=["systemctl --user daemon-reload", f"systemctl --user enable {session_scope.KDE_KEYS_UNIT}"])
 
 # KDE: the same keyboard as Hyprland's input.conf (German Mac no dead keys + US, Right Option =
 # Super, Left Option = Mac Option, repeat, NumLock); only these keys are written.

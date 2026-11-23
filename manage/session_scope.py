@@ -61,3 +61,25 @@ def kde_strip_unit(marker: str, width: int, output: str = "eDP-1") -> str:
             f"[Service]\nExecStart=%h/.local/bin/t2-leftstrip {int(width)} {output}\n"
             "Restart=on-failure\nRestartSec=3\n\n"
             "[Install]\nWantedBy=graphical-session.target\n")
+
+
+KDE_KEYS_UNIT = "t2-kde-keys.service"
+BRIGHTNESS_STEPS = (("down", "-5", "Screen brightness down (dark at the minimum)"), ("up", "+5", "Screen brightness up"))
+
+
+def brightness_entry(marker: str, home: str, step: str, name: str) -> str:
+    """Menu entry the KDE brightness key launches (t2-kde-keys binds it)."""
+    return (f"[Desktop Entry]\n# {marker}: KDE brightness key, as in Hyprland (hypr-brightness)\n"
+            f"Type=Application\nName={name}\nExec={home}/.local/bin/hypr-brightness screen {step}\n"
+            # no launch feedback: without it KDE bounces a generic app icon at the cursor on
+            # every key press (the key runs this entry like an app start)
+            "Icon=display-brightness\nStartupNotify=false\n"
+            "NoDisplay=true\nX-KDE-GlobalAccel-CommandShortcut=true\n")
+
+
+def kde_keys_unit(marker: str) -> str:
+    return (f"# {marker}. KDE sessions: brightness keys through hypr-brightness (t2-kde-keys).\n"
+            "[Unit]\nDescription=KDE brightness keys as in Hyprland (backlight off at the minimum)\n"
+            "After=plasma-workspace.target\nConditionEnvironment=XDG_CURRENT_DESKTOP=KDE\n\n"
+            "[Service]\nType=oneshot\nExecStart=%h/.local/bin/t2-kde-keys\n\n"
+            "[Install]\nWantedBy=plasma-workspace.target\n")
