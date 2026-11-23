@@ -47,6 +47,12 @@ class PinTests(unittest.TestCase):
         self.assertRegex(c["OPENIDEA_VERSION"], r"\A\d+\.\d+\.\d+\Z")
         self.assertIn(c["OPENIDEA_VERSION"], debs()["open-idea"][1])
 
+    def test_newer_installed_deb_is_never_downgraded(self):
+        # OpenIDEA updates itself past the pin; "!= pin" made apt refuse a downgrade (2026-11-23).
+        text = TASK.read_text()
+        self.assertIn("needs_pinned_deb(p, v)", text)
+        self.assertNotIn("installed_version(p) != v", text)
+
     def test_libreoffice_packages_pass_the_guard(self):
         guard.validate_request(guard.PackageRequest(constants()["LIBREOFFICE"]))
 

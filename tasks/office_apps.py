@@ -4,13 +4,15 @@ layer), the ArtCraft suite (storytold/*) and OpenIDEA (l0ng-ai/openidea) as pinn
 Every .deb is downloaded by URL, sha256-checked, then installed through the guarded
 root helper (`python -m manage.packages --apply <staged .deb>`: apt simulation without
 removals, protected-package check, payload + maintainer-script scan). A package whose
-dpkg version already equals the pin is skipped. Bumping a pin: edit VERSION + SHA256
+dpkg version is the pin or newer is skipped
+(OpenIDEA updates itself; apt would refuse the downgrade and fail the batch). Bumping a pin: edit VERSION + SHA256
 (GitHub shows the asset digest on the release page / `gh api .../releases`).
 """
 from pathlib import Path
 import subprocess
 
 from pyinfra.operations import files, server
+from manage.applications import needs_pinned_deb
 from manage.packages import PackageRequest, install_packages, schedule_batch
 from manage.preflight import validate_local_context
 
@@ -56,12 +58,12 @@ def installed_version(package: str) -> str | None:
 
 
 validate_local_context()
-# One guarded transaction: missing LibreOffice packages + every pinned .deb not at its pin.
+# One guarded transaction: missing LibreOffice packages + every pinned .deb missing or older.
 missing_lo = tuple(p for p in LIBREOFFICE if installed_version(p) is None)
 if missing_lo:
     install_packages(PackageRequest(packages=missing_lo), preview_only=True)  # plan-time guard preview
 schedule_batch("Office + Craft + OpenIDEA", packages=missing_lo,
-               debs=[(p, v, u, s) for p, (v, u, s) in debs().items() if installed_version(p) != v])
+               debs=[(p, v, u, s) for p, (v, u, s) in debs().items() if needs_pinned_deb(p, v)])
 # Tabbed UI (ribbon) for Writer and Calc as the system default: an admin .xcd layer;
 # the user's own choice in View > User Interface overrides it.
 files.put(name="LibreOffice: Tabbed UI layer", src=str(Path(__file__).resolve().parents[1] / "files/office-apps/t2-mac-kde.xcd"),
