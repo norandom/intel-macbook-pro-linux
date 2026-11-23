@@ -1,0 +1,26 @@
+#!/bin/sh
+# Managed by t2-mac-kde (desktop). Build the t2rabbit KWin effect (the rabbit's screen filters
+# in KDE) against the installed KWin (kwin-dev), as the user:
+#   build-kwin-rabbit <source dir>    no-op when the stamp matches (KWin version + sources)
+# Output: ~/.local/lib/t2-mac-kde/qt6/plugins/kwin/effects/plugins/t2rabbit.so, on KWin's plugin
+# path through the plasma-kwin_wayland.service drop-in. KWin only loads an effect built for its
+# exact version (the plugin IID carries it), so after a KDE update the filter is off in KDE
+# until the next deploy rebuilds it; KWin never loads a mismatched build.
+set -eu
+src=$(realpath "$1")
+out="$HOME/.local/lib/t2-mac-kde/qt6/plugins/kwin/effects/plugins"
+kv=$(dpkg-query -W -f='${Version}' kwin-dev)
+stamp="kwin-dev=$kv src=$(cat "$src/CMakeLists.txt" "$src/rabbit.cpp" "$src/metadata.json" | sha256sum | cut -d' ' -f1)"
+if [ -f "$out/t2rabbit.so" ] && [ "$(cat "$out/.t2rabbit.stamp" 2>/dev/null)" = "$stamp" ]; then
+  echo "t2rabbit: up to date ($stamp)"
+  exit 0
+fi
+t=$(mktemp -d)
+trap 'rm -rf "$t"' EXIT
+{ cmake -S "$src" -B "$t" -DCMAKE_BUILD_TYPE=Release && cmake --build "$t" -j"$(nproc)"; } >"$t/build.log" 2>&1 \
+  || { tail -n 30 "$t/build.log" >&2; exit 1; }
+mkdir -p "$out"
+install -m 755 "$t/t2rabbit.so" "$out/.t2rabbit.so.new"
+mv -f "$out/.t2rabbit.so.new" "$out/t2rabbit.so"
+echo "$stamp" > "$out/.t2rabbit.stamp"
+echo "t2rabbit: built ($stamp)"

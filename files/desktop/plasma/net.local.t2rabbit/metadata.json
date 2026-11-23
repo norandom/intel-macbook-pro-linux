@@ -1,0 +1,14 @@
+{
+    "KPlugin": {
+        "Authors": [{"Name": "t2-mac-kde"}],
+        "Description": "The rabbit: screen filter picker (green, dark, grayscale, retro LCD, warm whites), shared with Hyprland",
+        "Icon": "color-management",
+        "Id": "net.local.t2rabbit",
+        "License": "MIT",
+        "Name": "Rabbit screen filter",
+        "Version": "1.0"
+    },
+    "X-Managed-By": "Managed by t2-mac-kde (desktop)",
+    "KPackageStructure": "Plasma/Applet",
+    "X-Plasma-API-Minimum-Version": "6.0"
+}

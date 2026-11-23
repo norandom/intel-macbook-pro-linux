@@ -1,0 +1,11 @@
+{
+    "KPlugin": {
+        "Authors": [{"Name": "t2-mac-kde"}],
+        "Category": "Accessibility",
+        "Description": "The rabbit's screen filters (green, dark, grayscale, retro LCD, warm whites) in KDE; choice shared with Hyprland",
+        "EnabledByDefault": true,
+        "License": "MIT",
+        "Name": "Rabbit screen filter"
+    },
+    "X-Managed-By": "Managed by t2-mac-kde (desktop)"
+}

@@ -263,6 +263,12 @@ Lid close is handled by logind: it suspends, as on a stock install, or hibernate
   and lines on dark or coloured backgrounds (terminals) approximately RGB 173/167/152, including
   anti-aliased glyph edges. Darker tones and saturated colors are preserved; this is selective
   highlight warming rather than an overall color-temperature shift.
+  KDE has the rabbit too (panel widget `net.local.t2rabbit`, same picker, right-click off) and
+  shares the choice with Hyprland. KWin has no whole-screen shader, so the `t2rabbit` KWin effect
+  draws each window through the same filter (the deploy rewrites the shaders for KWin and
+  builds the effect against `kwin-dev`). Warm whites looks at neighbouring pixels and so can
+  differ slightly at window edges. KWin loads the effect only at the exact version it was built
+  for: after a KDE update the filter stays off in KDE until the next deploy rebuilds it.
 - Night shift, like f.lux: with `night_shift = true`, gammastep warms the screen after sunset
   and back after sunrise, fading through dusk and dawn. It follows the sun at a fixed place:
   `night_shift_location = "lat:lon"`, or by default the city of your timezone (Europe/Berlin:

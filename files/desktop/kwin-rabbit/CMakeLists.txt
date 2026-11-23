@@ -1,0 +1,11 @@
+# Managed by t2-mac-kde (desktop). KWin effect: the rabbit's screen filters in KDE.
+cmake_minimum_required(VERSION 3.22)
+project(t2rabbit LANGUAGES CXX)
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_AUTOMOC ON)
+find_package(Qt6 REQUIRED COMPONENTS Core Gui DBus Quick Widgets)
+find_package(KWin REQUIRED)
+add_library(t2rabbit MODULE rabbit.cpp)
+target_link_libraries(t2rabbit PRIVATE KWin::kwin)
+set_target_properties(t2rabbit PROPERTIES PREFIX "")

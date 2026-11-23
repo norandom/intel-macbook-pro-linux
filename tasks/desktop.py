@@ -23,7 +23,7 @@ from pyinfra.operations.util import any_changed
 from manage.desktop_hostcolor import color_for
 from manage.pixel_snap import conf as pixel_snap_conf
 from manage import night_shift as nightshift
-from manage import default_apps, kde_input, password_store, own_titlebar, session_scope
+from manage import default_apps, kde_input, kwin_rabbit, password_store, own_titlebar, session_scope
 from manage.packages import PackageRequest, install_packages
 from manage.preflight import validate_local_context
 from manage.userconfig import setting
@@ -420,6 +420,27 @@ for name, step, label in session_scope.BRIGHTNESS_STEPS:
 keys_unit = owned_put(StringIO(session_scope.kde_keys_unit(MARKER)), f"{cfg}/systemd/user/{session_scope.KDE_KEYS_UNIT}")
 server.shell(name="KDE: brightness keys service at KDE login",
              commands=["systemctl --user daemon-reload", f"systemctl --user enable {session_scope.KDE_KEYS_UNIT}"])
+
+# KDE: the rabbit's screen filters. A KWin effect (files/desktop/kwin-rabbit) draws each
+# window through Hyprland's shaders, rewritten for KWin (manage/kwin_rabbit.py); the panel
+# rabbit (net.local.t2rabbit) picks the filter through hypr-nightmode, as Waybar's does.
+# Built as the user against kwin-dev, like hyprbars; KWin loads it only at its exact version.
+install_packages(PackageRequest(packages=("kwin-dev", "extra-cmake-modules", "cmake", "g++"), source="ubuntu"))
+rabbit_src = f"{home}/.local/share/t2-mac-kde/kwin-rabbit-src"
+rabbit_ops = [files.put(name=f"KWin rabbit effect: {name}", src=f"{SRC}/kwin-rabbit/{name}", dest=f"{rabbit_src}/{name}",
+                        mode="755" if name.startswith("build-") else "644", create_remote_dir=True)
+              for name in ("CMakeLists.txt", "rabbit.cpp", "metadata.json", "build-kwin-rabbit")]
+for mode in kwin_rabbit.MODES:
+    owned_put(StringIO(kwin_rabbit.kwin_shader((Path(SRC) / f"hypr/shaders/night-{mode}.glsl").read_text(), MARKER)),
+              f"{home}/.local/share/t2-mac-kde/kwin-rabbit/night-{mode}.frag")
+owned_put(StringIO(kwin_rabbit.kwin_dropin(MARKER)),
+          f"{cfg}/systemd/user/plasma-kwin_wayland.service.d/{kwin_rabbit.DROPIN}")
+server.shell(name="KWin rabbit effect: build against the installed KWin (no-op when current)",
+             commands=[f"{rabbit_src}/build-kwin-rabbit {rabbit_src}", "systemctl --user daemon-reload",
+                       # a running KDE session that already has the plugin path loads it now
+                       f"qdbus6 org.kde.KWin /Effects org.kde.kwin.Effects.loadEffect {kwin_rabbit.EFFECT_ID} >/dev/null 2>&1 || true"])
+for rel in ("metadata.json", "contents/ui/main.qml"):
+    owned_put(f"{SRC}/plasma/net.local.t2rabbit/{rel}", f"{home}/.local/share/plasma/plasmoids/net.local.t2rabbit/{rel}")
 
 # KDE: compact panel items as in iStat Menus (net.local.t2stats; mode cpu, mem, net or temp):
 # CPU/MEM history graphs, upload over download, temperature coloured as hypr-thermal.

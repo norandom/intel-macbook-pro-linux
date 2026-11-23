@@ -5,7 +5,8 @@
 #   dark = darker, grayscale = neutral gray, monochrome = four-shade gray-green LCD.
 # Cycle: off -> green -> dark -> grayscale -> monochrome -> warmwhite -> off.
 # The choice is kept in ~/.local/state/hypr-nightmode and rendered into state.conf
-# so the shader survives logins and config reloads.
+# so the shader survives logins and config reloads. In KDE the t2rabbit KWin effect applies
+# the same filter: it watches that state file (the choice is shared by both sessions).
 state="$HOME/.local/state/hypr-nightmode"
 shaders="$HOME/.config/hypr/shaders"
 cur=$(cat "$state" 2>/dev/null || echo off)
@@ -44,7 +45,9 @@ case "$new" in
   off) path="[[EMPTY]]" ;;
   *) path="$shaders/night-$new.glsl" ;;
 esac
-hyprctl keyword decoration:screen_shader "$path" >/dev/null || exit 1
+if [ -n "${HYPRLAND_INSTANCE_SIGNATURE:-}" ]; then
+  hyprctl keyword decoration:screen_shader "$path" >/dev/null || exit 1
+fi
 if [ "${1:-}" != apply ]; then
   mkdir -p "${state%/*}" || exit 1
   tmp=$(mktemp "${state}.XXXXXX") || exit 1
