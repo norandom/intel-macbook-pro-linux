@@ -193,6 +193,10 @@ VENDOR_TARBALLS = {
     "podman-desktop": ("1.30.5",
                        "https://github.com/podman-desktop/podman-desktop/releases/download/v1.30.5/podman-desktop-1.30.5-x64.tar.gz",
                        "aa616a948a8b254132e903b751a95765eeae3454cbd5b7049146b5bdeb842d3d", "podman-desktop"),
+    # Telegram Desktop, the official build (not in Ubuntu 26.04; owner request 2026-11-23).
+    # Its own updater keeps it current in place, so the pin only matters for the first install.
+    "telegram": ("7.4.4", "https://github.com/telegramdesktop/tdesktop/releases/download/v7.4.4/td-setup-linux-x64-7.4.4.tar.xz",
+                 "607d77344a332268df1ab0c3c9b5adb70a6204e5f78cb668ab3fa58245c0888e", "telegram"),
     # Xcode replacement (SwiftPM iOS builds). An AppImage: unpacked once, so no libfuse2 needed.
     "xtool": ("1.24.0", "https://github.com/xtool-org/xtool/releases/download/1.24.0/xtool-x86_64.AppImage",
               "dbfd9d7216f077c84c171b688c4173c37c23ca76bf7fd185d1a9ae8a53dab59f", "xtool"),

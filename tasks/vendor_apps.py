@@ -9,7 +9,7 @@ Run: .venv/bin/pyinfra @local tasks/vendor_apps.py [--dry] [--use-sudo-password]
 - .debs (Obsidian, Penguin Mail, Bitwarden, Quarto, Positron, Remote Desktop Manager, Zoom, Slack, Discord, Rclone UI, 1-1): pinned version, URL,
   sha256; staged in /var/cache/t2-mac-kde/debs and installed by the guarded helper, which
   scans the archive. Re-run with new pins to update.
-- Tarballs (Zed, Zen, Podman Desktop): user-level in ~/.local/opt/<id>-<version>, no sudo
+- Tarballs (Zed, Zen, Telegram, Podman Desktop): user-level in ~/.local/opt/<id>-<version>, no sudo
   except the AppArmor userns profiles for Zen and Podman Desktop.
 Pins live in manage/applications.py (VENDOR_REPOS / VENDOR_DEBS / VENDOR_TARBALLS).
 Re-run tasks/themes.py afterwards: it only themes Sublime/VS Code/Positron once they exist.
@@ -191,6 +191,26 @@ files.put(name="Podman Desktop desktop entry", dest=f"{apps_dir}/podman-desktop.
               f"Exec={pd}/podman-desktop %U\nIcon={icon}\nCategories=Development;\n"
               "Terminal=false\n"))
 _apparmor("t2-podman-desktop")
+
+# Telegram: self-updating like Zen, so an existing ~/.local/opt/telegram-* is kept as is. At
+# its first start it writes its own menu entry (org.telegram.desktop*.desktop, icon, tg:// link
+# handler); ours only bridges until then and is removed once Telegram's exists.
+version, url, sha, _exe = VENDOR_TARBALLS["telegram"]
+existing = sorted(Path(opt).glob("telegram-*/Telegram")) if os.path.isdir(opt) else []
+tg = str(existing[-1].parent) if existing else f"{opt}/telegram-{version}"
+if not existing:
+    _unpack("telegram", version, url, sha, strip=1)
+files.link(name="~/.local/bin/telegram", path=f"{bin_dir}/telegram", target=f"{tg}/Telegram", create_remote_dir=True)
+tg_entry = f"{apps_dir}/t2-telegram.desktop"
+if any(Path(apps_dir).glob("org.telegram.desktop*.desktop")):
+    files.file(name="Telegram registered its own menu entry: bridge entry removed", path=tg_entry, present=False)
+else:
+    files.put(name="Telegram menu entry (until its first start writes its own)", dest=tg_entry, mode="644",
+              create_remote_dir=True, src=StringIO(
+                  "[Desktop Entry]\n# Managed by t2-mac-kde: replaced by Telegram's own entry at its first start\n"
+                  f"Type=Application\nName=Telegram\nComment=Telegram Desktop\nExec={tg}/Telegram -- %u\n"
+                  "Icon=org.telegram.desktop\nCategories=Chat;Network;InstantMessaging;\n"
+                  "MimeType=x-scheme-handler/tg;\nStartupWMClass=TelegramDesktop\nTerminal=false\n"))
 
 
 # xtool (Xcode replacement): the AppImage's own runtime unpacks it (after the sha256 check), so it

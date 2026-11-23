@@ -18,7 +18,7 @@ DEB_HOSTS = {"obsidian": "github.com", "penguin-mail": "github.com", "bitwarden"
 DEB_PATHS = {"obsidian": "/obsidianmd/obsidian-releases/", "penguin-mail": "/c9dev/penguin-mail/releases/download/v", "bitwarden": "/bitwarden/clients/releases/download/desktop-v",
              "quarto": "/quarto-dev/quarto-cli/", "rclone-ui": "/rclone-ui/rclone-ui/releases/download/v",
              "1-1": "/norandom/1-1/releases/download/v"}
-TARBALL_PATHS = {"zed": "/zed-industries/zed/", "zen": "/zen-browser/desktop/",
+TARBALL_PATHS = {"zed": "/zed-industries/zed/", "telegram": "/telegramdesktop/tdesktop/", "zen": "/zen-browser/desktop/",
                  "podman-desktop": "/podman-desktop/podman-desktop/", "xtool": "/xtool-org/xtool/"}
 
 
