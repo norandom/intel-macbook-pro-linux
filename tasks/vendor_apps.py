@@ -6,7 +6,7 @@ Run: .venv/bin/pyinfra @local tasks/vendor_apps.py [--dry] [--use-sudo-password]
   Mozilla Firefox Developer Edition): committed signing key, sha256
   checked here before anything; deb line with signed-by; first install refreshes only that
   source and goes through the guarded root helper (manage.packages). Updates via apt.
-- .debs (Obsidian, Penguin Mail, Bitwarden, Quarto, Positron, Remote Desktop Manager, Zoom, Slack, Discord, Rclone UI, Diffcore, Mindwtr, 1-1): pinned version, URL,
+- .debs (Obsidian, Penguin Mail, Bitwarden, Quarto, Positron, Remote Desktop Manager, Zoom, Slack, Discord, Rclone UI, Diffcore, Mindwtr, witr, 1-1): pinned version, URL,
   sha256; staged in /var/cache/t2-mac-kde/debs and installed by the guarded helper, which
   scans the archive. Re-run with new pins to update.
 - Tarballs (Zed, Zen, Telegram, Mendeley Reference Manager, Podman Desktop): user-level in ~/.local/opt/<id>-<version>, no sudo
