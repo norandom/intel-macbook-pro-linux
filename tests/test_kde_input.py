@@ -46,8 +46,20 @@ class KdeInputTests(unittest.TestCase):
         self.assertEqual(len(re.findall(r"^workspace = \d+, persistent:true", conf, re.M)), 2)
         self.assertIn("createDesktop 1", kde_input.apply_script())
 
+    def test_kde_never_suspends(self):
+        for hibernate, lid_close, lid in ((True, "hibernate", "2"), (False, "suspend", "64"), (True, "suspend", "64")):
+            settings = kde_input.power_settings(hibernate, lid_close)
+            for profile in ("AC", "Battery", "LowBattery"):
+                self.assertIn(("powerdevilrc", f"{profile}/SuspendAndShutdown", "AutoSuspendAction", "0"), settings)
+                self.assertIn(("powerdevilrc", f"{profile}/SuspendAndShutdown", "LidAction", lid), settings)
+            self.assertNotIn("1", {v for _f, _g, k, v in settings if k.endswith("Action")})   # 1 = suspend to RAM
+        self.assertIn(("powerdevilrc", "General", "BatteryCriticalAction", "8"), kde_input.power_settings(False, "suspend"))
+        script = kde_input.apply_script(kde_input.power_settings(True, "hibernate"))
+        self.assertIn("--group AC --group SuspendAndShutdown --key AutoSuspendAction", script)
+        subprocess.run(["bash", "-n"], input=script, text=True, check=True)
+
     def test_task_wiring(self):
-        self.assertIn("kde_input.apply_script()", (ROOT / "tasks/desktop.py").read_text())
+        self.assertIn("kde_input.apply_script(kde_input.power_settings(hibernate, lid_close))", (ROOT / "tasks/desktop.py").read_text())
 
 
 if __name__ == "__main__":

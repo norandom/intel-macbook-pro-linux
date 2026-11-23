@@ -53,6 +53,13 @@ chime. This was a fresh boot, not merely a restarted Hyprland session. There is 
 recorded suspend exit or orderly shutdown, and systemd-pstore found no stored report.
 The evidence does not establish whether entry, overnight sleep, or resume failed.
 
+Second incident, 2026-11-22: in a KDE session, Plasma's power management suspended the idle
+laptop on its own (default: sleep after 15 minutes idle) at 09:48:10; the log ends with
+`PM: suspend entry (deep)` and the next boot started at 10:10:41, with no resume, panic or
+pstore record. Since then the deploy sets KDE to never suspend automatically
+(`powerdevilrc`: no idle suspend in any profile, lid and critical battery hibernate), the same
+policy as the Hyprland session, whose idle rules never suspend.
+
 Ordinary suspend remains unresolved. Hibernate is a separate, previously tested
 path (below); use that for overnight sleep pending an owner-run controlled suspend
 and resume test. Do not apply legacy apple-bce unload hooks to the current t2bce

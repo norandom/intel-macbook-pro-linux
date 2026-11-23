@@ -414,8 +414,8 @@ server.shell(
 
 # KDE: the same keyboard as Hyprland's input.conf (German Mac no dead keys + US, Right Option =
 # Super, Left Option = Mac Option, repeat, NumLock); only these keys are written.
-server.shell(name="KDE: keyboard layout, Option/Super keys, repeat and two desktops as in Hyprland",
-             commands=[kde_input.apply_script()], _shell_executable="bash")
+server.shell(name="KDE: keyboard, two desktops, and power management that never suspends",
+             commands=[kde_input.apply_script(kde_input.power_settings(hibernate, lid_close))], _shell_executable="bash")
 
 # --- Session entry check: from the hyprland package, SDDM unchanged ---------------------------
 server.shell(
