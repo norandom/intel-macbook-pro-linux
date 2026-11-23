@@ -61,6 +61,9 @@ NATIVE = {
     "heaptrack-gui": ("heaptrack-gui", "heaptrack_gui"),
     # Media player (owner request 2026-11-16; Ubuntu .deb, not a snap)
     "vlc": ("vlc", "vlc"),
+    # Video player for network shares (owner request 2026-11-23): on the sshfs filer an unread MKV
+    # starts in ~2 s, VLC took over a minute (its MKV demuxer seeks hundreds of times).
+    "mpv": ("mpv", "mpv"),
     # SFTP shares as a local folder (owner request 2026-11-23: media streaming from the filer;
     # kernel page cache + offset reads, so players can seek, unlike an rclone stream)
     "sshfs": ("sshfs", "sshfs"),
