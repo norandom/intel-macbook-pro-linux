@@ -186,6 +186,11 @@ VENDOR_DEBS = {
     "diffcore": ("diffcore", "0.5.16",
                  "https://github.com/jamesaphoenix/diff-core/releases/download/v0.5.16/Diffcore_0.5.16_amd64.deb",
                  "fa56ab3e7cf3956c8a86fb55a55f4fa108c10b33c3aade92d36794d26475fd80", "diffcore-tauri"),
+    # Mindwtr: GTD to-do app, AGPL-3.0, no account (owner request 2026-11-23). Tauri; its
+    # libappindicator3-1 dependency is met by Ubuntu's Ayatana library (Provides), nothing removed.
+    "mindwtr": ("mindwtr", "1.3.9",
+                "https://github.com/dongdongbh/Mindwtr/releases/download/v1.3.9/mindwtr_1.3.9_amd64.deb",
+                "bd0dea355e526855ec6c419dd557fe77fc7244132c16346fa8ab3bcd4e094f7b", "mindwtr"),
     "rclone-ui": ("rclone-ui", "3.7.5", "https://github.com/rclone-ui/rclone-ui/releases/download/v3.7.5/Rclone.UI_amd64.deb",
                   "9abf7db50839350fe336710574232197b87be9204036f94390de458b59ab9faf", "Rclone UI"),
 }
@@ -264,6 +269,7 @@ OTHER = {
     "firefox-devedition": ("vendor", _VENDOR_OWNER, "firefox-devedition",
                            _REPO + " (Mozilla; pinned to Developer Edition only; not the default browser)"),
     "diffcore": ("vendor", _VENDOR_OWNER, "diffcore-tauri", _DEB + " (jamesaphoenix/diff-core; desktop app only, no CLI)"),
+    "mindwtr": ("vendor", _VENDOR_OWNER, "mindwtr", _DEB + " (dongdongbh/Mindwtr; sha256 also in its SHA256SUMS)"),
     "rclone-ui": ("vendor", _VENDOR_OWNER, "Rclone UI", _DEB + " (Tauri, system WebKitGTK; point it at Nix rclone)"),
     # Its postinst builds and insmods the SEP sampling drivers and installs a boot script
     # (kernel boundary); VTune 2026.6 HW sampling also does not support this i9-9980HK.
