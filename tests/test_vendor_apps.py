@@ -98,6 +98,13 @@ class PinnedDownloadTests(unittest.TestCase):
             self.assertIn(version, url, app_id)
             self.assertRegex(sha, r"\A[0-9a-f]{64}\Z", app_id)
 
+    def test_system_binaries_are_pinned_github_releases(self):
+        for name, (version, url, sha, caps) in apps.SYSTEM_BINARIES.items():
+            self.assertTrue(url.startswith(f"https://github.com/"), name)
+            self.assertIn(f"/releases/download/v{version}/", url, name)
+            self.assertRegex(sha, r"\A[0-9a-f]{64}\Z", name)
+            self.assertEqual(caps, "cap_net_raw=ep", name)  # nothing broader than raw sockets
+
     def test_downloads_are_sha256_checked_before_install(self):
         self.assertIn("sha256sum -c", TASK)
         self.assertNotRegex(TASK, r"dpkg -i|apt-get install|--no-sandbox|curl[^\n]*\| *(ba)?sh")
@@ -139,7 +146,7 @@ class AppArmorTests(unittest.TestCase):
 class CatalogTests(unittest.TestCase):
     def test_vendor_routes_are_catalogued(self):
         cat = apps.catalog()
-        for app_id in (*apps.VENDOR_REPOS, *apps.VENDOR_DEBS, *apps.VENDOR_TARBALLS, "chromium-driver"):
+        for app_id in (*apps.VENDOR_REPOS, *apps.VENDOR_DEBS, *apps.VENDOR_TARBALLS, *apps.SYSTEM_BINARIES, "chromium-driver"):
             self.assertEqual(cat[app_id][0], "vendor", app_id)
             self.assertEqual(cat[app_id][1], "tasks/vendor_apps.py", app_id)
         self.assertEqual(cat["vivaldi-stable"][0], "vendor")  # owner decision 2026-11-16

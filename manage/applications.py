@@ -89,12 +89,16 @@ GSTREAMER = ("gstreamer1.0-plugins-bad", "gstreamer1.0-plugins-ugly", "gstreamer
 NEVER = ("gstreamer1.0-libav",)
 
 # name -> (version, url, sha256), verbatim from source group_data/all.py release_tools.
-# Only tools nixpkgs lacks (upmd; rc = rustfs-cli, nixpkgs "rc" is the Plan 9 shell).
+# Only tools nixpkgs lacks (upmd; rc = rustfs-cli, nixpkgs "rc" is the Plan 9 shell; leaves is
+# not in nixos-26.05).
 RELEASE_TOOLS = {
     "upmd": ("0.2.7", "https://github.com/rezigned/upmd/releases/download/v0.2.7/upmd-x86_64-unknown-linux-gnu.tar.xz",
              "101336d7a8f4648a3bf894d5636875f1df3d219719d470096c562e0cf4d6b9aa"),
     "rc": ("0.1.36", "https://github.com/rustfs/cli/releases/download/v0.1.36/rustfs-cli-linux-amd64-v0.1.36.tar.gz",
            "4a8128911ccad4e7b481f26635a4cfd1ec064412210526e57ad2c748d356f3b7"),
+    # Text-mode disk usage map (owner request 2026-11-23); static musl binary, MPL-2.0.
+    "leaves": ("0.2.0", "https://github.com/patonw/leaves/releases/download/v0.2.0-cross/leaves-v0.2.0-cross-x86_64-linux-musl",
+               "56ce36eab284b0bfc3ca554cddf21ebc137c1da41f9784e7e9dfe905f8cc3839"),
 }
 # Pins of tools Nix provides now (manage/nix_tools.MIGRATED). tasks/apps.py installs one again
 # only when its attribute is taken out of config nix_tools (spec nix-user-tools req 4.2).
@@ -220,6 +224,14 @@ VENDOR_TARBALLS = {
     "xtool": ("1.24.0", "https://github.com/xtool-org/xtool/releases/download/1.24.0/xtool-x86_64.AppImage",
               "dbfd9d7216f077c84c171b688c4173c37c23ca76bf7fd185d1a9ae8a53dab59f", "xtool"),
 }
+# System-wide release binaries that need a file capability: id -> (version, url, sha256, caps).
+# Root-owned in /usr/local/bin, so the account cannot swap the binary that holds the capability.
+SYSTEM_BINARIES = {
+    # Traceroute TUI (owner request 2026-11-23): per-hop stats, ASN/geo, ECMP, MPLS. Raw sockets,
+    # so cap_net_raw like Ubuntu's trippy. nixos-26.05 has only 0.23.0. Apache-2.0, static musl.
+    "ttl": ("0.26.0", "https://github.com/lance0/ttl/releases/download/v0.26.0/ttl-x86_64-unknown-linux-musl.tar.gz",
+            "3c8dcd373f8555d41010b7a376a201c55a4d009c62720722f944ad2e1431a587", "cap_net_raw=ep"),
+}
 _VENDOR_OWNER = "tasks/vendor_apps.py"
 
 _FOUNDATION = "local-system-foundation (tasks/tools.py)"
@@ -274,6 +286,8 @@ OTHER = {
                            _REPO + " (Mozilla; pinned to Developer Edition only; not the default browser)"),
     "diffcore": ("vendor", _VENDOR_OWNER, "diffcore-tauri", _DEB + " (jamesaphoenix/diff-core; desktop app only, no CLI)"),
     "mindwtr": ("vendor", _VENDOR_OWNER, "mindwtr", _DEB + " (dongdongbh/Mindwtr; sha256 also in its SHA256SUMS)"),
+    "ttl": ("vendor", _VENDOR_OWNER, "ttl", "pinned GitHub release (sha256, also in its SHA256SUMS), "
+                                            "/usr/local/bin with cap_net_raw"),
     "witr": ("vendor", _VENDOR_OWNER, "witr", _DEB + " (pranshuparmar/witr; sha256 also in its SHA256SUMS)"),
     "rclone-ui": ("vendor", _VENDOR_OWNER, "Rclone UI", _DEB + " (Tauri, system WebKitGTK; point it at Nix rclone)"),
     # Its postinst builds and insmods the SEP sampling drivers and installs a boot script

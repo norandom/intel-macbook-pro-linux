@@ -67,7 +67,9 @@ Remmina was removed on request).
 VS Code and Sublime Text (vendor repos), Zed (tarball), Positron and Quarto (`.deb`), OpenIDEA,
 Podman Desktop, Meld, edb, heaptrack, and the Intel oneAPI compilers. Terminals: Terminator,
 foot, Ghostty, xfce4-terminal (Contour is planned, [backlog](backlog.md)). Classic X apps: Xfe (file manager), NEdit, x3270 and c3270.
-TUI tools: atop, posting, lazygit, glow, gdu, trippy, multitail, byobu (tmux with a status
+TUI tools: atop, posting, lazygit, glow, gdu, leaves (disk usage map), trippy, ttl (traceroute
+with per-hop stats, ASN/geo; /usr/local/bin with cap_net_raw), witr (why is this process/port
+running), multitail, byobu (tmux with a status
 bar and F-key shortcuts), lftp (FTP/SFTP with mirroring and queues), upmd, rc (rustfs-cli). More
 CLI tools come from Nix ([nix.md](nix.md)).
 

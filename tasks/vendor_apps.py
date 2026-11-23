@@ -9,6 +9,7 @@ Run: .venv/bin/pyinfra @local tasks/vendor_apps.py [--dry] [--use-sudo-password]
 - .debs (Obsidian, Penguin Mail, Bitwarden, Quarto, Positron, Remote Desktop Manager, Zoom, Slack, Discord, Rclone UI, Diffcore, Mindwtr, witr, 1-1): pinned version, URL,
   sha256; staged in /var/cache/t2-mac-kde/debs and installed by the guarded helper, which
   scans the archive. Re-run with new pins to update.
+- /usr/local/bin with a file capability (ttl: raw sockets), root-owned, sha256-pinned
 - Tarballs (Zed, Zen, Telegram, Mendeley Reference Manager, Podman Desktop): user-level in ~/.local/opt/<id>-<version>, no sudo
   except the AppArmor userns profiles for Zen, Podman Desktop and Mendeley.
 Pins live in manage/applications.py (VENDOR_REPOS / VENDOR_DEBS / VENDOR_TARBALLS).
@@ -25,7 +26,7 @@ from io import StringIO
 from pyinfra import logger
 from pyinfra.operations import files, python, server
 
-from manage.applications import VENDOR_DEBS, VENDOR_REPOS, VENDOR_TARBALLS, _dpkg_version, needs_pinned_deb
+from manage.applications import SYSTEM_BINARIES, VENDOR_DEBS, VENDOR_REPOS, VENDOR_TARBALLS, _dpkg_version, needs_pinned_deb
 from manage.packages import LOCAL_DEBS, schedule_batch
 from manage.preflight import validate_local_context
 
@@ -85,6 +86,22 @@ missing_debs = [(package, version, url, sha) for package, version, url, sha, _ex
                 if needs_pinned_deb(package, version)]
 # Everything missing (repo apps + pinned .debs) in ONE guarded apt transaction.
 schedule_batch("Vendor apps", packages=repo_packages, debs=missing_debs, source_lists=repo_lists, preseed=preseed)
+
+# System binaries with a file capability (ttl: raw sockets). Reinstalled when the file's sha256
+# is not the pin's binary; setcap again when the capability is missing.
+for name, (version, url, sha, caps) in SYSTEM_BINARIES.items():
+    dest, archive = f"/usr/local/bin/{name}", url.rsplit("/", 1)[1]
+    server.shell(name=f"{name} {version} -> {dest} ({caps}, sha256 verified)", _sudo=True, commands=[f"""set -eu
+mark=/usr/local/share/t2-mac-kde/{name}.sha256
+if [ "$(cat "$mark" 2>/dev/null)" != "{sha}" ] || ! [ -x "{dest}" ]; then
+  t=$(mktemp -d); trap 'rm -rf "$t"' EXIT
+  {CURL} -o "$t/{archive}" "{url}"
+  echo "{sha}  $t/{archive}" | sha256sum -c --quiet
+  mkdir "$t/x"; tar --no-same-owner -xzf "$t/{archive}" -C "$t/x"
+  install -o root -g root -m 755 "$t/x/{name}" "{dest}.new" && mv -f "{dest}.new" "{dest}"
+  mkdir -p "${{mark%/*}}"; echo "{sha}" > "$mark"
+fi
+getcap "{dest}" | grep -q "{caps.split('=')[0]}" || setcap "{caps}" "{dest}" """])
 
 # chromedriver drives the browser for AI agents: majors must match (same source package).
 server.shell(
