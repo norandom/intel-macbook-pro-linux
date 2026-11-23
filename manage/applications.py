@@ -61,6 +61,9 @@ NATIVE = {
     "heaptrack-gui": ("heaptrack-gui", "heaptrack_gui"),
     # Media player (owner request 2026-11-16; Ubuntu .deb, not a snap)
     "vlc": ("vlc", "vlc"),
+    # SFTP shares as a local folder (owner request 2026-11-23: media streaming from the filer;
+    # kernel page cache + offset reads, so players can seek, unlike an rclone stream)
+    "sshfs": ("sshfs", "sshfs"),
     # apt rather than Nix: Ubuntu's build finds the system VA-API drivers (Intel/AMD hardware encode)
     "ffmpeg": ("ffmpeg", "ffmpeg"),
     # FFmpeg-free video player (owner request 2026-11-16): GStreamer, see GSTREAMER below
