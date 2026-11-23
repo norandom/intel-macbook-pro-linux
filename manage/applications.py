@@ -64,6 +64,8 @@ NATIVE = {
     # Video player for network shares (owner request 2026-11-23): on the sshfs filer an unread MKV
     # starts in ~2 s, VLC took over a minute (its MKV demuxer seeks hundreds of times).
     "mpv": ("mpv", "mpv"),
+    # KDE player on top of mpv (same fast start); default for video via config [default_apps]
+    "haruna": ("haruna", "haruna"),
     # SFTP shares as a local folder (owner request 2026-11-23: media streaming from the filer;
     # kernel page cache + offset reads, so players can seek, unlike an rclone stream)
     "sshfs": ("sshfs", "sshfs"),
