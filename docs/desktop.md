@@ -28,6 +28,10 @@ so move these windows with SUPER+drag; SUPER+right-drag resizes. Hyprland also i
 minimize request; our hyprbars build hooks that request and parks the window like the
 taskbar does, so their minimize button works (after the deploy and a re-login).
 
+There are two desktops, as in KDE: Waybar's `1 2` buttons, SUPER+F1/F2, CTRL+F1/F2 or
+SUPER+CTRL+Left/Right switch; SUPER+CTRL+SHIFT+Left/Right moves the window. KDE gets the same
+two desktops (`kwinrc`) and already has these keys, so both sessions work alike.
+
 Tiling is there for the moments it helps, such as a terminal next to an editor, or several
 agent dashboards side by side:
 

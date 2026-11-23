@@ -79,6 +79,11 @@ tooltip label { color: #fff8f0; font-family: "JetBrainsMono Nerd Font", monospac
 #taskbar button:hover { background: #c6c3be; }
 #taskbar button.active { background: #d5dfeb; border-bottom: 2px solid #4a90d9; }
 
+/* Two desktops (hyprland/workspaces), like KDE's pager */
+#workspaces button { padding: 0 6px; color: #2b4570; border-bottom: 2px solid transparent; border-radius: 0; }
+#workspaces button:hover { background: #c6c3be; }
+#workspaces button.active { background: #d5dfeb; border-bottom: 2px solid #4a90d9; }
+
 /* Left reserve strip over the panel's defective edge (see waybar config). */
 window#waybar.leftstrip { background: #000000; border: none; }
 window#waybar.leftstrip * { min-width: 0; padding: 0; margin: 0; }

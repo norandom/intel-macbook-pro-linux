@@ -38,7 +38,7 @@ HYPRBARS_KEYS = {"bar_blur", "bar_button_padding", "bar_buttons_alignment", "bar
                  "hyprbars-button", "icon_on_hover", "inactive_button_color", "on_double_click"}
 DISPATCHERS = {"exec", "killactive", "fullscreen", "togglefloating", "movefocus", "cyclenext",
                "bringactivetotop", "resizeactive", "togglespecialworkspace", "submap", "movewindow",
-               "resizewindow"}
+               "resizewindow", "workspace", "movetoworkspace"}
 
 
 def mon(**kw):
@@ -197,6 +197,15 @@ class Config(unittest.TestCase):
         self.assertLessEqual(used, DISPATCHERS)
         self.assertIn("bindd = , catchall, Cancel one-shot Super, submap, reset", sub)
         self.assertIn("bindn = , mouse:273, exec, ~/.local/bin/hypr-windows context", text)
+        # two desktops with KDE's keys
+        for line in ("bindd = SUPER , F1, Desktop 1, workspace, 1", "bindd = SUPER CTRL, RIGHT, Desktop to the right, workspace, 2",
+                     "bindd = SUPER CTRL_SHIFT, LEFT, Window to the left desktop, movetoworkspace, 1",
+                     "bindd = CTRL, F2, Desktop 2, workspace, 2"):
+            self.assertIn(line, text)
+        conf = (SRC / "hypr/workspaces.conf").read_text()
+        self.assertIn("workspace = 1, persistent:true", conf)
+        self.assertIn("workspace = 2, persistent:true", conf)
+        self.assertIn("source = ~/.config/hypr/workspaces.conf", (SRC / "hypr/hyprland.conf").read_text())
 
     def test_decorations_match_source(self):
         for style, height, buttons in (("mac", "24", 4), ("win311", "22", 4)):

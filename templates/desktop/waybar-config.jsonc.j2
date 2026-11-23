@@ -8,7 +8,7 @@
   "position": "top",
   "height": 26,
   "spacing": 6,
-  "modules-left": ["custom/menu", "custom/files", "custom/term", "custom/web", "custom/layout", "wlr/taskbar"],
+  "modules-left": ["custom/menu", "custom/files", "custom/term", "custom/web", "custom/layout", "hyprland/workspaces", "wlr/taskbar"],
   "modules-center": [],
   "modules-right": ["custom/quota", {% if bar_graphs %}"custom/cpu", "custom/mem", "custom/thermal", "custom/net"{% else %}"cpu", "memory", "custom/thermal", "custom/netrate"{% endif %}, "group/audio", "backlight", "custom/power-profile", "battery", "tray", "hyprland/submap", "custom/cliphist", {% if night_shift %}"custom/nightshift", {% endif %}"custom/nightmode", "custom/termtheme", "custom/kbd", "idle_inhibitor", "clock", "custom/power"],
   // Caffeine: native Wayland inhibitor, off on bar startup; click to toggle.
@@ -158,6 +158,13 @@
     "on-click": "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"
   },
   "pulseaudio/slider": { "min": 0, "max": 100, "orientation": "horizontal" },
+  // Two desktops, like KDE's pager (workspaces.conf): click to switch.
+  "hyprland/workspaces": {
+    "format": "{name}",
+    "persistent-workspaces": { "*": 2 },
+    "sort-by-number": true,
+    "on-click": "activate"
+  },
   "tray": { "spacing": 8 }
 {% endset %}
 {% if left_reserve %}

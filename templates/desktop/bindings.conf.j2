@@ -31,6 +31,12 @@
   ("SHIFT", "code:20", "resizeactive", "0 -100", "Shorter"),
   ("SHIFT", "code:21", "resizeactive", "0 100", "Taller"),
   ("", "M", "exec", "~/.local/bin/hypr-windows minimized", "Choose a minimized window to restore"),
+  ("", "F1", "workspace", "1", "Desktop 1"),
+  ("", "F2", "workspace", "2", "Desktop 2"),
+  ("CTRL", "LEFT", "workspace", "1", "Desktop to the left"),
+  ("CTRL", "RIGHT", "workspace", "2", "Desktop to the right"),
+  ("CTRL_SHIFT", "LEFT", "movetoworkspace", "1", "Window to the left desktop"),
+  ("CTRL_SHIFT", "RIGHT", "movetoworkspace", "2", "Window to the right desktop"),
 ] %}
 {%- set mouse = [
   ("mouse:272", "movewindow", "Move window"),
@@ -40,6 +46,9 @@
 {% for mods, key, disp, arg, desc in keys -%}
 bindd = SUPER {{ mods }}, {{ key }}, {{ desc }}, {{ disp }}, {{ arg }}
 {% endfor %}
+# KDE's other desktop keys (without SUPER)
+bindd = CTRL, F1, Desktop 1, workspace, 1
+bindd = CTRL, F2, Desktop 2, workspace, 2
 # Mouse: SUPER + left drag = move, SUPER + right drag = resize
 {% for key, disp, desc in mouse -%}
 bindmd = SUPER, {{ key }}, {{ desc }}, {{ disp }}

@@ -40,6 +40,12 @@ class KdeInputTests(unittest.TestCase):
             second = subprocess.run(["bash", "-c", script], env=env, capture_output=True, text=True, check=True)
             self.assertEqual(second.stdout, "")   # idempotent: nothing rewritten, no reload
 
+    def test_two_desktops_like_hyprland(self):
+        self.assertIn(("kwinrc", "Desktops", "Number", "2"), kde_input.SETTINGS)
+        conf = (ROOT / "files/desktop/hypr/workspaces.conf").read_text()
+        self.assertEqual(len(re.findall(r"^workspace = \d+, persistent:true", conf, re.M)), 2)
+        self.assertIn("createDesktop 1", kde_input.apply_script())
+
     def test_task_wiring(self):
         self.assertIn("kde_input.apply_script()", (ROOT / "tasks/desktop.py").read_text())
 
