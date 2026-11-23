@@ -195,6 +195,10 @@ VENDOR_DEBS = {
     "mindwtr": ("mindwtr", "1.3.9",
                 "https://github.com/dongdongbh/Mindwtr/releases/download/v1.3.9/mindwtr_1.3.9_amd64.deb",
                 "bd0dea355e526855ec6c419dd557fe77fc7244132c16346fa8ab3bcd4e094f7b", "mindwtr"),
+    # Fedistar: multi-column Fediverse client (owner request 2026-11-23; their Akkoma instance).
+    # Tauri on the system WebKitGTK, GPL-3.0, no maintainer scripts.
+    "fedistar": ("fedistar", "1.13.3", "https://github.com/h3poteto/fedistar/releases/download/v1.13.3/fedistar_1.13.3_amd64.deb",
+                 "66afefafc7c19d6a9d26ac946c5cf502d99c48f22fac39799c2c0549bc5f1e6f", "fedistar"),
     # witr: "why is this running" - traces a process, port or file to what started it, CLI + TUI
     # (owner request 2026-11-23). Apache-2.0, one static binary + man page, no maintainer scripts.
     "witr": ("witr", "0.3.4", "https://github.com/pranshuparmar/witr/releases/download/v0.3.4/witr-0.3.4-linux-amd64.deb",
@@ -288,6 +292,7 @@ OTHER = {
     "mindwtr": ("vendor", _VENDOR_OWNER, "mindwtr", _DEB + " (dongdongbh/Mindwtr; sha256 also in its SHA256SUMS)"),
     "ttl": ("vendor", _VENDOR_OWNER, "ttl", "pinned GitHub release (sha256, also in its SHA256SUMS), "
                                             "/usr/local/bin with cap_net_raw"),
+    "fedistar": ("vendor", _VENDOR_OWNER, "fedistar", _DEB + " (h3poteto/fedistar; Mastodon/Pleroma/Akkoma client)"),
     "witr": ("vendor", _VENDOR_OWNER, "witr", _DEB + " (pranshuparmar/witr; sha256 also in its SHA256SUMS)"),
     "rclone-ui": ("vendor", _VENDOR_OWNER, "Rclone UI", _DEB + " (Tauri, system WebKitGTK; point it at Nix rclone)"),
     # Its postinst builds and insmods the SEP sampling drivers and installs a boot script
