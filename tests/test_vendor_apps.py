@@ -18,7 +18,8 @@ DEB_HOSTS = {"obsidian": "github.com", "penguin-mail": "github.com", "bitwarden"
 DEB_PATHS = {"obsidian": "/obsidianmd/obsidian-releases/", "penguin-mail": "/c9dev/penguin-mail/releases/download/v", "bitwarden": "/bitwarden/clients/releases/download/desktop-v",
              "quarto": "/quarto-dev/quarto-cli/", "rclone-ui": "/rclone-ui/rclone-ui/releases/download/v",
              "1-1": "/norandom/1-1/releases/download/v"}
-TARBALL_PATHS = {"zed": "/zed-industries/zed/", "telegram": "/telegramdesktop/tdesktop/", "zen": "/zen-browser/desktop/",
+TARBALL_HOSTS = {"mendeley": "static.mendeley.com"}   # default: github.com
+TARBALL_PATHS = {"mendeley": "/bin/desktop/mendeley-reference-manager-", "zed": "/zed-industries/zed/", "telegram": "/telegramdesktop/tdesktop/", "zen": "/zen-browser/desktop/",
                  "podman-desktop": "/podman-desktop/podman-desktop/", "xtool": "/xtool-org/xtool/"}
 
 
@@ -91,7 +92,7 @@ class PinnedDownloadTests(unittest.TestCase):
     def test_tarballs_are_pinned_github_releases(self):
         for app_id, (version, url, sha, _exe) in apps.VENDOR_TARBALLS.items():
             parsed = urlparse(url)
-            self.assertEqual((parsed.scheme, parsed.hostname), ("https", "github.com"), app_id)
+            self.assertEqual((parsed.scheme, parsed.hostname), ("https", TARBALL_HOSTS.get(app_id, "github.com")), app_id)
             self.assertTrue(parsed.path.startswith(TARBALL_PATHS[app_id]), app_id)
             self.assertIn(version, url, app_id)
             self.assertRegex(sha, r"\A[0-9a-f]{64}\Z", app_id)
@@ -126,7 +127,8 @@ class ConfigTests(unittest.TestCase):
 class AppArmorTests(unittest.TestCase):
     def test_profiles_are_ubuntu_style_userns_only(self):
         for name, binary in (("t2-zen", "/home/*/.local/opt/zen-*/zen/zen{,-bin}"),
-                             ("t2-podman-desktop", "/home/*/.local/opt/podman-desktop-*/podman-desktop")):
+                             ("t2-podman-desktop", "/home/*/.local/opt/podman-desktop-*/podman-desktop"),
+                             ("t2-mendeley", "/home/*/.local/opt/mendeley-*/mendeley-reference-manager")):
             text = (SRC / name).read_text()
             self.assertIn(f"profile {name} {binary} flags=(unconfined) {{", text)
             self.assertIn("  userns,", text)

@@ -197,6 +197,11 @@ VENDOR_TARBALLS = {
     # Its own updater keeps it current in place, so the pin only matters for the first install.
     "telegram": ("7.4.4", "https://github.com/telegramdesktop/tdesktop/releases/download/v7.4.4/td-setup-linux-x64-7.4.4.tar.xz",
                  "607d77344a332268df1ab0c3c9b5adb70a6204e5f78cb668ab3fa58245c0888e", "telegram"),
+    # Mendeley Reference Manager (owner request 2026-11-23; replaces the frozen Mendeley Desktop).
+    # Electron AppImage, unpacked; it can't update itself that way, so bump the pin by hand.
+    # Mendeley publishes no checksum: the sha256 is of the official file fetched 2026-11-23.
+    "mendeley": ("2.151.0", "https://static.mendeley.com/bin/desktop/mendeley-reference-manager-2.151.0-x86_64.AppImage",
+                 "507e51d2c3f9753b0be63c90a5eea400f67d1b5a4f05ea6c1fdc215447435a33", "mendeley"),
     # Xcode replacement (SwiftPM iOS builds). An AppImage: unpacked once, so no libfuse2 needed.
     "xtool": ("1.24.0", "https://github.com/xtool-org/xtool/releases/download/1.24.0/xtool-x86_64.AppImage",
               "dbfd9d7216f077c84c171b688c4173c37c23ca76bf7fd185d1a9ae8a53dab59f", "xtool"),

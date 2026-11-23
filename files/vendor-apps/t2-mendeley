@@ -1,0 +1,14 @@
+# Managed by t2-mac-kde. This profile allows everything and only exists to give
+# the user-level Mendeley Reference Manager (unpacked AppImage) a name and user namespaces (Electron
+# sandbox), like Ubuntu's own /etc/apparmor.d/code.
+
+abi <abi/5.0>,
+include <tunables/global>
+
+profile t2-mendeley /home/*/.local/opt/mendeley-*/mendeley-reference-manager flags=(unconfined) {
+  userns,
+  @{exec_path} mr,
+
+  # Site-specific additions and overrides. See local/README for details.
+  include if exists <local/t2-mendeley>
+}

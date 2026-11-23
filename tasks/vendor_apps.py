@@ -9,8 +9,8 @@ Run: .venv/bin/pyinfra @local tasks/vendor_apps.py [--dry] [--use-sudo-password]
 - .debs (Obsidian, Penguin Mail, Bitwarden, Quarto, Positron, Remote Desktop Manager, Zoom, Slack, Discord, Rclone UI, 1-1): pinned version, URL,
   sha256; staged in /var/cache/t2-mac-kde/debs and installed by the guarded helper, which
   scans the archive. Re-run with new pins to update.
-- Tarballs (Zed, Zen, Telegram, Podman Desktop): user-level in ~/.local/opt/<id>-<version>, no sudo
-  except the AppArmor userns profiles for Zen and Podman Desktop.
+- Tarballs (Zed, Zen, Telegram, Mendeley Reference Manager, Podman Desktop): user-level in ~/.local/opt/<id>-<version>, no sudo
+  except the AppArmor userns profiles for Zen, Podman Desktop and Mendeley.
 Pins live in manage/applications.py (VENDOR_REPOS / VENDOR_DEBS / VENDOR_TARBALLS).
 Re-run tasks/themes.py afterwards: it only themes Sublime/VS Code/Positron once they exist.
 """
@@ -211,6 +211,27 @@ else:
                   f"Type=Application\nName=Telegram\nComment=Telegram Desktop\nExec={tg}/Telegram -- %u\n"
                   "Icon=org.telegram.desktop\nCategories=Chat;Network;InstantMessaging;\n"
                   "MimeType=x-scheme-handler/tg;\nStartupWMClass=TelegramDesktop\nTerminal=false\n"))
+
+# Mendeley Reference Manager: the AppImage unpacked once (no FUSE 2), like xtool below. Electron
+# sandbox stays on: the t2-mendeley AppArmor profile allows its user namespaces.
+version, url, sha, _exe = VENDOR_TARBALLS["mendeley"]
+mrm = f"{opt}/mendeley-{version}"
+if not os.access(f"{mrm}/mendeley-reference-manager", os.X_OK):
+    server.shell(name=f"Mendeley Reference Manager {version} -> {mrm} (sha256 verified, unpacked)", commands=[f"""set -eu
+mkdir -p "{opt}"; t=$(mktemp -d "{opt}/.t2-download.XXXXXX"); trap 'rm -rf "$t"' EXIT
+{CURL} -o "$t/mendeley.AppImage" "{url}"
+echo "{sha}  $t/mendeley.AppImage" | sha256sum -c --quiet
+chmod 700 "$t/mendeley.AppImage"; (cd "$t" && ./mendeley.AppImage --appimage-extract >/dev/null)
+rm -rf "{mrm}" && mv -T "$t/squashfs-root" "{mrm}" """])
+files.link(name="~/.local/bin/mendeley", path=f"{bin_dir}/mendeley", target=f"{mrm}/mendeley-reference-manager",
+           create_remote_dir=True)
+files.put(name="Mendeley Reference Manager menu entry", dest=f"{apps_dir}/mendeley-reference-manager.desktop",
+          mode="644", create_remote_dir=True, src=StringIO(
+              "[Desktop Entry]\n# Managed by t2-mac-kde (vendor_apps)\nType=Application\n"
+              "Name=Mendeley Reference Manager\nComment=Desktop Reference Manager\n"
+              f"Exec={mrm}/mendeley-reference-manager %U\nIcon={mrm}/mendeley-reference-manager.png\n"
+              "Categories=Education;\nStartupWMClass=Mendeley Reference Manager\nTerminal=false\n"))
+_apparmor("t2-mendeley")
 
 
 # xtool (Xcode replacement): the AppImage's own runtime unpacks it (after the sha256 check), so it
