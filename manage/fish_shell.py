@@ -42,6 +42,8 @@ NATIVE = {"..", "...", "....", "kbus", "kbde"}
 BODY = r'''
 status is-interactive; or return
 set -g fish_greeting
+# pyinfra: run without "Press enter to execute..." (owner request); --dry still only previews.
+set -gx PYINFRA_YES 1
 
 # --- grml-style colours and abbreviations ---------------------------------------------------
 {wraps}

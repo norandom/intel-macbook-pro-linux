@@ -13,7 +13,8 @@ fi
 # Do not proactively request a password for previews; privileged facts may still need it.
 for arg in "$@"; do
     if [[ "$arg" == --dry ]]; then
-        exec .venv/bin/pyinfra @local deploy.py "$@"
+        # PYINFRA_YES (set in the managed shells) would also skip the change list; a preview needs it.
+        PYINFRA_YES=0 exec .venv/bin/pyinfra @local deploy.py "$@"
     fi
 done
 exec .venv/bin/pyinfra @local deploy.py --use-sudo-password "$@"

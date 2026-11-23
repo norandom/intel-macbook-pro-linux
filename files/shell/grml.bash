@@ -20,6 +20,8 @@ alias k=kubectl   # completion: ~/.local/share/bash-completion/completions/k
 alias dl='aria2c'  # parallel downloads, defaults in ~/.config/aria2/aria2.conf
 alias leftbar='t2-leftstrip --panel'   # KDE: left strip panel again after a theme change
 alias craftup='t2-craft-update'   # Craft apps to their latest releases (--check: list only)
+# pyinfra: run without "Press enter to execute..." (owner request); --dry still only previews.
+export PYINFRA_YES=1
 
 # Keyboard layout shortcuts only in a Hyprland session with hypr-kbd; in KDE/X11
 # setxkbmap and the KDE keyboard settings keep their native behavior.
