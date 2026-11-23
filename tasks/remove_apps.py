@@ -12,6 +12,8 @@ REMOVE = {
     "Remmina": ("remmina", "remmina-common", "remmina-plugin-rdp", "remmina-plugin-vnc", "remmina-plugin-secret"),
     # Penguin Mail is the mail app; KOrganizer (calendar) stays
     "KMail + Kontact": ("kmail", "kontact", "accountwizard"),
+    # Devolutions Remote Desktop Manager (vendor .deb); 1-1 is the RDP client
+    "Remote Desktop Manager": ("remotedesktopmanager",),
 }
 
 validate_local_context()

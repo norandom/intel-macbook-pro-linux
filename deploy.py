@@ -33,7 +33,7 @@ for task in (
     "multiplexers",      # Screen Ctrl+A keys for Zellij and Byobu
     "shell",            # bash/grml, history, nvim-simple, npm/uv user tools
     "remove_warp",      # remove the retired managed Warp trial
-    "remove_apps",      # owner-requested removals: Remmina, KMail + Kontact
+    "remove_apps",      # owner-requested removals: Remmina, KMail + Kontact, Remote Desktop Manager
     "warpeer",          # Cyberterm 2077 (formerly Warpeer): pinned user-local terminal (Linux x86-64)
     "themes",           # five palettes + hypr-termtheme
     "desktop",          # Hyprland session, waybar, decorations, night filter

@@ -12,7 +12,7 @@ ROOT = Path(__file__).resolve().parents[1]
 SRC = ROOT / "files/vendor-apps"
 TASK = (ROOT / "tasks/vendor_apps.py").read_text()
 DEB_HOSTS = {"obsidian": "github.com", "fedistar": "github.com", "witr": "github.com", "penguin-mail": "github.com", "bitwarden": "github.com", "quarto": "github.com",
-             "positron": "cdn.posit.co", "remotedesktopmanager": "cdn.devolutions.net",
+             "positron": "cdn.posit.co",
              "zoom": "cdn.zoom.us", "slack": "downloads.slack-edge.com", "discord": "dl.discordapp.net",
              "rclone-ui": "github.com", "diffcore": "github.com", "mindwtr": "github.com", "1-1": "github.com"}
 DEB_PATHS = {"obsidian": "/obsidianmd/obsidian-releases/", "fedistar": "/h3poteto/fedistar/releases/download/v", "witr": "/pranshuparmar/witr/releases/download/v", "penguin-mail": "/c9dev/penguin-mail/releases/download/v", "bitwarden": "/bitwarden/clients/releases/download/desktop-v",

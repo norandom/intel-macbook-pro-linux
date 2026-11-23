@@ -46,7 +46,7 @@ installs or configures are listed. Where there's no counterpart, the table says 
 | Docker Desktop | Rootless Podman with `docker` and `docker compose`, and Podman Desktop |
 | Parallels, VMware Fusion, UTM | virt-manager on KVM, with UEFI and a virtual TPM for Windows 11 |
 | Screen Sharing | RDP into the Hyprland session over Tailscale ([remote-access.md](remote-access.md)) |
-| Microsoft Remote Desktop | Remote Desktop Manager, 1-1 (own RDP client) |
+| Microsoft Remote Desktop | 1-1 (own RDP client) |
 | Remote Login (SSH) | sshd at boot behind fail2ban |
 | Xcode | [xtool](https://github.com/xtool-org/xtool): build and deploy iOS apps with SwiftPM, `xtool setup` once ([developer-tools.md](developer-tools.md#ios-apps-with-xtool)) |
 | Xcode command line tools | GCC and make; optionally Intel's icx/icpx as your default compiler |
