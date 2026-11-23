@@ -66,10 +66,18 @@ class DevLibsTaskTests(unittest.TestCase):
             self.assertIn(f'"{package}"', task)
         self.assertIn("PACKAGES + QT", task)
 
-    def test_remmina_is_managed(self):
+    def test_remmina_is_removed(self):
         native = applications.native_packages()
-        for package in ("remmina", "remmina-plugin-rdp", "remmina-plugin-vnc", "remmina-plugin-secret"):
-            self.assertIn(package, native)
+        self.assertFalse([p for p in native if p.startswith("remmina")])
+        task = (ROOT / "tasks/remove_apps.py").read_text()
+        self.assertIn("present=False", task)
+        self.assertIn('"remmina"', task)
+        for package in ("kmail", "kontact", "accountwizard"):
+            self.assertNotIn(package, native)
+            self.assertIn(f'"{package}"', task)
+        self.assertIn("korganizer", native)
+        deploy = (ROOT / "deploy.py").read_text()
+        self.assertLess(deploy.index('"apps"'), deploy.index('"remove_apps"'))
 
 
 if __name__ == "__main__":

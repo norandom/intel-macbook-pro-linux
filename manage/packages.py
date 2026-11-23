@@ -162,7 +162,7 @@ def inspect_plan(request: PackageRequest) -> PackagePlan:
 
 # Replacements requested earlier in this deploy run. pyinfra plans every task before it runs
 # any, so a later task's simulation must already assume them (e.g. tasks/apps.py installing
-# Remmina, which needs the Ayatana library that tasks/dev_libs.py swaps in).
+# nm-applet, which needs the Ayatana library that tasks/dev_libs.py swaps in).
 _PENDING_REPLACES: set[str] = set()
 
 

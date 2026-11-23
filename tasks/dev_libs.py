@@ -4,7 +4,7 @@ Qt 6 (Qt Creator, C++ headers, QML, CMake/Ninja, PyQt6 and PySide6), all from th
 Opt-out with config `dev_libs = false`. The tray library is Ubuntu's Ayatana one
 (libayatana-appindicator3-dev, which also provides libappindicator3-dev): the legacy
 libappindicator3-dev conflicts with libayatana-appindicator3-1, and installing it removes
-nm-applet, Remmina and 1-1. If the legacy pair is installed, this task replaces it (the only
+nm-applet and 1-1. If the legacy pair is installed, this task replaces it (the only
 removal the package guard allows here), so the tray apps can be reinstalled by later tasks.
 """
 from manage.packages import PackageRequest, install_packages

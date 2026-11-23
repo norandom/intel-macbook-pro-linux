@@ -59,8 +59,8 @@ The deploy doesn't pick a default browser for you; set one with `[default_apps]`
 ## Communication and everyday
 
 Slack, Discord, Zoom (screen sharing through the Wayland portal), Bitwarden, Remote Desktop
-Manager, Rclone UI. Remote desktop clients: 1-1 (your own RDP client, pinned `.deb`) and Remmina
-(RDP, VNC; Ubuntu archive).
+Manager, Rclone UI. Remote desktop client: 1-1 (your own RDP client, pinned `.deb`;
+Remmina was removed on request).
 
 ## Development
 
