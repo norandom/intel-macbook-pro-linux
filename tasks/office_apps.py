@@ -25,7 +25,7 @@ XCD_DEST = "/usr/lib/libreoffice/share/registry/t2-mac-kde.xcd"
 
 # ArtCraft suite: name -> (version, sha256 of <name>-<ver>-linux-x86_64.deb = GitHub asset digest).
 ARTCRAFT = {
-    "pdfcraft": ("0.21.1", "e87baa0ef638be6ea97b521883e912318012028a80dbe1359f93cd21437be253"),
+    "pdfcraft": ("0.22.0", "a7e0e781e55adc633b68b417ec9860115ccaa2cc636588f183ae03e66a5edcdb"),
     "designcraft": ("0.20.1", "a4b50ceffd33a13d2d52e01530f6de3236d50ada02a7cf0c8946de3195057b0f"),
     "gridcraft": ("0.19.1", "3e9b093ee3bed8b1f008ea56c8d60e6a96890e24317be2bbb93e431f3c9d8112"),
     "lightcraft": ("0.21.1", "c91ef47bec44995d99ce58e6c748af9fa6ab1ff1c11de9e290e0b8231176dad1"),
