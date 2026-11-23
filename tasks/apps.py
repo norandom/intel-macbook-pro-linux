@@ -65,6 +65,14 @@ install -m 755 "$found" "{dest}.new" && mv -f "{dest}.new" "{dest}"
 echo "{sha}" > "{mark}")"""],
     )
 
+# --- VLC: E-AC-3 (DDP5.1, most WEB-DL video) has no sound otherwise -------------------------
+# VLC's S/PDIF passthrough module grabs E-AC-3 first, PipeWire's Pulse sink refuses the stream
+# ("too low audio sample frequency (0)", "failed to create audio output"); --no-spdif does not
+# help. Decoding with libavcodec first does. One key; VLC keeps the rest of its vlcrc.
+files.directory(name="~/.config/vlc", path=f"{home}/.config/vlc", mode="700")
+files.line(name="VLC: decode with libavcodec first (E-AC-3 sound)", path=f"{home}/.config/vlc/vlcrc",
+           line=r"^#?codec=.*", replace="codec=avcodec,any")
+
 # --- Desktop entries (source files/applications; hypr-licenses is private data, not ported) ---
 for entry in ("x3270", "nedit", "foot-server", "footclient"):
     files.put(name=f"Desktop entry: {entry}", src=f"files/applications/{entry}.desktop",
