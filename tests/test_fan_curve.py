@@ -83,6 +83,17 @@ class FanCurveTests(unittest.TestCase):
         self.assertEqual(self.param.read_text(), 'N\n')
         self.assertEqual((self.smc / 'fan2_target').read_text(), '0\n')
 
+    def test_waits_for_the_smc_device_at_boot(self):
+        smc_name = self.smc / 'name'
+        smc_name.unlink()
+        def appear(_seconds):
+            smc_name.write_text('macsmc_hwmon')
+        with patch.object(fc.time, 'sleep', side_effect=appear):
+            self.assertEqual(fc.Controller(self.hw, self.param, self.state, wait=10).smc, self.smc)
+        smc_name.unlink()
+        with self.assertRaises(RuntimeError):
+            fc.Controller(self.hw, self.param, self.state)
+
     def test_does_not_take_over_an_existing_manual_controller(self):
         self.param.write_text('Y')
         with self.assertRaises(RuntimeError):

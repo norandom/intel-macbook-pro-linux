@@ -14,6 +14,9 @@ RUNTIME = Path('/run/t2-fan-curve')
 CURVE = ((70, .40), (75, .55), (80, .75), (85, 1.0))
 RELEASE_TEMPERATURE = 65
 STEP_HYSTERESIS = 2
+# At boot the unit can start before macsmc_hwmon has registered its hwmon device (the module
+# parameter, the unit's condition, exists first); wait for it instead of failing the start.
+DEVICE_WAIT = 10
 
 
 def fan_target(temperature, minimum, maximum):
@@ -25,24 +28,35 @@ def fan_target(temperature, minimum, maximum):
     return max(minimum, min(maximum, round(maximum * fraction)))
 
 
+def _name(device):
+    try:
+        return (device / 'name').read_text().strip()
+    except OSError:  # a device that is still being registered
+        return ''
+
+
 def write(path, value):
     path.write_text(f'{value}\n')
 
 
 class Controller:
-    def __init__(self, hwmon=HWMON, parameter=CONTROL, runtime=RUNTIME):
+    def __init__(self, hwmon=HWMON, parameter=CONTROL, runtime=RUNTIME, wait=0):
         self.hwmon, self.parameter = hwmon, parameter
         self.marker = runtime / 'original-control'
         self.manual = False
         self.level = 0
         self.floors = {}
         self.sensors = []
-        matches = [p for p in hwmon.glob('hwmon*')
-                   if (p / 'name').read_text().strip() == 'macsmc_hwmon']
+        deadline = time.monotonic() + wait
+        while True:
+            matches = [p for p in hwmon.glob('hwmon*') if _name(p) == 'macsmc_hwmon']
+            fans = sorted(matches[0].glob('fan*_target')) if len(matches) == 1 else []
+            if fans or len(matches) > 1 or time.monotonic() >= deadline:
+                break
+            time.sleep(0.5)
         if len(matches) != 1:
             raise RuntimeError('Expected exactly one macsmc_hwmon device')
-        self.smc = matches[0]
-        self.fans = sorted(self.smc.glob('fan*_target'))
+        self.smc, self.fans = matches[0], fans
         if not self.fans:
             raise RuntimeError('No macsmc fan targets found')
 
@@ -138,12 +152,12 @@ def notify(message):
 
 def main():
     logging.basicConfig(level=logging.INFO, format='%(message)s')
-    controller = Controller()
     if sys.argv[1:] == ['restore']:
-        controller.restore()
+        Controller().restore()
         return
     if sys.argv[1:]:
         raise RuntimeError('usage: t2-fan-curve [restore]')
+    controller = Controller(wait=DEVICE_WAIT)
     stopping = False
 
     def stop(_signal, _frame):
