@@ -71,6 +71,11 @@ Allowed, and only this:
   `post` writes it back and restarts `upower.service` (it keeps the removed LED open otherwise).
   Owner-approved 2026-11-24 after an independent review; no driver change. The hook also stops an
   EasyEffects started from XDG autostart before PipeWire goes down.
+- Bluetooth (owner-approved 2026-11-24 after the owner's hand test): `pre` also unloads
+  `hci_uart` (BCM4364 on the UART, not on the T2) if it is loaded, `load` loads it again only
+  then. The power-off resets the chip under a driver that keeps the old state; without the reload
+  Bluetooth is dead after every restore. An `hci_uart` that won't unload is only logged, it never
+  cancels the hibernate.
 - Image-writing sleeps only: plain suspend, the initramfs, module options, blacklists and the drivers' files stay
   untouched. Tested by hand first (docs/t2-tests/test4.sh: unload + reload in a running session,
   all devices back). Any further driver change needs a new explicit owner decision.

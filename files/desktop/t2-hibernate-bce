@@ -4,10 +4,15 @@
 #   pre   before hibernate: stop PipeWire (it holds t2bce_audio open), unload the T2 bridge
 #         drivers without force. If any stays loaded, reload everything and exit 1, which
 #         cancels the hibernate (the unit is required by systemd-hibernate.service).
+#         Bluetooth's serial driver (hci_uart) goes out too, but its failure never cancels.
 #   post  after the restore (or a failed hibernate): load the drivers fresh, put the keyboard
 #         backlight back at its old level, restart UPower, start PipeWire.
 # Why: with HibernateMode=shutdown the T2 chip is power-cycled; a restored kernel that still has
 # the old driver state gets no keyboard/trackpad (2026-11-16). Suspend is not affected.
+# Same for the BCM4364 Bluetooth on the UART: the power-off resets the chip under a driver that
+# still holds the old state, and a restored hci_uart answers every command with -16 EBUSY until it
+# is reloaded (every real restore 2026-11-16..24; owner-tested fix: modprobe -r/modprobe hci_uart).
+# Only reloaded if it was loaded before the hibernate (a deliberately unloaded one stays out).
 set -u
 log() { echo "t2-hibernate-bce: $*"; }
 # PipeWire clients that crash when PipeWire vanishes under them (EasyEffects dumped core in the
@@ -36,7 +41,10 @@ audio() {   # start|stop PipeWire for every logged-in user, the way test4.sh did
     fi
   done
 }
-load() { modprobe t2bce_vhci; modprobe t2bce_audio; }
+load() {
+  modprobe t2bce_vhci; modprobe t2bce_audio
+  if [ -e "$state/bt" ]; then modprobe hci_uart || log "hci_uart did not load"; rm -f "$state/bt"; fi
+}
 # The keyboard backlight LED lives on the T2 USB bus, so the reload removes and re-creates it.
 # UPower keeps the old sysfs file open ("writing '…' to device failed", KDE's brightness keys
 # dead, 2026-11-24): save the level before, write it back once the LED is there, restart UPower.
@@ -53,6 +61,10 @@ kbd_restore() {
 case "${1:-}" in
   pre)
     kbd_save; audio stop; sleep 1
+    if lsmod | grep -q '^hci_uart '; then
+      mkdir -p "$state"; : > "$state/bt"
+      modprobe -r hci_uart 2>/dev/null || log "hci_uart still loaded: Bluetooth needs a reload after the restore"
+    fi
     modprobe -r t2bce_audio t2bce_vhci t2bce_core t2bce_dma 2>/dev/null
     if lsmod | grep -q '^t2bce'; then
       log "T2 drivers still loaded ($(lsmod | awk '/^t2bce/{print $1}' | tr '\n' ' ')): hibernate cancelled, suspending instead"

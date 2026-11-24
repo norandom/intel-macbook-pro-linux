@@ -151,6 +151,11 @@ backlight stayed dark.
 - Keyboard backlight: the LED sits on the T2 USB bus, so the driver reload re-creates it. UPower
   kept the old one open (`upowerd: writing '2932' to device failed`). Fix: the hook saves the
   level before the unload, writes it back once the LED is there, and restarts UPower.
+- Bluetooth: dead after every real restore since 2026-11-16 (`hci0: Opcode 0x0c24 failed: -16`,
+  scans and connects fail although the controller says powered). The BCM4364 hangs off the UART,
+  not the T2; the power-off resets the chip under a driver that keeps the old state. Fix: if `hci_uart` is loaded, the
+  hook unloads it before the image and loads it again after the restore (`modprobe -r hci_uart && modprobe
+  hci_uart` brought it back by hand).
 
 Sources:
 

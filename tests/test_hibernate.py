@@ -50,9 +50,16 @@ class HibernateTests(unittest.TestCase):
         self.assertIn('CLIENT_GLOBS="app-*easyeffects*@autostart.service"', hook)  # KDE autostart copy too
         self.assertLess(hook.index('"$CLIENT_GLOBS"'), hook.index('us stop $(cat "$state/$uid")'))
         # keyboard backlight: level saved before the unload, written back and UPower rebound after
-        self.assertLess(hook.index("kbd_save; audio stop"), hook.index("modprobe -r"))
+        self.assertLess(hook.index("kbd_save; audio stop"), hook.index("modprobe -r t2bce_audio"))
         self.assertIn("kbd_restore; sleep 2; audio start ;;", hook)
         self.assertIn("systemctl --no-block try-restart upower.service", hook)
+        # Bluetooth (BCM4364 on hci_uart): out before the image, back in load(); never cancels
+        self.assertIn("modprobe -r hci_uart 2>/dev/null ||", hook)
+        self.assertLess(hook.index("modprobe -r hci_uart 2>"), hook.index("modprobe -r t2bce_audio"))
+        load_fn = hook.split("load() {")[1].split("\n}")[0]
+        self.assertIn('[ -e "$state/bt" ]; then modprobe hci_uart ||', load_fn)  # only if it was loaded
+        self.assertLess(hook.index(': > "$state/bt"'), hook.index("modprobe -r hci_uart 2>"))
+        self.assertNotIn("hci_uart", hook.split("if lsmod | grep -q '^t2bce'")[1].split("then")[0])
         self.assertIn("Before=systemd-hibernate.service", unit)
         self.assertIn("StopWhenUnneeded=yes", unit)
         subprocess.run(["sh", "-n", str(ROOT / "files/desktop/t2-hibernate-bce")], check=True)
