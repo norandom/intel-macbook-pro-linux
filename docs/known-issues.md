@@ -139,6 +139,19 @@ the restore. `test4.sh` showed the unload and reload work in a running session w
 coming back. The real hibernate then restored the session with every device working; closing
 the lid now hibernates (`lid_close = "hibernate"`) on the owner's machine.
 
+Follow-up, 2026-11-24 (KDE session): after a restore EasyEffects had dumped core and the keyboard
+backlight stayed dark.
+
+- EasyEffects: `easyeffects.service` was `After=`/`Requisite=graphical-session.target`, which
+  makes an ordering cycle with KDE's `plasma-workspace.target` (`Before=graphical-session.target`).
+  systemd dropped the job at login and EasyEffects' own XDG autostart copy ran instead
+  (`app-com.github.wwmm.easyeffects@autostart.service`), which the hook didn't stop: it aborted with
+  "No connection to PipeWire" when PipeWire went down. Fix: no ordering on
+  `graphical-session.target` in the unit, and the hook also stops any EasyEffects autostart unit.
+- Keyboard backlight: the LED sits on the T2 USB bus, so the driver reload re-creates it. UPower
+  kept the old one open (`upowerd: writing '2932' to device failed`). Fix: the hook saves the
+  level before the unload, writes it back once the LED is there, and restarts UPower.
+
 Sources:
 
 - t2-suspend-fix (kernel 7.2, t2bce): the T2 driver is no longer unloaded before sleep; it saves

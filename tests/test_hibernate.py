@@ -47,6 +47,12 @@ class HibernateTests(unittest.TestCase):
         self.assertIn("runuser -u", hook)
         self.assertIn('CLIENTS="easyeffects.service filter-chain.service"', hook)   # stopped before PipeWire
         self.assertLess(hook.index('us stop $(cat "$state/$uid")'), hook.index("us stop pipewire-pulse.socket"))
+        self.assertIn('CLIENT_GLOBS="app-*easyeffects*@autostart.service"', hook)  # KDE autostart copy too
+        self.assertLess(hook.index('"$CLIENT_GLOBS"'), hook.index('us stop $(cat "$state/$uid")'))
+        # keyboard backlight: level saved before the unload, written back and UPower rebound after
+        self.assertLess(hook.index("kbd_save; audio stop"), hook.index("modprobe -r"))
+        self.assertIn("kbd_restore; sleep 2; audio start ;;", hook)
+        self.assertIn("systemctl --no-block try-restart upower.service", hook)
         self.assertIn("Before=systemd-hibernate.service", unit)
         self.assertIn("StopWhenUnneeded=yes", unit)
         subprocess.run(["sh", "-n", str(ROOT / "files/desktop/t2-hibernate-bce")], check=True)

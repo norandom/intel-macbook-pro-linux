@@ -2,7 +2,8 @@
 [Unit]
 Description=Tailscale tray (connect, exit node on/off) in the Waybar and the KDE tray
 PartOf=graphical-session.target
-After=graphical-session.target waybar.service
+# Not After=graphical-session.target: ordering cycle with KDE's plasma-workspace.target.
+After=waybar.service plasma-plasmashell.service
 ConditionPathExists=/usr/bin/tailscale
 
 [Service]

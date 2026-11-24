@@ -61,6 +61,17 @@ class SessionScopeTests(unittest.TestCase):
         self.assertIn("WantedBy=hypr-desktop.target plasma-workspace.target", unit)
         self.assertIn("systemctl --user reenable easyeffects.service", (ROOT / "tasks/audio_effects.py").read_text())
 
+    def test_kde_session_units_have_no_ordering_cycle(self):
+        # plasma-workspace.target is Before=graphical-session.target: a unit it wants must not be
+        # After=/Requisite= graphical-session.target, or systemd drops its job at login.
+        units = [u for u in (ROOT / "files").rglob("*.service") if "plasma-workspace.target" in u.read_text()]
+        self.assertGreaterEqual(len(units), 3)
+        for path in units:
+            unit, rel = path.read_text(), str(path.relative_to(ROOT))
+            for line in unit.splitlines():
+                if line.startswith(("After=", "Requisite=")):
+                    self.assertNotIn("graphical-session.target", line, rel)
+
     def test_tailscale_tray_in_both_sessions(self):
         unit = (ROOT / "files/desktop/systemd/hypr-tailscale-tray.service").read_text()
         self.assertIn("WantedBy=hypr-desktop.target plasma-workspace.target", unit)

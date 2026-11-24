@@ -67,7 +67,10 @@ Allowed, and only this:
   module stays loaded it reloads everything, fails (which cancels the hibernate) and suspends
   instead, so a lid-triggered hibernate never leaves the Mac running.
 - After the restore (or a failed hibernate) `post` loads `t2bce_vhci` and `t2bce_audio` again
-  and starts PipeWire.
+  and starts PipeWire. The reload re-creates the keyboard backlight LED, so `pre` saves its level,
+  `post` writes it back and restarts `upower.service` (it keeps the removed LED open otherwise).
+  Owner-approved 2026-11-24 after an independent review; no driver change. The hook also stops an
+  EasyEffects started from XDG autostart before PipeWire goes down.
 - Image-writing sleeps only: plain suspend, the initramfs, module options, blacklists and the drivers' files stay
   untouched. Tested by hand first (docs/t2-tests/test4.sh: unload + reload in a running session,
   all devices back). Any further driver change needs a new explicit owner decision.

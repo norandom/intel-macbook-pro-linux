@@ -4,14 +4,18 @@
 #   pre   before hibernate: stop PipeWire (it holds t2bce_audio open), unload the T2 bridge
 #         drivers without force. If any stays loaded, reload everything and exit 1, which
 #         cancels the hibernate (the unit is required by systemd-hibernate.service).
-#   post  after the restore (or a failed hibernate): load the drivers fresh, start PipeWire.
+#   post  after the restore (or a failed hibernate): load the drivers fresh, put the keyboard
+#         backlight back at its old level, restart UPower, start PipeWire.
 # Why: with HibernateMode=shutdown the T2 chip is power-cycled; a restored kernel that still has
 # the old driver state gets no keyboard/trackpad (2026-11-16). Suspend is not affected.
 set -u
 log() { echo "t2-hibernate-bce: $*"; }
 # PipeWire clients that crash when PipeWire vanishes under them (EasyEffects dumped core in the
 # rehearsal, 2026-11-16): stopped first, restarted afterwards, but only if they were running.
+# The app-*@autostart pattern catches an EasyEffects started from an XDG autostart entry (KDE
+# login, 2026-11-23: it was not easyeffects.service, kept running and dumped core).
 CLIENTS="easyeffects.service filter-chain.service"
+CLIENT_GLOBS="app-*easyeffects*@autostart.service"
 state=/run/t2-hibernate-bce        # tmpfs: survives the hibernate image, gone after a reboot
 audio() {   # start|stop PipeWire for every logged-in user, the way test4.sh did (user's own bus)
   mkdir -p "$state"
@@ -22,6 +26,7 @@ audio() {   # start|stop PipeWire for every logged-in user, the way test4.sh did
     if [ "$1" = stop ]; then
       : > "$state/$uid"
       for c in $CLIENTS; do us -q is-active "$c" && echo "$c" >> "$state/$uid"; done
+      us list-units --state=active --plain --no-legend "$CLIENT_GLOBS" | awk '{print $1}' >> "$state/$uid"
       [ -s "$state/$uid" ] && us stop $(cat "$state/$uid")
       us stop pipewire-pulse.socket pipewire.socket pipewire-pulse.service wireplumber.service pipewire.service || true
     else
@@ -32,13 +37,26 @@ audio() {   # start|stop PipeWire for every logged-in user, the way test4.sh did
   done
 }
 load() { modprobe t2bce_vhci; modprobe t2bce_audio; }
+# The keyboard backlight LED lives on the T2 USB bus, so the reload removes and re-creates it.
+# UPower keeps the old sysfs file open ("writing '…' to device failed", KDE's brightness keys
+# dead, 2026-11-24): save the level before, write it back once the LED is there, restart UPower.
+kbd_led() { ls -d /sys/class/leds/*kbd_backlight 2>/dev/null | head -n1; }
+kbd_save() { l=$(kbd_led); mkdir -p "$state"; [ -n "$l" ] && cat "$l/brightness" > "$state/kbd" 2>/dev/null; }
+kbd_restore() {
+  i=0; while [ -z "$(kbd_led)" ] && [ $i -lt 20 ]; do sleep 0.5; i=$((i + 1)); done
+  l=$(kbd_led)
+  if [ -z "$l" ]; then log "keyboard backlight did not come back"
+  elif [ -s "$state/kbd" ]; then cat "$state/kbd" > "$l/brightness" || log "keyboard backlight: restore failed"; fi
+  rm -f "$state/kbd"
+  systemctl --no-block try-restart upower.service || true
+}
 case "${1:-}" in
   pre)
-    audio stop; sleep 1
+    kbd_save; audio stop; sleep 1
     modprobe -r t2bce_audio t2bce_vhci t2bce_core t2bce_dma 2>/dev/null
     if lsmod | grep -q '^t2bce'; then
       log "T2 drivers still loaded ($(lsmod | awk '/^t2bce/{print $1}' | tr '\n' ' ')): hibernate cancelled, suspending instead"
-      load; sleep 2; audio start
+      load; kbd_restore; sleep 2; audio start
       # The lid may have triggered this: don't leave the Mac running in a bag. Suspend once the
       # failed hibernate transaction is over.
       systemd-run --quiet --no-block --on-active=5 /usr/bin/systemctl suspend || true
@@ -48,6 +66,6 @@ case "${1:-}" in
   post)
     load
     log "T2 drivers loaded: $(lsmod | grep -c '^t2bce') modules"
-    sleep 2; audio start ;;
+    kbd_restore; sleep 2; audio start ;;
   *) echo "usage: t2-hibernate-bce pre|post" >&2; exit 2 ;;
 esac

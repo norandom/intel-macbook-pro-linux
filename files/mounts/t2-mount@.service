@@ -3,7 +3,8 @@
 # in the background and returns; rclone/sshfs stay in this unit, so stop/logout cleans them up.
 [Unit]
 Description=Network mount (%i)
-After=network-online.target graphical-session.target
+# Not After=graphical-session.target: ordering cycle with KDE's plasma-workspace.target.
+After=network-online.target
 
 [Service]
 Type=oneshot

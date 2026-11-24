@@ -4,8 +4,10 @@
 [Unit]
 Description=EasyEffects audio effects (service mode, no window)
 PartOf=graphical-session.target
-After=graphical-session.target pipewire.service wireplumber.service pipewire-pulse.service
-Requisite=graphical-session.target
+# No After=/Requisite= on graphical-session.target: KDE orders plasma-workspace.target Before= it,
+# so that made an ordering cycle, systemd dropped this job at login and the XDG autostart copy
+# ran instead (2026-11-22). The session targets in WantedBy= scope it to graphical logins.
+After=pipewire.service wireplumber.service pipewire-pulse.service
 
 [Service]
 ExecStart=/usr/bin/easyeffects --service-mode --hide-window
