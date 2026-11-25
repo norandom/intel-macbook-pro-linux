@@ -36,7 +36,8 @@ class ReplacesTests(unittest.TestCase):
             argv = guard._apt_args(request)
             self.assertNotIn("--no-remove", argv)
             self.assertEqual(argv[-1], "libappindicator3-dev-")
-        self.assertIn("--no-remove", guard._apt_args(PackageRequest(packages=("pkg-config",))))
+        with mock.patch.object(guard, "_installed", return_value=False):   # pkg-config not yet installed
+            self.assertIn("--no-remove", guard._apt_args(PackageRequest(packages=("pkg-config",))))
 
     @unittest.skipUnless(shutil.which("apt-get"), "apt required")
     def test_live_plan_passes_the_guard(self):

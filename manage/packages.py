@@ -110,14 +110,26 @@ def _run(argv) -> str:
     return result.stdout
 
 
+def _wanted(request) -> tuple[str, ...]:
+    """The selections apt still has to act on. A plain name that is already installed is left
+    out: "apt-get install <installed>" upgrades it to the candidate, and with it every package
+    that must match its version (2026-11-25: the speaker DSP plugins pulled a PipeWire update
+    from resolute-updates). Updates stay manual. Pinned "name=version" and staged .debs stay in."""
+    return tuple(p for p in request.packages
+                 if _LOCAL_DEB.match(p) or "=" in p or not _installed(p))
+
+
 def _apt_args(request):
     # Lock::Timeout: apt waits (instead of failing) if a background apt run takes the lock between
     # the transaction's lock check and this call.
     # Named replacements are removed explicitly ("name-"), so --no-remove is dropped only then;
     # the simulation still allows no removal beyond them.
     replaced = tuple(f"{p}-" for p in request.replaces if _installed(p))
+    wanted = _wanted(request)
+    if not (wanted or replaced):
+        return None   # everything is installed: nothing for apt to do
     return ("/usr/bin/apt-get", "-o", "DPkg::Lock::Timeout=300", "--no-install-recommends",
-            *(() if replaced else ("--no-remove",)), "install", *request.packages, *replaced)
+            *(() if replaced else ("--no-remove",)), "install", *wanted, *replaced)
 
 
 def _installed(package: str) -> bool:
@@ -150,6 +162,8 @@ def inspect_plan(request: PackageRequest) -> PackagePlan:
     """Unprivileged apt simulation of exactly this request."""
     validate_request(request)
     argv = _apt_args(request)
+    if argv is None:
+        return PackagePlan((), ())
     try:
         output = _run((argv[0], "--simulate", *argv[1:]))
     except RuntimeError as error:
@@ -314,6 +328,8 @@ def _apply_install(request: PackageRequest, *, prevent_service_start: bool = Fal
         if not (plan.installs or plan.removals):
             return
         argv = _apt_args(request)
+        if argv is None:
+            return   # installed meanwhile
         subprocess.run((argv[0], "--download-only", "--yes", *argv[1:]), env=_ENV, check=True)
         from concurrent.futures import ThreadPoolExecutor
         archives = [_local_deb(package, version, request) or _deb_path(package, version)

@@ -55,6 +55,7 @@ class InstallTests(unittest.TestCase):
              patch('manage.package_policy.verify_effective_policy', side_effect=lambda **kw: events.append(('policy', kw))), \
              patch.object(guard, 'inspect_plan', side_effect=lambda r: events.append('plan') or self.plan), \
              patch.object(guard, '_deb_path', return_value=Path('/x.deb')), \
+             patch.object(guard, '_installed', return_value=False), \
              patch.object(guard, 'check_archive', side_effect=lambda deb: events.append('archive')), \
              patch.object(guard.subprocess, 'run', side_effect=lambda *a, **kw: events.append(('apt', a, kw))):
             guard._apply_install(self.request)

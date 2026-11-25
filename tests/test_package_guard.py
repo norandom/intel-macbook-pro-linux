@@ -37,6 +37,33 @@ class SimulationTests(unittest.TestCase):
                 guard._parse_simulation(out)
 
 
+class InstalledSelectionTests(unittest.TestCase):
+    """An installed plain name never reaches apt-get install (that would upgrade it)."""
+
+    def test_installed_names_are_left_out(self):
+        with patch.object(guard, "_installed", side_effect=lambda p: p in ("swh-lv2", "old")):
+            argv = guard._apt_args(R(("swh-lv2", "btop")))
+        self.assertEqual(argv[argv.index("install") + 1:], ("btop",))
+
+    def test_all_installed_needs_no_apt_run(self):
+        with patch.object(guard, "_installed", return_value=True), patch.object(guard, "_run") as run:
+            self.assertIsNone(guard._apt_args(R(("swh-lv2", "lsp-plugins-lv2"))))
+            self.assertEqual(guard.inspect_plan(R(("swh-lv2", "lsp-plugins-lv2"))), guard.PackagePlan((), ()))
+        run.assert_not_called()
+
+    def test_pinned_versions_and_staged_debs_stay(self):
+        deb = "/var/cache/t2-mac-kde/debs/foo_1_amd64.deb"
+        with patch.object(guard, "_installed", return_value=True):
+            argv = guard._apt_args(R(("bar=1.2-3", deb, "btop")))
+        self.assertEqual(argv[argv.index("install") + 1:], ("bar=1.2-3", deb))
+
+    def test_replacements_still_run_when_the_new_package_is_installed(self):
+        with patch.object(guard, "_installed", return_value=True):
+            argv = guard._apt_args(R(("newlib",), replaces=("oldlib",)))
+        self.assertEqual(argv[argv.index("install") + 1:], ("oldlib-",))
+        self.assertNotIn("--no-remove", argv)
+
+
 class ArchiveTests(unittest.TestCase):
     def test_protected_paths(self):
         for path in ("./boot/vmlinuz", "./etc/fstab", "./lib/modules/x/foo.ko", "./usr/share/initramfs-tools/hooks/x",
