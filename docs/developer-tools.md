@@ -131,7 +131,7 @@ Installs Aikido Safe Chain (`@aikidosec/safe-chain`, pinned) and aliases
 - You're in the `docker` group, which is root-equivalent (applies at the next login).
 - `/etc/docker/daemon.json`: `ip-forward-no-drop` (otherwise Docker sets the FORWARD policy to
   DROP and libvirt's VM networks lose their connection) and container logs capped at 3 × 10 MB.
-- `lazydocker` (Nix) is the terminal UI.
+- `lazydocker` (Nix) is the terminal UI; `ctop` (Nix) shows live CPU, memory and I/O per container.
 
 ## Virtual machines
 
@@ -144,7 +144,7 @@ unknown MSRs so Windows guests with Hyper-V or WSL2 don't crash.
 ## Command-line tools from Nix
 
 Most CLI tools come from one pinned Nix flake: zellij, kubectl, helm, k9s, ktop, Bitwarden CLI,
-rclone, lazydocker, btop, ripgrep, fd, bat, jq, fzf, lazygit, glow, gh, gdu, trippy, multitail,
+rclone, lazydocker, ctop, btop, ripgrep, fd, bat, jq, fzf, lazygit, glow, gh, gdu, trippy, multitail,
 aria2, rustup, go, Nim, nimble, nimlangserver, netcat, gef, rizin and valgrind. Add your own with
 `nix_tools_extra`. Updating, adding and rolling back: [nix.md](nix.md).
 

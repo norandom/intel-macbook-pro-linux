@@ -58,6 +58,7 @@ class DockerEngineTests(unittest.TestCase):
             self.assertIn(marker, TASK)
         self.assertNotIn("podman-tui", nt.DEFAULT_TOOLS)
         self.assertIn("lazydocker", nt.DEFAULT_TOOLS)
+        self.assertIn("ctop", nt.DEFAULT_TOOLS)
 
     def test_compose_link_state(self):
         with mock.patch.object(c.Path, "is_symlink", return_value=True), \

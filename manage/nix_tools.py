@@ -15,7 +15,7 @@ import re
 # rustfs-cli), uv (bootstrap needs it before Nix), node/npm (nvm) and rustup (Ubuntu archive:
 # nixpkgs' rustup patches every toolchain it downloads to Nix's glibc; see manage/rust_toolchains.py).
 DEFAULT_TOOLS = (
-    "zellij", "kubectl", "kubernetes-helm", "k9s", "ktop", "bitwarden-cli", "rclone", "lazydocker",
+    "zellij", "kubectl", "kubernetes-helm", "k9s", "ktop", "bitwarden-cli", "rclone", "lazydocker", "ctop",
     "btop", "ripgrep", "fd", "bat", "jq", "fzf", "lazygit", "glow", "gh", "gdu", "trippy",
     "multitail", "aria2", "go", "nim", "nimble", "nimlangserver", "nano-syntax-highlighting",
     "netcat-openbsd", "gef", "rizin", "valgrind", "lftp", "byobu", "eza", "uutils-coreutils",

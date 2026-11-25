@@ -7,7 +7,7 @@ daemon runs from the package's own systemd units. `/nix` sits on the normal root
 
 ## What Nix covers, and what it doesn't
 
-Nix: zellij, kubectl, helm, k9s, ktop, bw (bitwarden-cli), rclone, lazydocker, btop, ripgrep,
+Nix: zellij, kubectl, helm, k9s, ktop, bw (bitwarden-cli), rclone, lazydocker, ctop, btop, ripgrep,
 fd, bat, jq, fzf, lazygit, glow, gh, gdu, trippy, multitail, aria2, nc (netcat-openbsd), gef, rizin,
 valgrind, go, and Nim (nim, nimble, nimlangserver). The full list is `nix_tools` in `files/config.example.toml`.
 
