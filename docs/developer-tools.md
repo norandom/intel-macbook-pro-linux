@@ -121,12 +121,17 @@ Installs Aikido Safe Chain (`@aikidosec/safe-chain`, pinned) and aliases
 
 `tasks/containers.py`:
 
-- rootless Podman, with `docker` (podman-docker), `docker compose` and `docker-compose` running
-  podman-compose. No daemon, no root socket.
-- Short image names resolve to docker.io, like Docker.
-- Linger is on, so containers keep running when you log out.
-- A user `podman.socket` for podman-tui and Podman Desktop.
-- An existing Docker install is detected and left alone; the shim is skipped then.
+- Docker Engine from Docker's apt repo (key pinned by sha256): `docker`, `docker compose`
+  (plugin), `docker buildx`, and a `docker-compose` link to the plugin. It replaced rootless
+  Podman on 2026-11-25; the Podman packages, podman-tui and Podman Desktop are removed.
+- Not Docker Desktop: on Linux that runs its own VM with a separate engine.
+- The daemon is socket-activated: it starts with the first `docker` command, not at boot.
+  Containers with a restart policy come back once the daemon runs; `sudo systemctl enable
+  docker.service` starts it at boot instead.
+- You're in the `docker` group, which is root-equivalent (applies at the next login).
+- `/etc/docker/daemon.json`: `ip-forward-no-drop` (otherwise Docker sets the FORWARD policy to
+  DROP and libvirt's VM networks lose their connection) and container logs capped at 3 × 10 MB.
+- `lazydocker` (Nix) is the terminal UI.
 
 ## Virtual machines
 
@@ -139,7 +144,7 @@ unknown MSRs so Windows guests with Hyper-V or WSL2 don't crash.
 ## Command-line tools from Nix
 
 Most CLI tools come from one pinned Nix flake: zellij, kubectl, helm, k9s, ktop, Bitwarden CLI,
-rclone, podman-tui, btop, ripgrep, fd, bat, jq, fzf, lazygit, glow, gh, gdu, trippy, multitail,
+rclone, lazydocker, btop, ripgrep, fd, bat, jq, fzf, lazygit, glow, gh, gdu, trippy, multitail,
 aria2, rustup, go, Nim, nimble, nimlangserver, netcat, gef, rizin and valgrind. Add your own with
 `nix_tools_extra`. Updating, adding and rolling back: [nix.md](nix.md).
 

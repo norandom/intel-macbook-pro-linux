@@ -1,0 +1,2 @@
+# Docker Engine (Docker Inc., download.docker.com); managed by t2-mac-kde (tasks/containers.py).
+deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu resolute stable

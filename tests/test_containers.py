@@ -1,42 +1,73 @@
+import hashlib
+import json
 import unittest
+from pathlib import Path
 from unittest import mock
 
 from manage import containers as c
+from manage import nix_tools as nt
+from manage import packages as guard
+
+ROOT = Path(__file__).resolve().parents[1]
+TASK = (ROOT / "tasks/containers.py").read_text()
 
 
-class SubidTests(unittest.TestCase):
-    def test_parse_skips_junk(self):
-        self.assertEqual(c.parse_subids("mc:100000:65536\n# x\nbad\nz:a:b\n"), [("mc", 100000, 65536)])
+class DockerEngineTests(unittest.TestCase):
+    def test_keyring_and_source_are_pinned(self):
+        key = ROOT / "files/containers/docker-keyring.gpg"
+        self.assertEqual(hashlib.sha256(key.read_bytes()).hexdigest(), c.KEYRING_SHA256)
+        source = (ROOT / "files/containers/docker.list").read_text()
+        self.assertIn("signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] "
+                      "https://download.docker.com/linux/ubuntu resolute stable", source)
+        self.assertIn("KEYRING_SHA256", TASK)
 
-    def test_existing_range_retained(self):
-        entries = c.parse_subids("mc:100000:65536\n")
-        self.assertTrue(c.user_has_range(entries, "mc", 1000))
-        self.assertFalse(c.user_has_range(entries, "other", 1001))
+    def test_engine_not_desktop(self):
+        self.assertEqual(c.PACKAGES, ("docker-ce", "docker-ce-cli", "containerd.io",
+                                      "docker-buildx-plugin", "docker-compose-plugin"))
+        self.assertNotIn("docker-desktop", TASK.replace("Docker Desktop", ""))
 
-    def test_next_free_start_avoids_overlap(self):
-        self.assertEqual(c.next_free_start([]), 100000)
-        entries = c.parse_subids("a:100000:65536\nb:165536:65536\nc:400000:65536\n")
-        self.assertEqual(c.next_free_start(entries), 231072)
-        self.assertEqual(c.next_free_start(c.parse_subids("a:150000:10\n")), 150010)
+    def test_one_transaction_swaps_podman_for_docker(self):
+        self.assertIn("schedule_batch(\"Docker Engine\", packages=c.PACKAGES, source_lists=(c.REPO,), replaces=podman_left)", TASK)
+        self.assertLessEqual(len(c.PODMAN_PACKAGES), 8)       # PackageRequest.replaces limit
+        self.assertIn("podman-docker", c.PODMAN_PACKAGES)      # ships /usr/bin/docker too
+        for p in c.PACKAGES + c.PODMAN_PACKAGES:               # nothing the guard refuses
+            self.assertFalse(guard._protected(p), p)
+        guard.validate_request(guard.PackageRequest(c.PACKAGES, replaces=c.PODMAN_PACKAGES))
 
+    def test_batch_passes_replacements_to_the_root_helper(self):
+        with mock.patch("pyinfra.operations.server.shell") as shell:
+            guard.schedule_batch("T", packages=("docker-ce",), source_lists=("docker",), replaces=("podman",))
+        script = shell.call_args.kwargs["commands"][0]
+        self.assertIn("--apply --replace podman docker-ce", script)
 
-class ConflictTests(unittest.TestCase):
-    def test_docker_package_is_conflict(self):
-        with mock.patch.object(c, "installed", side_effect=lambda p: p == "docker.io"), \
-             mock.patch.object(c.shutil, "which", return_value="/usr/bin/docker"), \
-             mock.patch.dict(c.os.environ, {}, clear=True):
-            found = c.docker_conflicts()
-        self.assertIn("package docker.io installed", found)
-        self.assertIn("existing docker command at /usr/bin/docker", found)
+    def test_daemon_config(self):
+        self.assertTrue(c.DAEMON_CONFIG["ip-forward-no-drop"])        # libvirt NAT keeps working
+        self.assertEqual(c.DAEMON_CONFIG["log-opts"], {"max-size": "10m", "max-file": "3"})
+        json.dumps(c.DAEMON_CONFIG)
+        self.assertIn("dockerd --validate --config-file /etc/docker/daemon.json", TASK)
 
-    def test_own_shim_is_not_conflict(self):
-        with mock.patch.object(c, "installed", side_effect=lambda p: p == c.DOCKER_SHIM), \
-             mock.patch.object(c.shutil, "which", return_value="/usr/bin/docker"), \
-             mock.patch.dict(c.os.environ, {}, clear=True):
-            self.assertEqual(c.docker_conflicts(), [])
+    def test_socket_activated_and_group(self):
+        self.assertIn("systemctl enable docker.socket", TASK)
+        self.assertIn("systemctl disable docker.service containerd.service", TASK)
+        self.assertIn("usermod -aG docker", TASK)
 
-    def test_no_forbidden_packages(self):
-        self.assertFalse({"snapd", "flatpak", "docker.io"} & set(c.PACKAGES + (c.DOCKER_SHIM,)))
+    def test_podman_leftovers_go(self):
+        for marker in ("podman.socket", "unset-environment DOCKER_HOST", '"podman-tui", "podman-desktop"',
+                       "/etc/apparmor.d/t2-podman-desktop"):
+            self.assertIn(marker, TASK)
+        self.assertNotIn("podman-tui", nt.DEFAULT_TOOLS)
+        self.assertIn("lazydocker", nt.DEFAULT_TOOLS)
+
+    def test_compose_link_state(self):
+        with mock.patch.object(c.Path, "is_symlink", return_value=True), \
+             mock.patch.object(c.os, "readlink", return_value=c.OLD_COMPOSE_TARGET):
+            self.assertEqual(c.compose_link_state(), "ours")
+        with mock.patch.object(c.Path, "is_symlink", return_value=False), \
+             mock.patch.object(c.Path, "exists", return_value=False):
+            self.assertEqual(c.compose_link_state(), "absent")
+        with mock.patch.object(c.Path, "is_symlink", return_value=False), \
+             mock.patch.object(c.Path, "exists", return_value=True):
+            self.assertEqual(c.compose_link_state(), "foreign")
 
 
 if __name__ == "__main__":

@@ -65,7 +65,7 @@ Remmina was removed on request).
 ## Development
 
 VS Code and Sublime Text (vendor repos), Zed (tarball), Positron and Quarto (`.deb`), OpenIDEA,
-Podman Desktop, Meld, edb, heaptrack, and the Intel oneAPI compilers. Terminals: Terminator,
+Meld, edb, heaptrack, and the Intel oneAPI compilers. Terminals: Terminator,
 foot, Ghostty, xfce4-terminal (Contour is planned, [backlog](backlog.md)). Classic X apps: Xfe (file manager), NEdit, x3270 and c3270.
 TUI tools: atop, posting, lazygit, glow, gdu, leaves (disk usage map), trippy, ttl (traceroute
 with per-hop stats, ASN/geo; /usr/local/bin with cap_net_raw), witr (why is this process/port
@@ -77,8 +77,7 @@ CLI tools come from Nix ([nix.md](nix.md)).
 
 - Apps from apt repos update with your normal `apt upgrade`.
 - Pinned `.deb`s and tarballs update when you bump the pin in `manage/applications.py` or
-  `tasks/office_apps.py` and re-run the task. Zen and Discord update themselves; Podman
-  Desktop's own update check is turned off.
+  `tasks/office_apps.py` and re-run the task. Zen and Discord update themselves.
 
 ## Status
 

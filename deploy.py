@@ -21,7 +21,7 @@ for task in (
     "network_tuning",   # config network_tuning: BBR + two sender-side TCP sysctls (on by default)
     "traffic_shaping",  # config cake_upload_mbit/cake_download_mbit: CAKE shaper (off by default)
     "security_keys",    # YubiKey tools; config yubikey_login: touch the key instead of a password
-    "containers",       # rootless podman, docker compat, compose, podman-tui
+    "containers",       # Docker Engine (Docker's repo), compose, buildx; replaced Podman
     "virtualization",   # virt-manager on KVM, libvirt default NAT network
     "fonts",            # nerd fonts, fixedsys, fontconfig
     "apps",             # application suite + release tools

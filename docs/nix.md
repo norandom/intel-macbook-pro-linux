@@ -7,7 +7,7 @@ daemon runs from the package's own systemd units. `/nix` sits on the normal root
 
 ## What Nix covers, and what it doesn't
 
-Nix: zellij, kubectl, helm, k9s, ktop, bw (bitwarden-cli), rclone, podman-tui, btop, ripgrep,
+Nix: zellij, kubectl, helm, k9s, ktop, bw (bitwarden-cli), rclone, lazydocker, btop, ripgrep,
 fd, bat, jq, fzf, lazygit, glow, gh, gdu, trippy, multitail, aria2, nc (netcat-openbsd), gef, rizin,
 valgrind, go, and Nim (nim, nimble, nimlangserver). The full list is `nix_tools` in `files/config.example.toml`.
 
@@ -50,8 +50,8 @@ Edit `nix_tools` in `~/.config/t2-mac-kde/config.toml` (nixpkgs attribute names,
 .venv/bin/pyinfra @local tasks/nix_tools.py
 ```
 
-Take zellij, kubectl, kubernetes-helm, k9s, ktop, bitwarden-cli, rclone or podman-tui out of the
-list and the next `tasks/apps.py` (or `tasks/containers.py` for podman-tui) run brings back the
+Take zellij, kubectl, kubernetes-helm, k9s, ktop, bitwarden-cli or rclone out of the
+list and the next `tasks/apps.py` run brings back the
 pinned release binary. `nix_tools = []` leaves an empty profile entry; to drop it entirely:
 `nix profile remove t2-tools`.
 

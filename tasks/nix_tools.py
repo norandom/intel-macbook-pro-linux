@@ -117,15 +117,6 @@ marks = home / ".local/share/t2-mac-kde/release-tools"
 for app_id, attr in nt.MIGRATED.items():
     if attr not in selected:
         continue
-    if app_id == "podman-tui":  # tasks/containers.py: ~/.local/bin link into ~/.local/opt/podman-tui-*
-        link, opt = bin_dir / "podman-tui", home / ".local/opt"
-        server.shell(
-            name="Remove our podman-tui release copy (Nix provides it)",
-            commands=[f'rm -f {quote(str(link))} && rm -rf {quote(str(opt))}/podman-tui-*'],
-            _if=holds(f'[ -x {quote(str(nix_bin / "podman-tui"))} ] && [ -L {quote(str(link))} ] && '
-                      f'case "$(readlink {quote(str(link))})" in {quote(str(opt))}/podman-tui-*) true ;; *) false ;; esac'),
-        )
-        continue
     if app_id not in RELEASE_FALLBACK:
         continue
     dest, mark = bin_dir / app_id, marks / f"{app_id}.sha256"

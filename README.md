@@ -79,7 +79,7 @@ leaves it working as the T2 install set it up. It's one logout away if you ever 
 - [Desktop](docs/desktop.md): Hyprland with Waybar, German Mac and US keyboard, screenshot editor, five themes.
 - [Battery and heat](docs/power.md): turbo off by default, a charge limit, the AMD GPU idle, zram, earlyoom.
 - [Audio](docs/audio.md): a crossover and bass DSP for the six speakers, a Boom3D-style headphone chain.
-- [Developer tools](docs/developer-tools.md): grml Bash, nvm, uv, rootless Podman, KVM, icx, [Nix](docs/nix.md) CLI tools.
+- [Developer tools](docs/developer-tools.md): grml Bash, nvm, uv, Docker Engine, KVM, icx, [Nix](docs/nix.md) CLI tools.
 - [Apps](docs/apps.md): the Craft office suite, LibreOffice with the ribbon UI, VS Code, Zed, Chromium, Zoom.
 - [Remote access](docs/remote-access.md): Tailscale, SSH behind fail2ban, RDP into Hyprland over Tailscale only.
 - [Security keys](docs/security-keys.md): a YubiKey (primary + spare) instead of Touch ID for sudo, login and the lock screen.

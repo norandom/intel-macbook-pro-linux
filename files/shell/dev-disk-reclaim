@@ -119,7 +119,7 @@ df_line() { df -h / | awk 'NR==2 {printf "%s used, %s free (%s)\n", $3, $4, $5}'
 echo "dev-disk-reclaim  mode=$MODE  keep-days=$KEEP_DAYS"
 echo "disk: $(df_line)"
 
-# ---------- containers (rootless Podman here; docker is an alias for it) ----------
+# ---------- containers (Docker Engine here; rootless Podman where it is installed) ----------
 CTR=""
 if have podman; then CTR=podman; elif have docker; then CTR=docker; fi
 section "containers${CTR:+ ($CTR)}"

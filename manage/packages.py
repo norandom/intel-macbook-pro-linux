@@ -275,13 +275,14 @@ def install_packages(request: PackageRequest, *, prevent_service_start: bool = F
 
 
 def schedule_batch(name: str, *, packages=(), debs=(), source_lists=(), preseed: str = "",
-                   cleanup: bool = True) -> None:
+                   cleanup: bool = True, replaces=()) -> None:
     """One guarded transaction for many vendor items (instead of one apt run per app).
 
     debs: (package, version, url, sha256) to stage in LOCAL_DEBS (downloaded in parallel,
     sha256-checked); source_lists: /etc/apt/sources.list.d/<x>.list names refreshed together
     in one `apt-get update`; packages: archive/repo package names. dpkg then runs once, so
-    its triggers (man-db, desktop/MIME/icon caches, ldconfig) run once too.
+    its triggers (man-db, desktop/MIME/icon caches, ldconfig) run once too. replaces: installed
+    packages to remove in the same transaction (validated like PackageRequest.replaces).
     """
     import shlex
     from pyinfra.operations import server
@@ -306,6 +307,7 @@ def schedule_batch(name: str, *, packages=(), debs=(), source_lists=(), preseed:
     if preseed:
         script.append(preseed)
     script.append(f"cd {shlex.quote(str(project))} && /usr/bin/python3 -m manage.packages --apply "
+                  + "".join(f"--replace {shlex.quote(r)} " for r in replaces)
                   + " ".join(shlex.quote(x) for x in (*packages, *staged)))
     if cleanup and staged:
         script.append("rm -f " + " ".join(staged))

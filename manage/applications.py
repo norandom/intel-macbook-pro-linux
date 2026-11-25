@@ -217,9 +217,6 @@ VENDOR_TARBALLS = {
             "9c3fc4cbe533e72c8d0e864a62be2b88d69cc44b9f52cd25d4c21d054dda3742", "zed"),
     "zen": ("1.24.2b", "https://github.com/zen-browser/desktop/releases/download/1.24.2b/zen.linux-x86_64.tar.xz",
             "bcf7e43160ecfe5f29953ed2a984e7a8028a58f2ec0e3114d36bb904d5f5ce80", "zen"),
-    "podman-desktop": ("1.30.5",
-                       "https://github.com/podman-desktop/podman-desktop/releases/download/v1.30.5/podman-desktop-1.30.5-x64.tar.gz",
-                       "aa616a948a8b254132e903b751a95765eeae3454cbd5b7049146b5bdeb842d3d", "podman-desktop"),
     # Telegram Desktop, the official build (not in Ubuntu 26.04; owner request 2026-11-23).
     # Its own updater keeps it current in place, so the pin only matters for the first install.
     "telegram": ("7.4.4", "https://github.com/telegramdesktop/tdesktop/releases/download/v7.4.4/td-setup-linux-x64-7.4.4.tar.xz",
@@ -260,7 +257,8 @@ OTHER = {
         ("curl", "curl"), ("ca-certificates", None), ("jq", "jq"), ("htop", "htop"), ("btop", "btop"))},
     "cliphist": ("delegated", "hyprland-desktop", "cliphist", None),
     "x11-xserver-utils": ("delegated", "desktop-fonts", "xset", None),
-    "podman-tui": ("delegated", "rootless-containers", "podman-tui", None),
+    "podman-tui": ("excluded", "containers", "podman-tui",
+                   "Podman replaced by Docker Engine (owner 2026-11-25); lazydocker comes from Nix"),
     "dbus-user-session": ("delegated", "hyprland-desktop", None, None),
     "systemd-zram-generator": ("delegated", "laptop-resource-policy", None, None),
     "earlyoom": ("delegated", "laptop-resource-policy", "earlyoom", None),

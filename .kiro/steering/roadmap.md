@@ -36,7 +36,7 @@ from document review. Spec batch completion below means documents, not software.
 - Resource policy owns turbo fragment; shell loads it.
 - Fonts owns installed fonts/X11 font helper; desktop invokes helper.
 - Apps owns native application installers; shell owns user npm/uv tools and nvim;
-  containers owns Podman/podman-tui; desktop owns compositor/widgets.
+  containers owns Docker Engine (replaced Podman 2026-11-25); desktop owns compositor/widgets.
 - Themes owns terminal configs, palette targets and theme commands; desktop owns
   its Waybar theme module and consumes those commands/state.
 - RDP owns its units/patches, with session contract supplied by desktop.

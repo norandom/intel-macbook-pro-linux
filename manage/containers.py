@@ -1,90 +1,42 @@
-"""Read-only inspection helpers for the rootless container deploy (tasks/containers.py)."""
+"""Docker Engine (tasks/containers.py): Docker's own apt repo, replacing rootless Podman.
+
+Owner decision 2026-11-25: Podman goes (packages, images, containers, volumes); Docker Engine
+(docker-ce, root daemon, the user in the docker group) takes its place. Not Docker Desktop:
+on Linux that runs its own VM with a separate engine.
+"""
 import os
-import shutil
-import subprocess
 from pathlib import Path
 
-PACKAGES = (
-    "podman", "crun", "passt", "uidmap", "netavark", "aardvark-dns",
-    "catatonit", "containers-storage", "podman-compose",
-)
-DOCKER_SHIM = "podman-docker"
-# Installed Docker packages that conflict with podman-docker; never removed by us.
-DOCKER_PACKAGES = ("docker.io", "docker-ce", "docker-ce-cli", "docker-cli", "moby-engine", "moby-cli")
-SUBID_START = 100000
-SUBID_COUNT = 65536
-
-PODMAN_TUI_VERSION = "2.0.0"
-PODMAN_TUI_URL = (f"https://github.com/containers/podman-tui/releases/download/v{PODMAN_TUI_VERSION}/"
-                  "podman-tui-release-linux_amd64.zip")
-PODMAN_TUI_SHA256 = "de1de10344a8ab636c64c2f982bdaa4e05696b642e2dd4692872f56b3254442f"
-PODMAN_TUI_MEMBER = f"podman-tui-v{PODMAN_TUI_VERSION}/podman-tui"
-
-
-def parse_subids(text: str) -> list[tuple[str, int, int]]:
-    """Parse /etc/subuid-style text into (owner, start, count); ignore junk lines."""
-    entries = []
-    for line in text.splitlines():
-        parts = line.strip().split(":")
-        if len(parts) != 3 or line.lstrip().startswith("#"):
-            continue
-        try:
-            entries.append((parts[0], int(parts[1]), int(parts[2])))
-        except ValueError:
-            continue
-    return entries
+# download.docker.com/linux/ubuntu/gpg, dearmored. Key 9DC858229FC7DD38854AE2D88D81803C0EBFCD88
+# (Docker Release (CE deb)); it verified the resolute InRelease on 2026-11-25.
+REPO = "docker"
+KEYRING_SHA256 = "a09e26b72228e330d55bf134b8eaca57365ef44bf70b8e27c5f55ea87a8b05e2"
+PACKAGES = ("docker-ce", "docker-ce-cli", "containerd.io", "docker-buildx-plugin", "docker-compose-plugin")
+# Removed in the same transaction (docker-ce-cli and podman-docker both ship /usr/bin/docker).
+# passt and uidmap stay: libvirt and other user-namespace tools use them.
+PODMAN_PACKAGES = ("podman", "podman-docker", "podman-compose", "netavark", "aardvark-dns",
+                   "catatonit", "containers-storage", "crun")
+# Files the Podman setup wrote (all ours); removed once Podman is gone.
+PODMAN_SYSTEM_FILES = ("/etc/containers/nodocker",
+                       "/etc/containers/registries.conf.d/60-t2-containers.conf",
+                       "/etc/containers/containers.conf.d/60-t2-containers.conf")
+# /etc/docker/daemon.json. ip-forward-no-drop (Docker 28+): enabling forwarding no longer sets the
+# iptables FORWARD policy to DROP, which cuts libvirt's NAT networks off. Logs: json-file rotated.
+DAEMON_CONFIG = {
+    "ip-forward-no-drop": True,
+    "log-driver": "json-file",
+    "log-opts": {"max-size": "10m", "max-file": "3"},
+}
+COMPOSE_LINK = "/usr/local/bin/docker-compose"
+COMPOSE_PLUGIN = "/usr/libexec/docker/cli-plugins/docker-compose"
+OLD_COMPOSE_TARGET = "/usr/bin/podman-compose"
 
 
-def user_has_range(entries, user: str, uid: int, minimum: int = SUBID_COUNT) -> bool:
-    return any(owner in (user, str(uid)) and count >= minimum for owner, _, count in entries)
-
-
-def next_free_start(entries, count: int = SUBID_COUNT) -> int:
-    """First start >= SUBID_START that overlaps no existing range (other accounts untouched)."""
-    start = SUBID_START
-    for _, s, c in sorted(entries, key=lambda e: e[1]):
-        if s + c <= start:
-            continue
-        if s >= start + count:
-            break
-        start = s + c
-    return start
-
-
-def read_subids(path: str) -> list[tuple[str, int, int]]:
-    try:
-        return parse_subids(Path(path).read_text())
-    except FileNotFoundError:
-        return []
-
-
-def installed(package: str) -> bool:
-    result = subprocess.run(["dpkg-query", "-W", "-f=${Status}", package],
-                            capture_output=True, text=True, check=False)
-    return result.returncode == 0 and result.stdout.strip().endswith(" installed")
-
-
-def docker_conflicts() -> list[str]:
-    """Report foreign Docker installs/commands/env that compatibility setup must not override."""
-    found = [f"package {p} installed" for p in DOCKER_PACKAGES if installed(p)]
-    docker = shutil.which("docker")
-    if docker and not installed(DOCKER_SHIM):
-        found.append(f"existing docker command at {docker}")
-    for var in ("DOCKER_HOST", "CONTAINER_HOST", "PODMAN_COMPOSE_PROVIDER"):
-        if os.environ.get(var):
-            found.append(f"environment {var} is set")
-    return found
-
-
-def compose_link_state(path: str = "/usr/local/bin/docker-compose",
-                       target: str = "/usr/bin/podman-compose") -> str:
-    """'absent', 'owned' (already our link) or 'foreign'."""
+def compose_link_state(path: str = COMPOSE_LINK) -> str:
+    """'absent', 'ours' (our old podman-compose link or the new plugin link) or 'foreign'."""
     p = Path(path)
-    if p.is_symlink() and os.readlink(p) == target:
-        return "owned"
+    if p.is_symlink() and os.readlink(p) in (OLD_COMPOSE_TARGET, COMPOSE_PLUGIN):
+        return "ours"
     if p.exists() or p.is_symlink():
-        return "foreign"
-    other = shutil.which("docker-compose")
-    if other and Path(other).resolve() != Path(target):
         return "foreign"
     return "absent"

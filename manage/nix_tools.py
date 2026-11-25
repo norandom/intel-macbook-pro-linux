@@ -15,7 +15,7 @@ import re
 # rustfs-cli), uv (bootstrap needs it before Nix), node/npm (nvm) and rustup (Ubuntu archive:
 # nixpkgs' rustup patches every toolchain it downloads to Nix's glibc; see manage/rust_toolchains.py).
 DEFAULT_TOOLS = (
-    "zellij", "kubectl", "kubernetes-helm", "k9s", "ktop", "bitwarden-cli", "rclone", "podman-tui",
+    "zellij", "kubectl", "kubernetes-helm", "k9s", "ktop", "bitwarden-cli", "rclone", "lazydocker",
     "btop", "ripgrep", "fd", "bat", "jq", "fzf", "lazygit", "glow", "gh", "gdu", "trippy",
     "multitail", "aria2", "go", "nim", "nimble", "nimlangserver", "nano-syntax-highlighting",
     "netcat-openbsd", "gef", "rizin", "valgrind", "lftp", "byobu", "eza", "uutils-coreutils",
@@ -24,10 +24,10 @@ DEFAULT_TOOLS = (
 
 # Application-catalog ids that were GitHub-release binaries before -> nixpkgs attribute.
 # While the attribute is in nix_tools, Nix owns the tool; remove it from nix_tools and the
-# release route (tasks/apps.py, or tasks/containers.py for podman-tui) installs it again.
+# release route (tasks/apps.py) installs it again.
 MIGRATED = {
     "zellij": "zellij", "kubectl": "kubectl", "helm": "kubernetes-helm", "k9s": "k9s",
-    "ktop": "ktop", "bw": "bitwarden-cli", "rclone": "rclone", "podman-tui": "podman-tui",
+    "ktop": "ktop", "bw": "bitwarden-cli", "rclone": "rclone",
 }
 # Catalog ids installed by apt (system-wide, stay installed) that Nix shadows in the user's PATH.
 NIX_PREFERRED = {

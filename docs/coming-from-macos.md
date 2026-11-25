@@ -43,7 +43,7 @@ installs or configures are listed. Where there's no counterpart, the table says 
 | Safari | Vivaldi (default), Chromium, Firefox Developer Edition, Zen |
 | Notes, Bear | Obsidian, Typora |
 | Homebrew | A pinned Nix profile for CLI tools (`nix_tools_extra`, [nix.md](nix.md)), apt for the rest |
-| Docker Desktop | Rootless Podman with `docker` and `docker compose`, and Podman Desktop |
+| Docker Desktop | Docker Engine (`docker`, `docker compose`, `docker buildx`), lazydocker as the UI |
 | Parallels, VMware Fusion, UTM | virt-manager on KVM, with UEFI and a virtual TPM for Windows 11 |
 | Screen Sharing | RDP into the Hyprland session over Tailscale ([remote-access.md](remote-access.md)) |
 | Microsoft Remote Desktop | 1-1 (own RDP client) |

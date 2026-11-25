@@ -105,7 +105,7 @@ class MigrationTests(unittest.TestCase):
         migrated = set(nt.MIGRATED)
         self.assertFalse(migrated & set(apps.RELEASE_TOOLS))
         self.assertFalse(migrated & set(apps.release_tools()))
-        self.assertEqual(set(apps.RELEASE_FALLBACK), migrated - {"podman-tui"})
+        self.assertEqual(set(apps.RELEASE_FALLBACK), migrated)
         cat = apps.catalog()
         for app_id in migrated:
             self.assertEqual(cat[app_id][0], "nix", app_id)
@@ -114,7 +114,7 @@ class MigrationTests(unittest.TestCase):
         self.assertEqual(set(apps.release_tools(())), set(apps.RELEASE_TOOLS) | set(apps.RELEASE_FALLBACK))
         cat = apps.catalog(())
         self.assertEqual(cat["zellij"][0], "release")
-        self.assertEqual(cat["podman-tui"][0], "delegated")
+        self.assertEqual(cat["podman-tui"][0], "excluded")   # Docker Engine replaced Podman
 
     def test_attributes_are_in_the_default_set(self):
         self.assertLessEqual(set(nt.MIGRATED.values()) | set(nt.NIX_PREFERRED.values()), set(nt.DEFAULT_TOOLS))

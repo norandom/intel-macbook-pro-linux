@@ -16,7 +16,6 @@ Pins live in manage/applications.py (VENDOR_REPOS / VENDOR_DEBS / VENDOR_TARBALL
 Re-run tasks/themes.py afterwards: it only themes Sublime/VS Code/Positron once they exist.
 """
 import hashlib
-import json
 import os
 from pathlib import Path
 import shlex
@@ -192,23 +191,6 @@ files.put(name="Zen desktop entry (not set as default browser)", dest=f"{apps_di
               "Terminal=false\n"))
 _apparmor("t2-zen")
 
-# Podman Desktop: talks to the rootless podman.socket from tasks/containers.py.
-version, url, sha, _exe = VENDOR_TARBALLS["podman-desktop"]
-pd = f"{opt}/podman-desktop-{version}"
-if not os.access(f"{pd}/podman-desktop", os.X_OK):
-    _unpack("podman-desktop", version, url, sha, strip=1)
-files.link(name="~/.local/bin/podman-desktop", path=f"{bin_dir}/podman-desktop", target=f"{pd}/podman-desktop",
-           create_remote_dir=True)
-icon = f"{home}/.local/share/icons/hicolor/512x512/apps/podman-desktop.png"
-files.put(name="Podman Desktop icon", src=str(src / "podman-desktop.png"), dest=icon, mode="644",
-          create_remote_dir=True)
-files.put(name="Podman Desktop desktop entry", dest=f"{apps_dir}/podman-desktop.desktop", mode="644",
-          create_remote_dir=True, src=StringIO(
-              "[Desktop Entry]\nType=Application\nName=Podman Desktop\nComment=Manage Podman containers\n"
-              f"Exec={pd}/podman-desktop %U\nIcon={icon}\nCategories=Development;\n"
-              "Terminal=false\n"))
-_apparmor("t2-podman-desktop")
-
 # Telegram: self-updating like Zen, so an existing ~/.local/opt/telegram-* is kept as is. At
 # its first start it writes its own menu entry (org.telegram.desktop*.desktop, icon, tg:// link
 # handler); ours only bridges until then and is removed once Telegram's exists.
@@ -265,21 +247,6 @@ rm -rf "{xt}" && mv -T "$t/squashfs-root" "{xt}" """])
 files.link(name="~/.local/bin/xtool", path=f"{bin_dir}/xtool", target=f"{xt}/AppRun", create_remote_dir=True)
 
 
-def _podman_desktop_no_self_update():
-    """The pin is the update path: turn off its update check unless the user chose otherwise."""
-    path = Path(home, ".local/share/containers/podman-desktop/configuration/settings.json")
-    data = json.loads(path.read_text()) if path.is_file() else {}
-    wanted = {"preferences.update.appUpdate": False, "preferences.update.reminder": "never"}
-    if all(k in data for k in wanted):
-        return
-    data = {**wanted, **data}
-    path.parent.mkdir(parents=True, exist_ok=True)
-    tmp = path.with_suffix(".json.tmp")
-    tmp.write_text(json.dumps(data, indent=2) + "\n")
-    os.replace(tmp, path)
-
-
-python.call(name="Podman Desktop: no self-update (pin is the update path)", function=_podman_desktop_no_self_update)
 logger.info("vendor_apps: re-run tasks/themes.py so Sublime/VS Code/Positron get their themes.")
 
 # Zoom's .deb hard-depends on ibus. Pin this user's input method to "none" (im-config's

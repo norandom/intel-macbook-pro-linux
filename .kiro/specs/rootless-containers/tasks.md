@@ -36,3 +36,5 @@ Run: `.venv/bin/pyinfra @local tasks/containers.py` (preview with `--dry`).
       `/etc/containers` fragments, the docker-compose link and `~/.local/opt/podman-tui-*` — remove by hand.
 - [ ] Optional CPU weight adoption: needs observed cgroup placement; owner decision.
 - [ ] Logout/reboot lifecycle checks: manual.
+- [x] Superseded 2026-11-25 (owner): Docker Engine from Docker's apt repo replaces rootless Podman
+      (tasks/containers.py); Podman packages, data, podman-tui and Podman Desktop removed.

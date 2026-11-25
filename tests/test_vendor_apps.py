@@ -21,7 +21,7 @@ DEB_PATHS = {"obsidian": "/obsidianmd/obsidian-releases/", "fedistar": "/h3potet
              "mindwtr": "/dongdongbh/Mindwtr/releases/download/v", "1-1": "/norandom/1-1/releases/download/v"}
 TARBALL_HOSTS = {"mendeley": "static.mendeley.com"}   # default: github.com
 TARBALL_PATHS = {"mendeley": "/bin/desktop/mendeley-reference-manager-", "zed": "/zed-industries/zed/", "telegram": "/telegramdesktop/tdesktop/", "zen": "/zen-browser/desktop/",
-                 "podman-desktop": "/podman-desktop/podman-desktop/", "xtool": "/xtool-org/xtool/"}
+                 "xtool": "/xtool-org/xtool/"}
 
 
 class RepoTests(unittest.TestCase):
@@ -135,7 +135,6 @@ class ConfigTests(unittest.TestCase):
 class AppArmorTests(unittest.TestCase):
     def test_profiles_are_ubuntu_style_userns_only(self):
         for name, binary in (("t2-zen", "/home/*/.local/opt/zen-*/zen/zen{,-bin}"),
-                             ("t2-podman-desktop", "/home/*/.local/opt/podman-desktop-*/podman-desktop"),
                              ("t2-mendeley", "/home/*/.local/opt/mendeley-*/mendeley-reference-manager")):
             text = (SRC / name).read_text()
             self.assertIn(f"profile {name} {binary} flags=(unconfined) {{", text)
