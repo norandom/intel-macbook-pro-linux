@@ -37,7 +37,7 @@ LANGS = ("python", "nodejs", "rust", "golang", "nim", "c", "java", "lua", "ruby"
 
 _BODY = r'''"$schema" = "https://starship.rs/config-schema.json"
 add_newline = false
-command_timeout = 800
+command_timeout = 2000
 palette = "{palette}"
 
 format = """$status$username$hostname$directory$git_branch$git_state$git_status\

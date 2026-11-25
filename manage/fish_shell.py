@@ -53,6 +53,17 @@ function __t2_multicd
     echo cd (string repeat -n (math (string length -- $argv[1]) - 1) ../)
 end
 abbr --add __t2_dotdot --regex '^\.\.+$' --function __t2_multicd
+# Ghostty integration (ssh terminfo/env, sudo, cursor): Ghostty injects it only into the shell it
+# starts, which is bash; after the hand-over to fish, load it here.
+if set -q GHOSTTY_RESOURCES_DIR; and not functions -q __ghostty_setup
+    set -l gi $GHOSTTY_RESOURCES_DIR/shell-integration/fish/vendor_conf.d/ghostty-shell-integration.fish
+    test -r $gi; and source $gi
+end
+# bash's !!: expands to the previous command line (sudo !! -> sudo <last command>)
+function __t2_last_history_item
+    echo $history[1]
+end
+abbr --add !! --position anywhere --function __t2_last_history_item
 
 # --- directory history: cd -N goes N directories back (grml auto_pushd); cdh, prevd, nextd --
 if not functions -q __t2_fish_cd
@@ -163,8 +174,14 @@ function fish_prompt
     printf '%s%s%s' (set_color $t2_color_git) (fish_git_prompt) (set_color normal)
     fish_is_root_user; and echo -n ' # '; or echo -n ' $ '
 end
+# Tab/window title: the running program (claude, nvim, ssh, ...); the directory while idle
 function fish_title
-    basename -- $PWD
+    set -l cmd (string split -n -f1 -- ' ' (string trim -- "$argv[1]"))
+    if test -n "$cmd"
+        path basename -- $cmd
+    else
+        basename -- $PWD
+    end
 end
 
 # --- how long the last command took (right side, from 2 s) ---------------------------------

@@ -207,7 +207,10 @@ class FishExtrasTests(unittest.TestCase):
         from manage import fish_shell as fs
         text = fs.fish_conf(())
         for needle in ("fzf --fish | source", "--on-event fish_postexec", "function fish_right_prompt",
-                       "set -q t2_color_git; or set -g t2_color_git"):
+                       "set -q t2_color_git; or set -g t2_color_git",
+                       "abbr --add !! --position anywhere --function __t2_last_history_item",  # sudo !!
+                       "path basename -- $cmd",
+                       "shell-integration/fish/vendor_conf.d/ghostty-shell-integration.fish"):  # ssh terminfo                                              # title = program
             self.assertIn(needle, text)
 
     def test_termtheme_switches_fish(self):

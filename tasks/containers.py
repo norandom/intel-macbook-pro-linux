@@ -19,11 +19,13 @@ from pathlib import Path
 from shlex import quote
 
 from pyinfra import local, logger
-from pyinfra.operations import files, server
+from pyinfra.operations import files, server, systemd
 
+from manage import build_limits as bl
 from manage import containers as c
 from manage.packages import _installed as installed, schedule_batch
 from manage.preflight import validate_local_context
+from manage.userconfig import setting
 
 validate_local_context()
 
@@ -47,9 +49,21 @@ files.put(name="Docker archive key", src=str(src / "docker-keyring.gpg"),
 files.put(name="Docker apt source (resolute stable)", src=str(src / "docker.list"),
           dest=f"/etc/apt/sources.list.d/{c.REPO}.list", mode="0644", _sudo=True)
 
+# --- containers.slice: the desktop's free core stays free, containers give way (build_limits) --
+reserved = int(setting("reserved_cores", 1))
+online, groups = bl.topology()
+if reserved > 0:
+    slice_unit = files.put(name=f"{bl.SLICE}: containers off the desktop core, CPU weight {bl.SLICE_WEIGHT}",
+                           src=StringIO(bl.slice_unit(bl.allowed(online, groups, reserved))),
+                           dest=f"/etc/systemd/system/{bl.SLICE}", mode="0644", _sudo=True)
+else:
+    slice_unit = files.file(name=f"{bl.SLICE} removed (reserved_cores = 0)",
+                            path=f"/etc/systemd/system/{bl.SLICE}", present=False, _sudo=True)
+systemd.daemon_reload(name="systemd: reload for containers.slice", _if=slice_unit.did_change, _sudo=True)
+
 # --- daemon.json (before the install, so the first start already uses it) -------------------
-daemon = files.put(name="/etc/docker/daemon.json (no FORWARD DROP for libvirt, capped logs)",
-                   src=StringIO(json.dumps(c.DAEMON_CONFIG, indent=2) + "\n"),
+daemon = files.put(name="/etc/docker/daemon.json (no FORWARD DROP for libvirt, capped logs, containers.slice)",
+                   src=StringIO(json.dumps(c.daemon_config(bl.SLICE if reserved > 0 else ""), indent=2) + "\n"),
                    dest="/etc/docker/daemon.json", mode="0644", create_remote_dir=True, _sudo=True)
 
 # --- Podman out, Docker in: one guarded transaction ------------------------------------------
@@ -70,6 +84,8 @@ server.shell(
     _sudo=True,
 )
 server.shell(
+    # A restart stops running containers (a Dagger engine is started again by the next `dagger` call);
+    # containers keep the cgroup they were created in: recreate old ones to move them into containers.slice.
     name="Docker: validate daemon.json and restart a running daemon (config changed)",
     commands=["dockerd --validate --config-file /etc/docker/daemon.json",
               "systemctl is-active -q docker.service && systemctl restart docker.service || true"],

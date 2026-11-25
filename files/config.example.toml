@@ -49,6 +49,11 @@
 # their pinned release binary; [] keeps only apt and release tools.
 
 # (GCC is the compiler everywhere; Intel oneAPI on request: `intel make`, `nim-icx c x.nim`)
+# reserved_cores = 1               # cores (with both threads) kept free of terminal jobs and Docker
+#                                  # containers, so typing stays instant during builds/tests; 0 = off
+# build_jobs = 0                   # GOMAXPROCS, CARGO_BUILD_JOBS, RUST_TEST_THREADS, NEXTEST_TEST_THREADS,
+#                                  # PYTEST_XDIST_AUTO_NUM_WORKERS, CMAKE/CTEST_PARALLEL_LEVEL; 0 = the
+#                                  # allowed threads (14 here). `allcores <cmd>`: one command on every CPU
 # safe_chain = false               # Aikido Safe Chain wraps npm/npx/pnpm/yarn/bun/pip/uv/poetry
 # rclone_mounts = {}               # { gdrive = "GoogleDrive", onedrive = "OneDrive" }: user mounts, never fstab
 # rclone_cache_size = "10G"        # VFS cache per mount

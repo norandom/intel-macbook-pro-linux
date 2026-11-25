@@ -46,6 +46,8 @@ Read by `tasks/desktop.py` (fonts: `tasks/fonts.py`).
 | `cursor_size` | `24` | e.g. `48` for a much bigger pointer |
 | `password_store` | `"kwallet6"` with KDE, else `"gnome-libsecret"` | Password backend for Chromium and Electron apps; `""` = don't set one |
 | `browser_video` | `true` | Vivaldi/Chromium: VA-API video decoding on the Intel GPU, YouTube kept off AV1 (enhanced-h264ify) |
+| `reserved_cores` | `1` | Cores (both threads) kept free of terminal jobs and Docker containers; `0` = off |
+| `build_jobs` | `0` | Job count for GOMAXPROCS, cargo, nextest, pytest-xdist, CMake/CTest; `0` = the allowed threads |
 | `gpu_mode` | `"battery"` | First-run GPU mode; afterwards `hypr-gpu` decides |
 | `bar_graphs` | `false` | CPU, memory and network as sparklines instead of numbers |
 | `decorations_style` | `"win311"` | Initial title bar style (`"win311"` or `"mac"`); afterwards `hypr-deco` |

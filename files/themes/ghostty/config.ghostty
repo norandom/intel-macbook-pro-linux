@@ -6,8 +6,11 @@
 # Super belongs to Hyprland.
 config-file = ?theme
 
-# Tabs: slim, flat, only as wide as their titles; the colours come with the theme
-# (themes/*.css, the same as Terminator's tab line)
+# Tabs: slim, flat, only as wide as their titles, pinned at the bottom like Terminator's
+# (always shown, also with one tab); the colours come with the theme (themes/*.css, the
+# same as Terminator's tab line)
+gtk-tabs-location = bottom
+window-show-tab-bar = always
 gtk-wide-tabs = false
 gtk-toolbar-style = flat
 resize-overlay = never
@@ -31,7 +34,10 @@ clipboard-paste-protection = false
 clipboard-trim-trailing-spaces = true
 
 shell-integration = detect
-shell-integration-features = cursor,sudo,title
+# ssh-terminfo: on the first ssh to a host, install Ghostty's terminfo there (needs `tic` on the
+# host; cached per host), so byobu/tmux/htop know TERM=xterm-ghostty; ssh-env: falls back to
+# xterm-256color where that fails.
+shell-integration-features = cursor,sudo,title,ssh-env,ssh-terminfo
 
 confirm-close-surface = false
 # No "Reloaded the configuration" pop-up when hypr-termtheme switches the theme

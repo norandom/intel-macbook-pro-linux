@@ -19,6 +19,7 @@ from pyinfra.operations import files, python, server, systemd
 
 from manage.packages import PackageRequest, install_packages
 from manage.preflight import validate_local_context
+from manage import build_limits as bl
 from manage import fish_shell
 from manage import starship as starship_cfg
 from manage import shell_tools as cfg
@@ -294,6 +295,21 @@ files.block(
     path=str(home / ".bashrc"), marker=cfg.DEVTOOLS_MARKER, content=cfg.devtools_block(safe_chain),
     before=True, line="BEGIN t2-mac-kde: ble.sh attach", try_prevent_shell_expansion=True, backup=True,
 )
+
+# --- Heavy jobs leave the desktop a free core; build/test job variables (manage/build_limits.py) --
+reserved_cores = int(setting("reserved_cores", 1))
+online, groups = bl.topology()
+heavy_cpus = bl.allowed(online, groups, reserved_cores)
+heavy_jobs = bl.jobs(heavy_cpus, setting("build_jobs", 0))
+files.block(
+    name=f"bash: CPUs {bl.fmt_list(heavy_cpus)} for terminal jobs, {heavy_jobs} jobs (GOMAXPROCS, cargo, nextest, xdist, cmake)",
+    path=str(home / ".bashrc"), marker=bl.MARKER, content=bl.bash_block(heavy_cpus, online, heavy_jobs),
+    before=True, line="BEGIN t2-mac-kde: ble.sh attach", try_prevent_shell_expansion=True, backup=True,
+)
+if fish:
+    files.put(name="fish: free desktop core, build/test job limits (~/.config/fish/conf.d/t2-build-limits.fish)",
+              src=StringIO(bl.fish_conf(heavy_cpus, online, heavy_jobs)),
+              dest=str(home / ".config/fish/conf.d/t2-build-limits.fish"), mode="644", create_remote_dir=True)
 nim_cfg = home / ".config/nim/nim.cfg"
 if nim_cfg.exists() and "Managed by t2-mac-kde" in nim_cfg.read_text():
     files.file(name="Nim: back to GCC (remove our icx nim.cfg)", path=str(nim_cfg), present=False)

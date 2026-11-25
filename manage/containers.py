@@ -27,6 +27,12 @@ DAEMON_CONFIG = {
     "log-driver": "json-file",
     "log-opts": {"max-size": "10m", "max-file": "3"},
 }
+
+
+def daemon_config(cgroup_parent: str = "") -> dict:
+    """DAEMON_CONFIG, with containers in cgroup_parent (a top-level systemd slice) when given:
+    manage/build_limits.py keeps the desktop's core free of them."""
+    return {**DAEMON_CONFIG, **({"cgroup-parent": cgroup_parent} if cgroup_parent else {})}
 COMPOSE_LINK = "/usr/local/bin/docker-compose"
 COMPOSE_PLUGIN = "/usr/libexec/docker/cli-plugins/docker-compose"
 OLD_COMPOSE_TARGET = "/usr/bin/podman-compose"
