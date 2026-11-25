@@ -333,16 +333,28 @@ gpu_state = f"{home}/.local/state/t2-mac-kde/gpu-mode"
 if not os.path.exists(gpu_state):
     files.put(name=f"GPU mode seed: {gpu_mode} (config gpu_mode; hypr-gpu changes it)", src=StringIO(gpu_mode + "\n"),
               dest=gpu_state, mode="644", create_remote_dir=True)
+
+
+def gpu_env(var):
+    """Shell lines that set the compositor's GPU list from the hypr-gpu mode file."""
+    return ('if [ -e /dev/dri/intel-igpu ]; then\n'
+            f'  case "$(cat "{gpu_state}" 2>/dev/null)" in\n'
+            f'    external) if [ -e /dev/dri/amd-dgpu ]; then export {var}=/dev/dri/intel-igpu:/dev/dri/amd-dgpu; fi ;;\n'
+            f'    *) export {var}=/dev/dri/intel-igpu ;;\n'
+            '  esac\n'
+            'fi\n')
+
+
 owned_put(StringIO(
     f"# {MARKER}\n"
     f"export XCURSOR_THEME={cursor_theme}\nexport XCURSOR_SIZE={cursor_size}\n"
-    'if [ -e /dev/dri/intel-igpu ]; then\n'
-    f'  case "$(cat "{gpu_state}" 2>/dev/null)" in\n'
-    '    external) if [ -e /dev/dri/amd-dgpu ]; then export AQ_DRM_DEVICES=/dev/dri/intel-igpu:/dev/dri/amd-dgpu; fi ;;\n'
-    '    *) export AQ_DRM_DEVICES=/dev/dri/intel-igpu ;;\n'
-    '  esac\n'
-    'fi\n'
+    + gpu_env("AQ_DRM_DEVICES")
     + nix_session_path), f"{cfg}/uwsm/env-hyprland")
+# KDE: the same GPU set for KWin, sourced by startplasma before KWin starts. With both GPUs KWin
+# keeps test-committing the AMD side of the muxed internal panel (card2-eDP-2: "connected", no
+# modes): "amdgpu: Adding stream ... failed with err 28" and a 2-3 s compositor freeze, e.g. when
+# Penguin Mail opened a window (2026-11-24 16:25, 2026-11-25 08:20).
+owned_put(StringIO(f"# {MARKER}\n" + gpu_env("KWIN_DRM_DEVICES")), f"{cfg}/plasma-workspace/env/t2-gpu.sh")
 gpu_rule = files.put(name="udev: stable GPU names /dev/dri/intel-igpu, /dev/dri/amd-dgpu", src=f"{SRC}/udev/61-t2-gpu-names.rules",
                      dest="/etc/udev/rules.d/61-t2-gpu-names.rules", mode="644", _sudo=True)
 server.shell(name="udev: apply the GPU names now", _if=gpu_rule.did_change, _sudo=True,

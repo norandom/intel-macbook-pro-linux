@@ -42,7 +42,7 @@ t2-battery limit    # back to the configured limit (or `limit 60`)
 The Intel iGPU drives the built-in display. The AMD GPU can't be powered off on this Mac, but it
 can be left idle. It has to stay available because the external display ports are wired to it.
 
-| Mode | Hyprland renders on | External displays |
+| Mode | Hyprland and KDE render on | External displays |
 |---|---|---|
 | `battery` (default) | Intel only | off |
 | `external` | Intel, AMD drives the ports | on |
@@ -58,7 +58,10 @@ hypr-gpu status           # configured vs running mode, AMD load and watts
 ```
 
 `gpu_mode` in the config only sets the mode on the first run; after that `hypr-gpu` decides.
-KDE isn't affected by either mode.
+KDE follows the same mode (`KWIN_DRM_DEVICES` in `~/.config/plasma-workspace/env/t2-gpu.sh`).
+With both GPUs KWin kept testing the AMD side of the switched internal panel, which froze the
+desktop for 2-3 s (`amdgpu: Adding stream ... failed with err 28`). For an external monitor in
+KDE, run `hypr-gpu external` first, as in Hyprland.
 
 ## Memory pressure
 
