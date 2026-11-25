@@ -61,6 +61,13 @@ class SessionScopeTests(unittest.TestCase):
         self.assertIn("WantedBy=hypr-desktop.target plasma-workspace.target", unit)
         self.assertIn("systemctl --user reenable easyeffects.service", (ROOT / "tasks/audio_effects.py").read_text())
 
+    def test_blueman_autostart_skips_kde(self):
+        task = (ROOT / "tasks/desktop.py").read_text()
+        block = task[task.index("Blueman only outside KDE"):task.index('f"{cfg}/autostart/blueman.desktop"')]
+        self.assertIn("NotShowIn=KDE;", block)
+        self.assertIn("Exec=blueman-applet", block)
+        self.assertIn("exec-once = uwsm app -- blueman-applet", (ROOT / "files/desktop/hypr/laptop.conf").read_text())
+
     def test_kde_session_units_have_no_ordering_cycle(self):
         # plasma-workspace.target is Before=graphical-session.target: a unit it wants must not be
         # After=/Requisite= graphical-session.target, or systemd drops its job at login.

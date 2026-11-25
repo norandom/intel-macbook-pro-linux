@@ -313,6 +313,13 @@ bar_ops = [
 ]
 owned_put(f"{SRC}/mako/config", f"{cfg}/mako/config")
 owned_put(f"{SRC}/fuzzel/fuzzel.ini", f"{cfg}/fuzzel/fuzzel.ini")
+# Blueman is for Hyprland (laptop.conf exec-once). Its package autostarts it in every desktop, so
+# KDE showed two Bluetooth tray icons (Blueman + Plasma's own applet). This user copy of the entry
+# keeps it out of KDE only (nm-applet's own entry already says NotShowIn=KDE).
+owned_put(StringIO(
+    f"# {MARKER}: Blueman only outside KDE (Plasma has its own Bluetooth applet)\n"
+    "[Desktop Entry]\nType=Application\nName=Blueman Applet\nComment=Blueman Bluetooth Manager\n"
+    "Icon=blueman\nExec=blueman-applet\nTerminal=false\nNotShowIn=KDE;\n"), f"{cfg}/autostart/blueman.desktop")
 seed(f"{SRC}/xdg-terminals.list", f"{cfg}/xdg-terminals.list")
 seed(f"{SRC}/xfe/xferc", f"{cfg}/xfe/xferc")   # Windows 3.11 colours; Xfe keeps user changes
 seed(f"{SRC}/hypr/touchpad.conf", f"{cfg}/hypr/touchpad.conf")   # hypr-touchpad owns it afterwards
