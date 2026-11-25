@@ -63,6 +63,10 @@ GCC and make come from Ubuntu, and GCC is the compiler everywhere: C and C++, Go
 the C parts of Rust crates (cc-rs, cmake-rs), Nim and V. Builds then link only against the
 system's libraries, so what you ship runs on a normal Ubuntu.
 
+Clang (`clang`, `clang++`, Ubuntu's default LLVM) is installed next to it for when you want it:
+`CC=clang CXX=clang++ make`, `cmake -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++`.
+It is never made the default.
+
 Intel's oneAPI `icx`/`icpx` are installed from Intel's apt repo (`tasks/vendor_apps.py`) but
 stay off your PATH. Use them for one command when you want them:
 

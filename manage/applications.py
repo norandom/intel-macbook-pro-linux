@@ -252,7 +252,7 @@ _DEB = "pinned vendor .deb (sha256), guarded install"
 OTHER = {
     # foundation CLI list (installed there, observed here)
     **{p: ("delegated", _FOUNDATION, exe, None) for p, exe in (
-        ("git", "git"), ("bat", "batcat"), ("fd-find", "fdfind"), ("fzf", "fzf"), ("gcc", "gcc"),
+        ("git", "git"), ("bat", "batcat"), ("fd-find", "fdfind"), ("fzf", "fzf"), ("gcc", "gcc"), ("clang", "clang"),
         ("make", "make"), ("ripgrep", "rg"), ("tree", "tree"), ("unzip", "unzip"), ("neovim", "nvim"),
         ("curl", "curl"), ("ca-certificates", None), ("jq", "jq"), ("htop", "htop"), ("btop", "btop"))},
     "cliphist": ("delegated", "hyprland-desktop", "cliphist", None),

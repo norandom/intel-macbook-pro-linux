@@ -9,6 +9,7 @@ install_packages(PackageRequest(
     packages=(
         "curl", "ca-certificates", "git", "jq", "unzip", "7zip", "7zip-rar", "htop", "btop",
         "neovim", "ripgrep", "fd-find", "fzf", "gcc", "make", "bat", "tree",
+        "clang",  # clang/clang++ on request; GCC stays the default compiler (manage/shell_tools.py)
     ),
     source='ubuntu',
 ))
