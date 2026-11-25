@@ -52,6 +52,7 @@ class DockerEngineTests(unittest.TestCase):
         self.assertIn("usermod -aG docker", TASK)
 
     def test_podman_leftovers_go(self):
+        self.assertIn("rc*) dpkg --purge", TASK)          # profile.d DOCKER_HOST script goes
         for marker in ("podman.socket", "unset-environment DOCKER_HOST", '"podman-tui", "podman-desktop"',
                        "/etc/apparmor.d/t2-podman-desktop"):
             self.assertIn(marker, TASK)

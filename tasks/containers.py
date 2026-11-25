@@ -89,6 +89,15 @@ else:
                target=c.COMPOSE_PLUGIN, _sudo=True)
 
 # --- Podman leftovers -----------------------------------------------------------------------
+# apt removes but keeps conffiles ("rc"): podman-docker's /etc/profile.d/podman-docker.sh would
+# keep pointing every login shell's DOCKER_HOST at the gone podman socket (2026-11-25), podman
+# keeps libpod.conf and a CNI bridge. Purge only packages already removed ("rc"), nothing installed.
+server.shell(
+    name="Podman: purge the config files the removed packages left (DOCKER_HOST profile.d script)",
+    commands=["for p in " + " ".join(c.PODMAN_PACKAGES) + "; do "
+              "case \"$(dpkg-query -W -f='${db:Status-Abbrev}' \"$p\" 2>/dev/null)\" in rc*) dpkg --purge \"$p\" ;; esac; done"],
+    _sudo=True,
+)
 for path in c.PODMAN_SYSTEM_FILES:
     files.file(name=f"Podman setup: remove {path}", path=path, present=False, _sudo=True)
 server.shell(
