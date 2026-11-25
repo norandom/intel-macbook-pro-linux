@@ -8,6 +8,7 @@
 # cursor_theme = "breeze_cursors"  # "t2-highvis" = large white arrow, red outline (accessibility)
 # cursor_size = 24                 # e.g. 48 for a much bigger pointer; SUPER+SHIFT+C flashes it
 # password_store = "kwallet6"    # Chromium/Electron apps: KDE wallet (default if KDE is installed); "" = off
+# browser_video = true           # Vivaldi/Chromium: VA-API video decoding on the Intel GPU, YouTube without AV1 (enhanced-h264ify)
 # gpu_mode = "battery"            # Hyprland GPUs: battery (Intel only) | external (AMD outputs too);
 #                                  # first-run default, then switch with hypr-gpu battery|external
 # bar_graphs = false               # CPU/MEM/net as sparklines instead of numbers

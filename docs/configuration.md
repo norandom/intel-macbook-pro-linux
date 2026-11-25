@@ -45,6 +45,7 @@ Read by `tasks/desktop.py` (fonts: `tasks/fonts.py`).
 | `cursor_theme` | `"breeze_cursors"` | `"t2-highvis"` = large white arrow with a red outline |
 | `cursor_size` | `24` | e.g. `48` for a much bigger pointer |
 | `password_store` | `"kwallet6"` with KDE, else `"gnome-libsecret"` | Password backend for Chromium and Electron apps; `""` = don't set one |
+| `browser_video` | `true` | Vivaldi/Chromium: VA-API video decoding on the Intel GPU, YouTube kept off AV1 (enhanced-h264ify) |
 | `gpu_mode` | `"battery"` | First-run GPU mode; afterwards `hypr-gpu` decides |
 | `bar_graphs` | `false` | CPU, memory and network as sparklines instead of numbers |
 | `decorations_style` | `"win311"` | Initial title bar style (`"win311"` or `"mac"`); afterwards `hypr-deco` |

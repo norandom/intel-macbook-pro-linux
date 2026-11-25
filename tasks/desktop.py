@@ -9,6 +9,7 @@ which the Hyprland config starts, so nothing runs in a KDE login.
 
 Run:  .venv/bin/pyinfra @local tasks/desktop.py [--dry]
 """
+import json
 import os
 import socket
 from io import StringIO
@@ -258,13 +259,32 @@ server.shell(name=f"GTK/portal apps: cursor {cursor_theme} {cursor_size}", comma
 
 # Chromium/Electron password backend in Hyprland = the one KDE uses (wallet), so saved
 # passwords stay readable in both sessions (config: password_store; "" disables).
+# Browsers also get VA-API video decoding on the Intel GPU, and YouTube is kept off AV1 (CPU-only
+# here) by enhanced-h264ify, force-installed by policy (config: browser_video = false disables).
 store = str(setting("password_store", "kwallet6" if os.path.exists("/usr/bin/kwalletd6") else "gnome-libsecret"))
-for app in (password_store.APPS if store else ()):
+video = bool(setting("browser_video", True))
+entry_ops = []
+for app in password_store.APPS:
     system_entry = Path("/usr/share/applications", app)
-    if system_entry.is_file():
-        files.put(name=f"{app}: --password-store={store}", dest=f"{home}/.local/share/applications/{app}",
-                  src=StringIO(password_store.override(system_entry.read_text(), store)),
-                  mode="644", create_remote_dir=True)
+    extra = password_store.VIDEO_FLAGS if video and app in password_store.VIDEO_APPS else ()
+    if system_entry.is_file() and (store or extra):
+        entry_ops.append(files.put(name=f"{app}: {' '.join(((f'--password-store={store}',) if store else ()) + extra)}",
+                  dest=f"{home}/.local/share/applications/{app}",
+                  src=StringIO(password_store.override(system_entry.read_text(), store, extra)),
+                  mode="644", create_remote_dir=True))
+# KDE launches from its menu cache (ksycoca), which did not pick up the changed entries on its own
+# (2026-11-25: the panel kept starting Vivaldi with the old flags): rebuild it when they change.
+if entry_ops and os.path.exists("/usr/bin/kbuildsycoca6"):
+    server.shell(name="KDE menu cache: rebuilt for the changed app entries", commands=["kbuildsycoca6 >/dev/null 2>&1 || true"],
+                 _if=any_changed(*entry_ops))
+if video:
+    install_packages(PackageRequest(packages=("vainfo",), source="ubuntu"))   # check: vainfo
+for policy_dir in password_store.POLICY_DIRS:
+    files.put(name=f"{policy_dir}: YouTube without AV1 (enhanced-h264ify) {'on' if video else 'off'}",
+              src=StringIO(json.dumps(password_store.POLICY, indent=2) + "\n"),
+              dest=f"{policy_dir}/t2-video.json", mode="644", create_remote_dir=True, _sudo=True) \
+        if video else files.file(name=f"{policy_dir}: t2-video.json removed", path=f"{policy_dir}/t2-video.json",
+                                 present=False, _sudo=True)
 
 # Default applications per MIME type from the user config, e.g. PDFs -> PdfCraft:
 #   [default_apps]  "application/pdf" = "ai.storyteller.pdfcraft.desktop"

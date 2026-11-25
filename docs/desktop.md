@@ -61,6 +61,14 @@ rules and polkit agent). The deploy adds a per-user drop-in
   passwords, and restarts it when it hands back empty ones. Otherwise a browser like Vivaldi
   reports a broken key store and offers to throw away its saved logins. If that dialog ever
   shows anyway: choose Quit, run `pkill kwalletd6`, start the browser again.
+- Vivaldi and Chromium decode video on the Intel GPU (VA-API, enabled in their menu entries).
+  This Mac's Intel graphics decode H.264, HEVC and VP9 but not AV1, and YouTube prefers AV1, which
+  then runs on the CPU (about 125% CPU, 31 W, fans at full speed). The enhanced-h264ify extension
+  is force-installed by policy, so YouTube serves H.264 instead (up to 1080p). In its options you
+  can allow VP9 again for higher resolutions, still decoded on the GPU; leave AV1 blocked.
+  The flags apply when the browser is started from the menu, not from a terminal; check with
+  `vainfo` and `vivaldi://gpu` ("Video Decode: Hardware accelerated"). Config `browser_video = false`
+  turns both off.
 - The deploy only rewrites files that carry its `Managed by t2-mac-kde` marker. A file of yours
   at the same path is left alone, with a warning.
 
