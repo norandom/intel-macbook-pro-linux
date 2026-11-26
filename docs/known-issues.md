@@ -131,6 +131,16 @@ lives in the kernel keyring (log: `Forcing keyctl secure key container via envir
 It ends up in the hibernation image, which goes to swap on the encrypted disk. The setting
 applies from the next login.
 
+The trade-off, for the interested: `memfd_secret` memory is hidden even from the kernel, which
+is the strongest of Bitwarden's three key stores and exactly why it can't be hibernated. With
+`keyctl` the kernel holds the key. Other programs still can't get it by dumping Bitwarden's
+memory; it is weaker only if the kernel itself is compromised (Bitwarden's source calls
+`memfd_secret` "slightly better in some cases" there). While the vault is unlocked the key is
+also part of the hibernation image, protected by the disk encryption when the machine is off.
+Vault encryption, master password and the data on disk are unchanged. To keep the stronger store
+instead, delete the file and quit Bitwarden before each hibernate; with `lid_close = "hibernate"`
+the lid then does nothing whenever Bitwarden is open.
+
 Any other app that uses `memfd_secret` blocks hibernate the same way. To find it (the holder is
 often not readable without root, as Bitwarden's process wasn't):
 
