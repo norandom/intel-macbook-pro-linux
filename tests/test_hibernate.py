@@ -71,6 +71,15 @@ class HibernateTests(unittest.TestCase):
         self.assertIn("t2-hibernate-bce", on)
         self.assertIn("systemctl disable t2-hibernate-bce.service", off)
 
+    def test_bitwarden_key_store_does_not_block_hibernate(self):
+        # memfd_secret memory makes the kernel refuse hibernation; upstream's env switch avoids it
+        task = (ROOT / "tasks/desktop.py").read_text()
+        block = task[task.index('if hibernate:'):task.index('lid_close = setting')]
+        on, off = block.split("\nelse:", 1)
+        self.assertIn('SECURE_KEY_CONTAINER_BACKEND=keyctl\\n', on)
+        self.assertIn("environment.d/60-t2-hibernate.conf", task)
+        self.assertIn("path=HIBERNATE_ENV, present=False", off)
+
     def test_rule_sorts_before_ubuntus(self):
         self.assertLess("49-t2-hibernate.rules", "com.ubuntu.desktop.rules")
 

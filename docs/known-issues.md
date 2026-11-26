@@ -99,6 +99,47 @@ Hyprland. We backport the two fixes as a patch and build the plugin in the deplo
 Sources: https://github.com/hyprwm/hyprland-plugins/pull/722,
 https://github.com/hyprwm/hyprland-plugins/commits/main/hyprbars/barDeco.cpp
 
+## Hibernate does nothing while Bitwarden runs - fixed
+
+Status: fixed, 2026-11-25. A real hibernate (21:32) and restore (2026-11-26 08:40) worked with
+Bitwarden running.
+
+What happened: Start -> Hibernate in KDE did nothing, with no error. The kernel had hibernation
+switched off:
+
+```
+$ cat /sys/power/disk
+[disabled]
+$ cat /sys/power/state
+freeze mem
+$ busctl call org.freedesktop.login1 /org/freedesktop/login1 org.freedesktop.login1.Manager CanHibernate
+s "na"
+```
+
+Kernel, boot options, swap and the resume device were the same as on the days it worked.
+
+Cause: Bitwarden desktop (2026.10.4) keeps its vault key in `memfd_secret` memory. Such memory is
+hidden even from the kernel, so it can't be written into a hibernation image, and the kernel
+refuses to hibernate for as long as any process holds some (`hibernation_available()` checks
+`secretmem_active()`). Bitwarden's log says `Using memfd_secret for secure key storage`. Quitting
+Bitwarden brought `/sys/power/disk` back at once. Secure Boot lockdown and `nohibernate` give the
+same picture and were ruled out first (`/sys/kernel/security/lockdown` was `[none]`).
+
+Fix: with `hibernate = true` the deploy writes `~/.config/environment.d/60-t2-hibernate.conf`
+with `SECURE_KEY_CONTAINER_BACKEND=keyctl`, Bitwarden's own switch for this case. The key then
+lives in the kernel keyring (log: `Forcing keyctl secure key container via environment variable`).
+It ends up in the hibernation image, which goes to swap on the encrypted disk. The setting
+applies from the next login.
+
+Any other app that uses `memfd_secret` blocks hibernate the same way. To find it (the holder is
+often not readable without root, as Bitwarden's process wasn't):
+
+```sh
+sudo sh -c 'for p in /proc/[0-9]*; do ls -l $p/fd 2>/dev/null | grep -q secretmem && echo "$p $(cat $p/comm)"; done'
+```
+
+Source: https://github.com/bitwarden/clients/blob/desktop-v2026.10.4/apps/desktop/desktop_native/secure_memory/src/secure_key/mod.rs
+
 ## Hibernate hangs the machine (T2 driver limitation) - fixed
 
 Status: fixed, 2026-11-16. A real hibernate and restore worked with keyboard, trackpad and audio

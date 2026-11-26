@@ -170,6 +170,7 @@ owned_put(f"{SRC}/kubuntu-notification-helper/whoopsie-upload-all",
 # Hibernate (config hibernate, default off): needs disk swap >= RAM (docs/hibernate-swap.md).
 # Ubuntu's polkit rules forbid it for everyone; ours allows the active local session.
 hibernate = setting("hibernate", False)
+HIBERNATE_ENV = f"{cfg}/environment.d/60-t2-hibernate.conf"
 if not isinstance(hibernate, bool):
     raise ValueError("hibernate must be true or false")
 if hibernate:
@@ -190,7 +191,18 @@ if hibernate:
     server.shell(name="Enable t2-hibernate-bce.service", _sudo=True,
                  _if=lambda: any(op.did_change() for op in bce),
                  commands=["systemctl daemon-reload", "systemctl reenable t2-hibernate-bce.service"])
+    # Bitwarden desktop keeps its vault key in memfd_secret memory. While any such memory exists
+    # the kernel switches hibernation off (/sys/power/disk "[disabled]", CanHibernate "na"): the
+    # menu entry and the lid did nothing whenever Bitwarden ran (2026-11-25). Upstream's switch
+    # moves the key into the kernel keyring. The swap the image goes to is on the encrypted disk.
+    key_env = owned_put(StringIO(f"# {MARKER}: Bitwarden's key store must not block hibernate\n"
+                                 "SECURE_KEY_CONTAINER_BACKEND=keyctl\n"), HIBERNATE_ENV)
+    if key_env is not None:   # running session too; Bitwarden itself picks it up on its next start
+        server.shell(name="Session environment: Bitwarden key store (keyctl)", _if=key_env.did_change,
+                     commands=["systemctl --user set-environment SECURE_KEY_CONTAINER_BACKEND=keyctl || true"])
 else:
+    if host.get_fact(FindInFile, path=HIBERNATE_ENV, pattern=MARKER):
+        files.file(name="Bitwarden key store back to its default (hibernate off)", path=HIBERNATE_ENV, present=False)
     server.shell(name="t2-hibernate-bce.service off (hibernate off)", _sudo=True, commands=[
         "[ ! -e /etc/systemd/system/t2-hibernate-bce.service ] || { systemctl disable t2-hibernate-bce.service; "
         "rm -f /etc/systemd/system/t2-hibernate-bce.service /usr/local/libexec/t2-hibernate-bce; "
