@@ -22,6 +22,7 @@
 
 # hibernate = false               # true: Hibernate in the power menu; needs disk swap >= RAM (docs/hibernate-swap.md)
 # lid_close = "suspend"          # "hibernate": closing the lid hibernates (needs hibernate = true)
+# bitwarden_key_store = "keyctl"  # "memfd_secret": Bitwarden's stronger key store; blocks hibernate while it runs
 # yubikey_login = false           # true: touch a registered YubiKey instead of the password (docs/security-keys.md)
 # cpu_mitigations_off = false     # true: mitigations=off via a GRUB drop-in, at the next reboot
 # fan_curve = true              # earlier CPU/GPU cooling; false restores firmware fan policy

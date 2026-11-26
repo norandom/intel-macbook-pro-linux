@@ -153,6 +153,7 @@ Read by `tasks/rdp.py`.
 |---|---|---|
 | `hibernate` | `false` | `true`: Hibernate in the power and Apps menus, allowed by a polkit rule (Ubuntu forbids it by default); needs disk swap at least as big as RAM ([hibernate-swap.md](hibernate-swap.md)). Uses `HibernateMode=shutdown`, because Apple's firmware hangs in the ACPI S4 call ([known-issues.md](known-issues.md)) |
 | `lid_close` | `"suspend"` | `"hibernate"`: closing the lid hibernates, on battery and on power; only together with `hibernate = true`. With an external monitor attached the lid is ignored, as before |
+| `bitwarden_key_store` | `"keyctl"` | Only with `hibernate = true`. `"keyctl"`: Bitwarden desktop keeps its vault key in the kernel keyring, so it does not switch hibernation off. `"memfd_secret"`: Bitwarden's own, slightly stronger store; hibernate (menu and lid) does nothing while Bitwarden runs ([known-issues.md](known-issues.md#hibernate-does-nothing-while-bitwarden-runs---fixed)). Applies from the next login |
 | `yubikey_login` | `false` | `true`: touch a registered YubiKey instead of the password for sudo, polkit, login, lock screen ([security-keys.md](security-keys.md)) |
 
 ## Example

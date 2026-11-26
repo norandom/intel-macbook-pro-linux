@@ -128,7 +128,8 @@ Done on the owner's machine on 2026-11-16: swap is 80 GiB with the same UUID, re
   (`/sys/power/disk` reads `[disabled]`, the menu entry does nothing). The deploy writes
   `~/.config/environment.d/60-t2-hibernate.conf` with `SECURE_KEY_CONTAINER_BACKEND=keyctl`
   (Bitwarden's own switch): the key lives in the kernel keyring instead. It applies from the
-  next login. Any other app that uses `memfd_secret` blocks hibernate the same way.
+  next login. `bitwarden_key_store = "memfd_secret"` keeps Bitwarden's own store instead
+  ([trade-off](known-issues.md#hibernate-does-nothing-while-bitwarden-runs---fixed)). Any other app that uses `memfd_secret` blocks hibernate the same way.
 
 ```toml
 hibernate = true          # ~/.config/t2-mac-kde/config.toml

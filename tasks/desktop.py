@@ -191,18 +191,7 @@ if hibernate:
     server.shell(name="Enable t2-hibernate-bce.service", _sudo=True,
                  _if=lambda: any(op.did_change() for op in bce),
                  commands=["systemctl daemon-reload", "systemctl reenable t2-hibernate-bce.service"])
-    # Bitwarden desktop keeps its vault key in memfd_secret memory. While any such memory exists
-    # the kernel switches hibernation off (/sys/power/disk "[disabled]", CanHibernate "na"): the
-    # menu entry and the lid did nothing whenever Bitwarden ran (2026-11-25). Upstream's switch
-    # moves the key into the kernel keyring. The swap the image goes to is on the encrypted disk.
-    key_env = owned_put(StringIO(f"# {MARKER}: Bitwarden's key store must not block hibernate\n"
-                                 "SECURE_KEY_CONTAINER_BACKEND=keyctl\n"), HIBERNATE_ENV)
-    if key_env is not None:   # running session too; Bitwarden itself picks it up on its next start
-        server.shell(name="Session environment: Bitwarden key store (keyctl)", _if=key_env.did_change,
-                     commands=["systemctl --user set-environment SECURE_KEY_CONTAINER_BACKEND=keyctl || true"])
 else:
-    if host.get_fact(FindInFile, path=HIBERNATE_ENV, pattern=MARKER):
-        files.file(name="Bitwarden key store back to its default (hibernate off)", path=HIBERNATE_ENV, present=False)
     server.shell(name="t2-hibernate-bce.service off (hibernate off)", _sudo=True, commands=[
         "[ ! -e /etc/systemd/system/t2-hibernate-bce.service ] || { systemctl disable t2-hibernate-bce.service; "
         "rm -f /etc/systemd/system/t2-hibernate-bce.service /usr/local/libexec/t2-hibernate-bce; "
@@ -212,6 +201,27 @@ else:
     files.file(name="hypr-hibernate removed (hibernate off)", path=f"{bin_dir}/hypr-hibernate", present=False)
     rule = files.file(name="polkit hibernate rule removed (hibernate off)",
                       path="/etc/polkit-1/rules.d/49-t2-hibernate.rules", present=False, _sudo=True)
+# Bitwarden desktop keeps its vault key in memfd_secret memory. While any such memory exists the
+# kernel switches hibernation off (/sys/power/disk "[disabled]", CanHibernate "na"): the menu
+# entry and the lid did nothing whenever Bitwarden ran (2026-11-25). Upstream's switch moves the
+# key into the kernel keyring. The swap the image goes to is on the encrypted disk.
+# Config bitwarden_key_store: "keyctl" (default) | "memfd_secret" (Bitwarden's own choice; it
+# blocks hibernate while Bitwarden runs). Only written with hibernate = true.
+bitwarden_key_store = setting("bitwarden_key_store", "keyctl")
+if bitwarden_key_store not in ("keyctl", "memfd_secret"):
+    raise ValueError('bitwarden_key_store must be "keyctl" or "memfd_secret"')
+if hibernate and bitwarden_key_store == "keyctl":
+    key_env = owned_put(StringIO(f"# {MARKER}: Bitwarden's key store must not block hibernate\n"
+                                 "SECURE_KEY_CONTAINER_BACKEND=keyctl\n"), HIBERNATE_ENV)
+    if key_env is not None:   # running session too; Bitwarden itself picks it up on its next start
+        server.shell(name="Session environment: Bitwarden key store (keyctl)", _if=key_env.did_change,
+                     commands=["systemctl --user set-environment SECURE_KEY_CONTAINER_BACKEND=keyctl || true"])
+elif host.get_fact(FindInFile, path=HIBERNATE_ENV, pattern=MARKER):
+    files.file(name="Bitwarden key store back to its own choice (memfd_secret)", path=HIBERNATE_ENV, present=False)
+    server.shell(name="Session environment: Bitwarden key store setting removed",
+                 commands=["systemctl --user unset-environment SECURE_KEY_CONTAINER_BACKEND || true"])
+    if hibernate:
+        logger.warning('bitwarden_key_store = "memfd_secret": hibernate (menu and lid) does nothing while Bitwarden runs')
 # Lid close (config lid_close: "suspend" default | "hibernate"; hibernate needs hibernate = true).
 # HandleLidSwitch also covers external power; docked (external monitor) stays logind's "ignore".
 lid_close = setting("lid_close", "suspend")

@@ -74,11 +74,16 @@ class HibernateTests(unittest.TestCase):
     def test_bitwarden_key_store_does_not_block_hibernate(self):
         # memfd_secret memory makes the kernel refuse hibernation; upstream's env switch avoids it
         task = (ROOT / "tasks/desktop.py").read_text()
-        block = task[task.index('if hibernate:'):task.index('lid_close = setting')]
-        on, off = block.split("\nelse:", 1)
+        block = task[task.index('bitwarden_key_store = setting'):task.index('lid_close = setting')]
+        on, off = block.split("\nelif ", 1)
+        self.assertIn('setting("bitwarden_key_store", "keyctl")', block)   # default keeps hibernate working
+        self.assertIn('if hibernate and bitwarden_key_store == "keyctl":', on)
         self.assertIn('SECURE_KEY_CONTAINER_BACKEND=keyctl\\n', on)
         self.assertIn("environment.d/60-t2-hibernate.conf", task)
+        self.assertIn("pattern=MARKER", off)                               # only our own file is removed
         self.assertIn("path=HIBERNATE_ENV, present=False", off)
+        self.assertIn("unset-environment SECURE_KEY_CONTAINER_BACKEND", off)
+        self.assertIn("logger.warning", off)                               # the cost is said at deploy time
 
     def test_rule_sorts_before_ubuntus(self):
         self.assertLess("49-t2-hibernate.rules", "com.ubuntu.desktop.rules")

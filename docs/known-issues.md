@@ -138,8 +138,9 @@ memory; it is weaker only if the kernel itself is compromised (Bitwarden's sourc
 `memfd_secret` "slightly better in some cases" there). While the vault is unlocked the key is
 also part of the hibernation image, protected by the disk encryption when the machine is off.
 Vault encryption, master password and the data on disk are unchanged. To keep the stronger store
-instead, delete the file and quit Bitwarden before each hibernate; with `lid_close = "hibernate"`
-the lid then does nothing whenever Bitwarden is open.
+instead, set `bitwarden_key_store = "memfd_secret"` (the deploy removes the file) and quit
+Bitwarden before each hibernate; with `lid_close = "hibernate"` the lid then does nothing
+whenever Bitwarden is open.
 
 Any other app that uses `memfd_secret` blocks hibernate the same way. To find it (the holder is
 often not readable without root, as Bitwarden's process wasn't):
